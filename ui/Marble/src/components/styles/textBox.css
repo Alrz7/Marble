@@ -1,0 +1,75 @@
+.editor-container {
+  background-color: #28282817;
+  border-radius: 6px;
+  margin-top: 10%;
+  margin-left: 10%;
+  padding: 8px;
+  width: 80%;
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
+.text-area {
+  opacity: 0.6;
+  background-color: #2f2f30;
+  color: #5badb3;
+  font-family: "comfortaa", "Consolas", monospace;
+  font-size: 17px;
+  line-height: 1.6;
+  border: none;
+  outline: none;
+  flex: 1;
+  resize: none;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.text-area::placeholder {
+  color: #5badb3;
+}
+
+.button {
+  background: #343434;
+  color: #e0e0e0;
+  border: 1px solid #3c3c3c23;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-family:
+    "Crf-reg",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  justify-content: center;
+  min-width: 140px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.161);
+}
+.save:hover {
+  background-color: #63f0fad6;
+  color: #2f2f30;
+}
+.reset:hover {
+  background-color: rgba(255, 93, 93, 0.842);
+  color: #2f2f30;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.15);
+}
+.boxButtons {
+  padding-left: 50%;
+  white-space: 10px;
+}

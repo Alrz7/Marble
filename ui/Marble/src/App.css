@@ -1,0 +1,26 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.main-background {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(150deg, #212121 10%,#272727 40%, #191919 84%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.mainBox{
+  align-items: center;
+  justify-content: center;
+}
