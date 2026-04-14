@@ -1,12 +1,12 @@
 package config
 
-import (
-	fig "github.com/Alrz7/fig/core"
-)
+// import (
+// 	fig "github.com/Alrz7/fig/core"
+// )
 
-var AppMain = fig.CreateNewField("./app/config/files/", "mainConfig")
+// var AppMain = fig.CreateNewField("./app/config/files/", "mainConfig")
 
-func ConfInit() {
-	AppMain.PanicRestore()
-	// AppConfig.Save()
-}
+// func ConfInit() {
+// 	AppMain.PanicRestore()
+// 	// AppConfig.Save()
+// }

@@ -1,11 +1,7 @@
 package api
 
-type ApiConf struct {
-	Port int    `json:"port"`
-	Env  string `json:"env"`
-}
-
-type Application struct {
-	Version string  `json:"version"`
-	Api     ApiConf `json:"api"`
+type api struct {
+	Version string `json:"version"`
+	Port    int    `json:"port"`
+	Env     string `json:"env"`
 }
