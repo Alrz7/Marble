@@ -3,34 +3,31 @@ package api
 import (
 	"flag"
 	"fmt"
+	"marble/config"
+	"marble/internal/log"
 	"net/http"
 	"time"
-
-	fig "github.com/Alrz7/fig/core"
 )
 
 const version = "1.0.0"
 
-var Api = api{
-	Version: "1.0.0",
-	Port:    6280,
-	Env:     "testing",
-}
-
-var ApiConfig = fig.CreateNewField("./app/config/files/", "apiConfig")
-
-func ConfInit() {
-	ApiConfig.Set("AppConfig", &Api)
-	ApiConfig.PanicRestore()
-}
-
-func Run() {
-	ConfInit()
-	fport := flag.Int("port", Api.Port, "HTTP network address")
-	flag.Parse()
-	if *fport > 1023 {
-		Api.Port = *fport
+func Setup() {
+	api := apiConfig{}
+	api.Version = version
+	api.logger = &log.DefultLogger
+	flag.IntVar(&api.Port, "port", 6280, "Api server port")
+	if api.Port <= 1023 {
+		api.logger.NewError("server Port Should Not be less than-equal 1023")
 	}
+	flag.StringVar(&api.Env, "env", "development", "Environment (development|staging|production)")
+	flag.Parse()
+	config.ApiConfig.Set("AppConfig", &api)
+	config.ApiConfig.PanicRestore()
+	api.Run()
+}
+
+func (api *apiConfig) Run() {
+	
 	mux := http.NewServeMux()
 
 	// at this time { NO INTERNET == NO HTTpROUTER} :)
@@ -45,18 +42,18 @@ func Run() {
 
 	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	mux.HandleFunc("/", Api.handleHome)
-	mux.HandleFunc("/account/", Api.hndlAccount)
+	mux.HandleFunc("/", api.handleHome)
+	mux.HandleFunc("/account/", api.hndlAccount)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", Api.Port),
+		Addr:         fmt.Sprintf(":%d", api.Port),
 		Handler:      enableCORS(mux),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
-	Logger.Infot("starting server on port %v", Api.Port)
+	Logger.Infot("starting server on port %v", api.Port)
 	err := srv.ListenAndServe()
 	Logger.Error(err, "Threre was an error while starting the Api server")
 }

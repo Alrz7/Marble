@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS pgp_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    alpha TEXT NOT NULL,
+    beta TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS alpha_messages (
+    id BIGSERIAL PRIMARY KEY,
+    session_id BIGINT NOT NULL REFERENCES pgp_sessions(id) ON DELETE CASCADE,
+    message BYTEA NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS beta_messages (
+    id BIGSERIAL PRIMARY KEY,
+    session_id BIGINT NOT NULL REFERENCES pgp_sessions(id) ON DELETE CASCADE,
+    message BYTEA NOT NULL
+);

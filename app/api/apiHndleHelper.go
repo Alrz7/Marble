@@ -4,10 +4,10 @@ import (
 	"net/http"
 )
 
-func (api *api) HealthStatus(w http.ResponseWriter, r *http.Request) {
+func (api *apiConfig) HealthStatus(w http.ResponseWriter, r *http.Request) {
 	stat := envelope{
 		"status": "available",
-		"systemInfo": map[string]string{"environment": Api.Env,
+		"systemInfo": map[string]string{"environment": api.Env,
 			"version": version},
 	}
 	err := api.writeJSON(w, http.StatusOK, stat, nil)
@@ -16,7 +16,7 @@ func (api *api) HealthStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *api) handleHome(w http.ResponseWriter, r *http.Request) {
+func (api *apiConfig) handleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		api.notFoundResponse(w, r)
 		return

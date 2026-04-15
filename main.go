@@ -1,5 +1,7 @@
 package main
 
+import "marble/app"
+
 func main() {
-	// pgp := crypto.PGP()
+	app.Main()
 }

@@ -15,7 +15,7 @@ type ProfileAdress string
 // }
 
 type PgpSession struct {
-	SessionId     uint64
+	Id     uint64
 	Alpha         ProfileAdress
 	Beta          ProfileAdress
 	AlphaMessages [][]byte

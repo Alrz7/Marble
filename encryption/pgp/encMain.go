@@ -12,7 +12,7 @@ var InMemoryTestingSessionSave []PgpSession
 
 func TestingFindSession(id uint64) *PgpSession {
 	for in, it := range InMemoryTestingSessionSave {
-		if it.SessionId == id {
+		if it.Id == id {
 			return &InMemoryTestingSessionSave[in]
 		}
 	}
@@ -28,9 +28,9 @@ func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile,
 		Alpha: alpha.Adress,
 		Beta:  beta.Adress,
 	}
-	newSession.SessionId = rand.Uint64()
-	for newSession.SessionId == 0 || false { // this should be replaced with a value checker in Db
-		newSession.SessionId = rand.Uint64()
+	newSession.Id = rand.Uint64()
+	for newSession.Id == 0 || false { // this should be replaced with a value checker in Db
+		newSession.Id = rand.Uint64()
 	}
 	pgpCryptoRefresh := crypto.PGPWithProfile(profile.RFC9580())
 
@@ -48,10 +48,10 @@ func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile,
 	pgpMessage, err := encHandle.Encrypt([]byte(message))
 	armMessage, err := pgpMessage.ArmorBytes()
 	newSession.AlphaMessages = append(newSession.AlphaMessages, armMessage)
-	alpha.Sesions[beta.Adress] = newSession.SessionId
-	beta.Sesions[alpha.Adress] = newSession.SessionId
+	alpha.Sesions[beta.Adress] = newSession.Id
+	beta.Sesions[alpha.Adress] = newSession.Id
 	newSession.Save()
-	return newSession.SessionId, nil
+	return newSession.Id, nil
 }
 
 func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *PgpSession, message string) error {

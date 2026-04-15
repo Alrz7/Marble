@@ -12,7 +12,7 @@ import (
 
 type envelope map[string]any
 
-func (api *api) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
+func (api *apiConfig) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (api *api) writeJSON(w http.ResponseWriter, status int, data envelope, head
 }
 
 // dst must be a pointer to the destination
-func (api *api) readJson(w http.ResponseWriter, r *http.Request, dst any) error {
+func (api *apiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 	dec := json.NewDecoder(r.Body)
