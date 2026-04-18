@@ -4,17 +4,17 @@ import (
 	"flag"
 	"fmt"
 	"marble/config"
-	"marble/internal/log"
+	"marble/internal"
 	"net/http"
 	"time"
 )
 
 const version = "1.0.0"
 
-func Setup() {
+func Setup(app *internal.Application) {
 	api := apiConfig{}
 	api.Version = version
-	api.logger = &log.DefultLogger
+	api.logger = app.Logger
 	flag.IntVar(&api.Port, "port", 6280, "Api server port")
 	if api.Port <= 1023 {
 		api.logger.NewError("server Port Should Not be less than-equal 1023")
@@ -27,7 +27,7 @@ func Setup() {
 }
 
 func (api *apiConfig) Run() {
-	
+
 	mux := http.NewServeMux()
 
 	// at this time { NO INTERNET == NO HTTpROUTER} :)
@@ -44,6 +44,7 @@ func (api *apiConfig) Run() {
 
 	mux.HandleFunc("/", api.handleHome)
 	mux.HandleFunc("/account/", api.hndlAccount)
+	mux.HandleFunc("/account/session", api.hndlSession)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", api.Port),

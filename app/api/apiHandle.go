@@ -2,6 +2,7 @@ package api
 
 import (
 	"marble/app/user"
+	"marble/encryption/pgp"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	var props struct {
 		Name     string `json:"name"`
 		Email    string `json:"email"`
-		Password string `json:"passsword"`
+		Password string `json:"password"`
 	}
 	err := api.readJson(w, r, &props)
 	if err != nil {
@@ -30,7 +31,8 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
-	response := envelope{"message": "user has been Created Succesfully!", "identity_key": prvIdentityKey}
+	sndIdentKey, err := prvIdentityKey.Armor()
+	response := envelope{"message": "user has been Created Succesfully!", "identity_key": sndIdentKey}
 	err = api.writeJSON(w, 200, response, nil)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
@@ -49,6 +51,7 @@ func (api *apiConfig) hndlSession(w http.ResponseWriter, r *http.Request) {
 
 func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
+		Alpha    string `json:"alpha"`
 		Beta    string `json:"beta"`
 		Message string `json:"message"`
 	}
@@ -57,6 +60,6 @@ func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	TempActiverUser := user.ActiveUser{}
-	err = TempActiverUser.CreateSession(entry.Beta, entry.Message)
+	ActvUser, err := user.GetActiveUser(pgp.ProfileAdress(entry.Alpha))
+	err = ActvUser.CreateSession(entry.Beta, entry.Message)
 }

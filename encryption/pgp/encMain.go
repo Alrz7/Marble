@@ -8,23 +8,23 @@ import (
 	"github.com/ProtonMail/gopenpgp/v3/profile"
 )
 
-var InMemoryTestingSessionSave []PgpSession
+var InMemoryTestingSessionSave []Session
 
-func TestingFindSession(id uint64) *PgpSession {
+func TestingFindSession(id uint64) *Session {
 	for in, it := range InMemoryTestingSessionSave {
 		if it.Id == id {
 			return &InMemoryTestingSessionSave[in]
 		}
 	}
-	return &PgpSession{}
+	return &Session{}
 }
 
-func (S *PgpSession) Save() {
+func (S *Session) Save() {
 	InMemoryTestingSessionSave = append(InMemoryTestingSessionSave, *S)
 }
 
 func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile, message string) (uint64, error) {
-	newSession := PgpSession{
+	newSession := Session{
 		Alpha: alpha.Adress,
 		Beta:  beta.Adress,
 	}
@@ -54,7 +54,7 @@ func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile,
 	return newSession.Id, nil
 }
 
-func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *PgpSession, message string) error {
+func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *Session, message string) error {
 	pgpCryptoRefresh := crypto.PGPWithProfile(profile.RFC9580())
 	betaPubKey, err := crypto.NewKeyFromArmored(beta.PubIdentityKey)
 	if err != nil {
@@ -83,7 +83,7 @@ func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, s
 	return nil
 }
 
-func (alpha *PgpProfile) ReadMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *PgpSession, n int) ([]string, error) {
+func (alpha *PgpProfile) ReadMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *Session, n int) ([]string, error) {
 	var Messages *[][]byte
 	if alpha.Adress == session.Alpha && beta.Adress == session.Beta {
 		Messages = &session.BetaMessages

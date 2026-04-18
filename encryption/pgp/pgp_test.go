@@ -2,10 +2,13 @@ package pgp
 
 import (
 	"fmt"
+	"marble/db"
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/ProtonMail/gopenpgp/v3/profile"
+	"github.com/lib/pq"
+	"marble/internal/log"
 )
 
 func TestGenPrvKey(t *testing.T) {
@@ -70,4 +73,45 @@ func TestSigningMessage(t *testing.T) {
 	fmt.Println(string(signature))
 	signer.ClearPrivateParams()
 
+}
+
+// -----------
+func TestSdfsdf(t *testing.T) {
+	fmt.Println([]byte("jkshfkgshdfgkjlhgrisegrohsergh;sghe;ghgsgdhfgdslig"))
+}
+
+func TestInsert(t *testing.T) {
+	session := Session{
+		Alpha: "navid-242783429023",
+		Beta:  "john-72903487134091",
+		// AlphaMessages: [][]byte{{}, {}},
+		// BetaMessages:  [][]byte{{}, {}},
+	}
+	logger := log.DefultLogger
+	DB, err := db.Cfg.Setup()
+	logger.Error(err, "there was an error while trying to setup Database")
+
+	defer DB.Close()
+	logger.Info("database connection pool established")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(&session.Id)
+	fmt.Println(DB)
+	query := `
+	INSERT INTO pgp_sessions (alpha, beta)
+	VALUES ($1, $2)
+	RETURNING 	id`
+	args := []any{session.Alpha, session.Beta}
+	err = DB.QueryRow(query, args...).Scan(&session.Id)
+	if err != nil {
+		fmt.Println(err)
+	}
+	query = `
+	INSERT INTO user_messages (session_id, message)
+	VALUES ($1, $2)
+	RETURNING 	id`
+	args = []any{session.Id, pq.Array(session.AlphaMessages)}
+	var MessageID int
+	err = DB.QueryRow(query, args...).Scan(&MessageID)
 }

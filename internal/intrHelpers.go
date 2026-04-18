@@ -4,6 +4,16 @@ import (
 	"errors"
 )
 
+type Duration struct {
+	Week      int `json:"week"`
+	Day       int `json:"day"`
+	Hour      int `json:"hour"`
+	Minute    int `json:"minute"`
+	Second    int `json:"second"`
+	InSeconds int `json:"-"`
+}
+
+
 func (du *Duration) DuToSeconds() (int, error) {
 	out := 0
 	out += du.Second

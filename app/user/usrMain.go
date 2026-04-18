@@ -51,8 +51,10 @@ func CreateNewUser(username, email, password string) (*User, *crypto.Key, error)
 GetActiveUser adds the Users to a Online Client Session to
 keep it in use for next Requests & tasks
  */
-func GetActiveUser() (*ActiveUser, error) {
-	newActiveUser := ActiveUser{}
+func GetActiveUser(pgp.ProfileAdress, ) (*ActiveUser, error) {
+	newActiveUser := ActiveUser{
+
+	}
 	return &newActiveUser, nil
 }
 
