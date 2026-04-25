@@ -1,6 +1,6 @@
 package api
 
-import "marble/internal/log"
+import "charm.land/log/v2"
 
 type apiConfig struct {
 	Version string `json:"version"`

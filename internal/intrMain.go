@@ -3,8 +3,9 @@ package internal
 import (
 	"database/sql"
 	"marble/db"
-	"marble/internal/log"
+	"marble/internal/loggy"
 
+	"charm.land/log/v2"
 	fig "github.com/Alrz7/fig/core"
 )
 
@@ -21,16 +22,18 @@ var (
 )
 
 func Setup() *Application {
-	logger := &log.DefultLogger
+	logger := loggy.DefaultLogger
 
 	Db, err := db.Cfg.Setup()
-	logger.Error(err, "there was an error while trying to setup Database")
+	if err != nil {
+		logger.With("err", err).Fatal("there was an error while trying to setup Database")
+	}
 	logger.Info("database connection pool established")
 
 	App = &Application{
 		Version: version,
 		Logger:  logger,
-		Db: Db,
+		Db:      Db,
 	}
 	return App
 }

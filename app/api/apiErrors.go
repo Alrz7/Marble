@@ -2,15 +2,14 @@ package api
 
 import (
 	"fmt"
+	"marble/internal/loggy"
 	"net/http"
-
-	"marble/internal/log"
 )
 
-var Logger = log.DefultLogger
+var logger = loggy.DefaultLogger
 
 func (api *apiConfig) logError(r *http.Request, err error) {
-	Logger.ErrorLogger.Println(err)
+	logger.Error(err)
 }
 
 func (api *apiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {

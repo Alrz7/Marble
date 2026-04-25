@@ -5,10 +5,11 @@ import (
 	"marble/db"
 	"testing"
 
+	"marble/internal/loggy"
+
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/ProtonMail/gopenpgp/v3/profile"
 	"github.com/lib/pq"
-	"marble/internal/log"
 )
 
 func TestGenPrvKey(t *testing.T) {
@@ -87,7 +88,7 @@ func TestInsert(t *testing.T) {
 		// AlphaMessages: [][]byte{{}, {}},
 		// BetaMessages:  [][]byte{{}, {}},
 	}
-	logger := log.DefultLogger
+	logger := loggy.DefaultLogger
 	DB, err := db.Cfg.Setup()
 	logger.Error(err, "there was an error while trying to setup Database")
 

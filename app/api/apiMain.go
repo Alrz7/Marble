@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"marble/config"
 	"marble/internal"
+	"marble/internal/loggy"
 	"net/http"
 	"time"
 )
@@ -14,10 +15,11 @@ const version = "1.0.0"
 func Setup(app *internal.Application) {
 	api := apiConfig{}
 	api.Version = version
-	api.logger = app.Logger
+	api.logger = loggy.DefaultLogger
 	flag.IntVar(&api.Port, "port", 6280, "Api server port")
 	if api.Port <= 1023 {
-		api.logger.NewError("server Port Should Not be less than-equal 1023")
+		api.logger.Warn("server Port Should Not be less than-equal 1023 (setting 6280 as default)")
+		api.Port = 6280
 	}
 	flag.StringVar(&api.Env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()
@@ -54,9 +56,9 @@ func (api *apiConfig) Run() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	Logger.Infot("starting server on port %v", api.Port)
+	logger.Infof("starting server on port %v", api.Port)
 	err := srv.ListenAndServe()
-	Logger.Error(err, "Threre was an error while starting the Api server")
+	logger.With("err", err).Error("Threre was an error while starting the Api server")
 }
 
 func enableCORS(next http.Handler) http.Handler {

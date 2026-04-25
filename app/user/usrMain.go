@@ -4,13 +4,12 @@ import (
 	"errors"
 	"marble/encryption/pgp"
 	"marble/internal"
-	"marble/internal/log"
+	"marble/internal/loggy"
 
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
-var errlogger = log.DefultErrorLog
-var inflogger = log.DefultInfoLog
+var logger = loggy.DefaultLogger
 
 /*
 isn't it Obvious??
@@ -23,7 +22,7 @@ func CreateNewUser(username, email, password string) (*User, *crypto.Key, error)
 	}
 	authorizationKey, err := pgp.GenAuthKey(password)
 	if err != nil {
-		return &User{}, nil, errlogger.Output(2, err.Error())
+		return &User{}, nil, err
 	}
 	newUser.PgpProfile.AuthKey = authorizationKey
 
