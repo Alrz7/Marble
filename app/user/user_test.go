@@ -15,19 +15,18 @@ func TestCreateUser(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	sId, err := usr1.pgpProfile.CreateSession(*usrprv1, &usr2.pgpProfile, "starting the session")
+	sId, err := usr1.PgpProfile.CreateSession(*usrprv1, &usr2.PgpProfile, "starting the session")
 	if err != nil {
 		t.Log(err)
 	}
-	err = usr1.pgpProfile.SendMessage(*usrprv1, &usr2.pgpProfile, pgp.TestingFindSession(sId), "hi, this is a program testing message")
+	err = usr1.PgpProfile.SendMessage(*usrprv1, &usr2.PgpProfile, pgp.TestingFindSession(sId), "hi, this is a program testing message")
 	if err != nil {
 		t.Log(err)
 	}
-	mslist, err := usr2.pgpProfile.ReadMessage(*usrprv2, &usr1.pgpProfile, pgp.TestingFindSession(sId), -1)
+	mslist, err := usr2.PgpProfile.ReadMessage(*usrprv2, &usr1.PgpProfile, pgp.TestingFindSession(sId), -1)
 	if err != nil {
 		t.Log(err)
 	}
 	fmt.Println(mslist)
 
 }
-

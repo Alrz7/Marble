@@ -51,20 +51,34 @@ func DoesUnlock(privKey, password string) (bool, error) {
 	return true, nil
 }
 
-func GetAdress(name string, id uint32) ProfileAdress {
-	return ProfileAdress(fmt.Sprintf("%s-%d", name, id))
+func GetPgpAddress(name string, id uint32) Profileaddress {
+	return Profileaddress(fmt.Sprintf("%s-%d", name, id))
 }
 
-func IsvalidAdress(adress string) (string, uint32, error) {
-	parts := strings.Split(adress, "-")
+func IsValidPair(alpha, beta *Profile) error {
+	for _, profile := range []Profile{*alpha, *beta} {
+		_, _, err := IsvalidAddress(string(profile.Address))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func IsvalidAddress(address string) (string, uint32, error) {
+	parts := strings.Split(address, "-")
 	if len(parts) != 2 {
-		return "", 0, errors.New("Adress does not contain enough parts")
+		return "", 0, errors.New("address does not contain enough parts")
 	}
 	name, strId := parts[0], parts[1]
 	id64, err := strconv.ParseUint(strId, 10, 32)
 	id := uint32(id64)
 	if err != nil {
-		return "", 0, fmt.Errorf("Adress Id was not valid or convertable: %v", err)
+		return "", 0, fmt.Errorf("address Id was not valid or convertable: %v", err)
 	}
 	return name, id, nil
+}
+
+func GetKeyfromArmored(key string) (*crypto.Key, error) {
+	return crypto.NewKeyFromArmored(key)
 }

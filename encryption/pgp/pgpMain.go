@@ -2,6 +2,8 @@ package pgp
 
 import (
 	"errors"
+	"fmt"
+	"marble/internal"
 	"math/rand"
 
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
@@ -19,14 +21,27 @@ func TestingFindSession(id uint64) *Session {
 	return &Session{}
 }
 
-func (S *Session) Save() {
+func (S *Session) Save() error {
 	InMemoryTestingSessionSave = append(InMemoryTestingSessionSave, *S)
+	model := SessionModel{
+		DB: internal.App.Db,
+	}
+	err := model.Insert(S)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
 
-func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile, message string) (uint64, error) {
+func (alpha *Profile) CreateSession(alphaPrvKey crypto.Key, beta *Profile, message string) (uint64, error) {
+	err := IsValidPair(alpha, beta)
+	if err != nil {
+		return 0, err
+	}
 	newSession := Session{
-		Alpha: alpha.Adress,
-		Beta:  beta.Adress,
+		Alpha: alpha.Address,
+		Beta:  beta.Address,
 	}
 	newSession.Id = rand.Uint64()
 	for newSession.Id == 0 || false { // this should be replaced with a value checker in Db
@@ -48,13 +63,20 @@ func (alpha *PgpProfile) CreateSession(alphaPrvKey crypto.Key, beta *PgpProfile,
 	pgpMessage, err := encHandle.Encrypt([]byte(message))
 	armMessage, err := pgpMessage.ArmorBytes()
 	newSession.AlphaMessages = append(newSession.AlphaMessages, armMessage)
-	alpha.Sesions[beta.Adress] = newSession.Id
-	beta.Sesions[alpha.Adress] = newSession.Id
-	newSession.Save()
+	alpha.Sessions[beta.Address] = newSession.Id
+	beta.Sessions[alpha.Address] = newSession.Id
+	err = newSession.Save()
+	if err != nil {
+		return 0, err
+	}
 	return newSession.Id, nil
 }
 
-func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *Session, message string) error {
+func (alpha *Profile) SendMessage(alphaPrvKey crypto.Key, beta *Profile, session *Session, message string) error {
+	err := IsValidPair(alpha, beta)
+	if err != nil {
+		return err
+	}
 	pgpCryptoRefresh := crypto.PGPWithProfile(profile.RFC9580())
 	betaPubKey, err := crypto.NewKeyFromArmored(beta.PubIdentityKey)
 	if err != nil {
@@ -73,9 +95,9 @@ func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, s
 	if err != nil {
 		return err
 	}
-	if alpha.Adress == session.Alpha && beta.Adress == session.Beta {
+	if alpha.Address == session.Alpha && beta.Address == session.Beta {
 		session.AlphaMessages = append(session.AlphaMessages, armMessage)
-	} else if alpha.Adress == session.Beta && beta.Adress == session.Alpha {
+	} else if alpha.Address == session.Beta && beta.Address == session.Alpha {
 		session.BetaMessages = append(session.BetaMessages, armMessage)
 	} else {
 		return errors.New("There was a mismatch among audience while sending message")
@@ -83,11 +105,11 @@ func (alpha *PgpProfile) SendMessage(alphaPrvKey crypto.Key, beta *PgpProfile, s
 	return nil
 }
 
-func (alpha *PgpProfile) ReadMessage(alphaPrvKey crypto.Key, beta *PgpProfile, session *Session, n int) ([]string, error) {
+func (alpha *Profile) ReadMessage(alphaPrvKey crypto.Key, beta *Profile, session *Session, n int) ([]string, error) {
 	var Messages *[][]byte
-	if alpha.Adress == session.Alpha && beta.Adress == session.Beta {
+	if alpha.Address == session.Alpha && beta.Address == session.Beta {
 		Messages = &session.BetaMessages
-	} else if alpha.Adress == session.Beta && beta.Adress == session.Alpha {
+	} else if alpha.Address == session.Beta && beta.Address == session.Alpha {
 		Messages = &session.AlphaMessages
 	} else {
 		return []string{}, errors.New("There was a mismatch among audience while sending message")

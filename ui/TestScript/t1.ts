@@ -1,9 +1,15 @@
-async function createAcount() {
-  const userInfo = {
-   name : "navid",
-   email: "navid@gmail.com",
-   password: "navid123"
-  };
+type User = {
+  user_address: string;
+  identity_key: string;
+};
+
+async function createAccount(
+  name: string,
+  email: string,
+  password: string,
+): Promise<User> {
+  const userInfo = { name, email, password };
+
   const response = await fetch("http://localhost:6280/account", {
     method: "POST",
     headers: {
@@ -12,18 +18,64 @@ async function createAcount() {
     },
     body: JSON.stringify(userInfo),
   });
+
   const result = await response.json();
-  console.log(response)
-  if (response.ok) {
-    console.log(result);
-  } else {
-    console.log(result);
+
+  if (!response.ok) {
+    console.log("Error:", result);
+    throw new Error("Failed to create account");
   }
+  console.log(result);
+  return {
+    user_address: result.user_address,
+    identity_key: result.identity_key,
+  };
 }
 
-createAcount()
+async function createSession(alpha: User, beta: User, message: string) {
+  const body = {
+    alpha: alpha.user_address,
+    alpha_prv_key: alpha.identity_key,
+    beta: beta.user_address,
+    message: message,
+  };
 
+  const response = await fetch("http://localhost:6280/account/session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      task: "create",
+    },
+    body: JSON.stringify(body),
+  });
 
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.log("error:", result);
+    return;
+  }
+  console.log(result);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function main() {
+  const alpha = await createAccount("nick2", "nick@gmail.com", "navid123");
+  await sleep(1000);
+
+  const beta = await createAccount("laila2", "laila@gmail.com", "john456");
+  await sleep(2000);
+
+  // console.log(alpha.user_address, beta.user_address);
+
+  // اگر جلسه هم می‌خواهید:
+  await createSession(alpha, beta, "hi there this is a test!");
+}
+
+main();
 
 // async function CreateNewTask() {
 //   const duration = {

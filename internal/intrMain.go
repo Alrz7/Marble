@@ -1,9 +1,9 @@
 package internal
 
 import (
+	"database/sql"
 	"marble/db"
 	"marble/internal/log"
-	"marble/internal/models"
 
 	fig "github.com/Alrz7/fig/core"
 )
@@ -11,8 +11,8 @@ import (
 type Application struct {
 	Version string
 	Logger  *log.Logger
-	Models  models.Models
 	Config  *fig.Handeler
+	Db      *sql.DB
 }
 
 var (
@@ -25,13 +25,12 @@ func Setup() *Application {
 
 	Db, err := db.Cfg.Setup()
 	logger.Error(err, "there was an error while trying to setup Database")
-
-	defer Db.Close()
 	logger.Info("database connection pool established")
+
 	App = &Application{
 		Version: version,
 		Logger:  logger,
-		Models:  models.NewModels(Db),
+		Db: Db,
 	}
 	return App
 }
