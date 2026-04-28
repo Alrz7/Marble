@@ -1,6 +1,7 @@
 package pgp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -51,7 +52,7 @@ func DoesUnlock(privKey, password string) (bool, error) {
 	return true, nil
 }
 
-func GetPgpAddress(name string, id uint32) Profileaddress {
+func GetPgpAddress(name string, id int32) Profileaddress {
 	return Profileaddress(fmt.Sprintf("%s-%d", name, id))
 }
 
@@ -65,14 +66,14 @@ func IsValidPair(alpha, beta *Profile) error {
 	return nil
 }
 
-func IsvalidAddress(address string) (string, uint32, error) {
+func IsvalidAddress(address string) (string, int32, error) {
 	parts := strings.Split(address, "-")
 	if len(parts) != 2 {
 		return "", 0, errors.New("address does not contain enough parts")
 	}
 	name, strId := parts[0], parts[1]
 	id64, err := strconv.ParseUint(strId, 10, 32)
-	id := uint32(id64)
+	id := int32(id64)
 	if err != nil {
 		return "", 0, fmt.Errorf("address Id was not valid or convertable: %v", err)
 	}
@@ -81,4 +82,13 @@ func IsvalidAddress(address string) (string, uint32, error) {
 
 func GetKeyfromArmored(key string) (*crypto.Key, error) {
 	return crypto.NewKeyFromArmored(key)
+}
+
+func getProfileSessionsFromMarshaled(b []byte) (map[Profileaddress]int64, error) {
+	var sessions = map[Profileaddress]int64{}
+	err := json.Unmarshal(b, &sessions)
+	if err != nil {
+		return nil, err
+	}
+	return sessions, nil
 }

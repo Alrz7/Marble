@@ -1,3 +1,4 @@
+import { laila, nick } from "./fakeData";
 type User = {
   user_address: string;
   identity_key: string;
@@ -58,23 +59,54 @@ async function createSession(alpha: User, beta: User, message: string) {
   console.log(result);
 }
 
+async function SendMesssage(alpha: User, beta: User, message: string) {
+  const body = {
+    alpha: alpha.user_address,
+    alpha_prv_key: alpha.identity_key,
+    beta: beta.user_address,
+    message: message,
+  };
+
+  const response = await fetch("http://localhost:6280/account/session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      task: "send",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.log("error:", result);
+    return;
+  }
+  console.log(result);
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function main() {
-  const alpha = await createAccount("nick2", "nick@gmail.com", "navid123");
+async function CreateTestAccountAndSession() {
+  const alpha = await createAccount("nick", "nick@gmail.com", "nick123");
   await sleep(1000);
 
-  const beta = await createAccount("laila2", "laila@gmail.com", "john456");
+  const beta = await createAccount("laila", "laila@gmail.com", "laila456");
   await sleep(2000);
 
-  // console.log(alpha.user_address, beta.user_address);
-
-  // اگر جلسه هم می‌خواهید:
   await createSession(alpha, beta, "hi there this is a test!");
 }
 
+async function testAlphaSendMesage() {
+  SendMesssage(nick, laila, "hi there this is a test message");
+}
+
+async function main() {
+  // CreateTestAccountAndSession()
+  testAlphaSendMesage()
+}
 main();
 
 // async function CreateNewTask() {

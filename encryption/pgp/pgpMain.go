@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"marble/internal"
-	"math/rand"
 
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/ProtonMail/gopenpgp/v3/profile"
@@ -12,7 +11,7 @@ import (
 
 var InMemoryTestingSessionSave []Session
 
-func TestingFindSession(id uint64) *Session {
+func TestingFindSession(id int64) *Session {
 	for in, it := range InMemoryTestingSessionSave {
 		if it.Id == id {
 			return &InMemoryTestingSessionSave[in]
@@ -34,7 +33,7 @@ func (S *Session) Save() error {
 	return nil
 }
 
-func (alpha *Profile) CreateSession(alphaPrvKey crypto.Key, beta *Profile, message string) (uint64, error) {
+func (alpha *Profile) CreateSession(alphaPrvKey crypto.Key, beta *Profile, message string) (int64, error) {
 	err := IsValidPair(alpha, beta)
 	if err != nil {
 		return 0, err
@@ -42,10 +41,6 @@ func (alpha *Profile) CreateSession(alphaPrvKey crypto.Key, beta *Profile, messa
 	newSession := Session{
 		Alpha: alpha.Address,
 		Beta:  beta.Address,
-	}
-	newSession.Id = rand.Uint64()
-	for newSession.Id == 0 || false { // this should be replaced with a value checker in Db
-		newSession.Id = rand.Uint64()
 	}
 	pgpCryptoRefresh := crypto.PGPWithProfile(profile.RFC9580())
 
@@ -63,9 +58,18 @@ func (alpha *Profile) CreateSession(alphaPrvKey crypto.Key, beta *Profile, messa
 	pgpMessage, err := encHandle.Encrypt([]byte(message))
 	armMessage, err := pgpMessage.ArmorBytes()
 	newSession.AlphaMessages = append(newSession.AlphaMessages, armMessage)
+	err = newSession.Save()
+	if err != nil {
+		return 0, err
+	}
 	alpha.Sessions[beta.Address] = newSession.Id
 	beta.Sessions[alpha.Address] = newSession.Id
-	err = newSession.Save()
+	prfMod := ProfileModel{DB: internal.App.Db}
+	err = prfMod.Update(alpha)
+	if err != nil {
+		return 0, err
+	}
+	err = prfMod.Update(beta)
 	if err != nil {
 		return 0, err
 	}
@@ -102,7 +106,8 @@ func (alpha *Profile) SendMessage(alphaPrvKey crypto.Key, beta *Profile, session
 	} else {
 		return errors.New("There was a mismatch among audience while sending message")
 	}
-	return nil
+	sessionMod := SessionModel{DB: internal.App.Db}
+	return sessionMod.Update(session)
 }
 
 func (alpha *Profile) ReadMessage(alphaPrvKey crypto.Key, beta *Profile, session *Session, n int) ([]string, error) {

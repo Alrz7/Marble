@@ -1,6 +1,8 @@
 package loggy
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -11,5 +13,12 @@ var DefaultLogger = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller:    true,
 	ReportTimestamp: true,
 	TimeFormat:      time.Kitchen,
-	Prefix: "Marble",
+	Prefix:          "Marble",
 })
+
+func Say(msg string) error {
+	return errors.New(msg)
+}
+func Sayr(msg string, err error) error {
+	return fmt.Errorf(msg+", err : %v", err)
+}

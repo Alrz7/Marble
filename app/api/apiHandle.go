@@ -2,7 +2,8 @@ package api
 
 import (
 	"fmt"
-	"marble/app/user"
+	"marble/app/active"
+	"marble/app/users"
 	"marble/encryption/pgp"
 	"net/http"
 )
@@ -28,17 +29,18 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	newUser, prvIdentityKey, err := user.CreateNewUser(props.Name, props.Email, props.Password)
+	newUser, prvIdentityKey, err := users.CreateNewUser(props.Name, props.Email, props.Password)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
 	sndIdentKey, err := prvIdentityKey.Armor()
 	response := envelope{
+		"error":        false,
 		"message":      "user has been Created Succesfully!",
 		"identity_key": sndIdentKey,
 		"user_address": newUser.PgpProfile.Address,
 	}
-	err = api.writeJSON(w, 200, response, nil)
+	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
@@ -51,6 +53,8 @@ func (api *apiConfig) hndlSession(w http.ResponseWriter, r *http.Request) {
 	switch order {
 	case "create":
 		api.createSession(w, r)
+	case "send":
+		api.SendSessionMessage(w, r)
 	}
 }
 
@@ -66,7 +70,7 @@ func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	ActvUser, err := user.GetActiveUser(entry.Alpha)
+	ActvUser, err := active.GetActiveUser(entry.Alpha)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return
@@ -84,10 +88,51 @@ func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := envelope{
+		"error":   false,
 		"message": "Session has been Created Succesfully!",
+	}
+	err = api.writeJSON(w, 201, response, nil)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+	}
+}
+
+func (api *apiConfig) SendSessionMessage(w http.ResponseWriter, r *http.Request) {
+	var entry struct {
+		Alpha       string `json:"alpha"`
+		AlphaPrvKey string `json:"alpha_prv_key"`
+		Beta        string `json:"beta"`
+		Message     string `json:"message"`
+	}
+	err := api.readJson(w, r, &entry)
+	if err != nil {
+		api.badRequestResponse(w, r, err)
+		return
+	}
+	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	ActvUser.PrvIdentityKey, err = pgp.GetKeyfromArmored(entry.AlphaPrvKey)
+	if err != nil {
+		err = fmt.Errorf("there was an error while getting IdentityKey from armored: %v", err)
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	err = ActvUser.SendSessionMessage(entry.Beta, entry.Message)
+	if err != nil {
+		err = fmt.Errorf("there was an error while sending the message: %v", err)
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	response := envelope{
+		"error":   false,
+		"message": "Message has been sent Successfully!",
 	}
 	err = api.writeJSON(w, 200, response, nil)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
+
 }

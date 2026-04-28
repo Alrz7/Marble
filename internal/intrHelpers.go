@@ -13,7 +13,6 @@ type Duration struct {
 	InSeconds int `json:"-"`
 }
 
-
 func (du *Duration) DuToSeconds() (int, error) {
 	out := 0
 	out += du.Second
@@ -27,3 +26,7 @@ func (du *Duration) DuToSeconds() (int, error) {
 	du.InSeconds = out
 	return out, nil
 }
+
+var (
+	ErrRecordNotFound = errors.New("Record Not Found")
+)
