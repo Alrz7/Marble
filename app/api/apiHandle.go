@@ -55,6 +55,8 @@ func (api *apiConfig) hndlSession(w http.ResponseWriter, r *http.Request) {
 		api.createSession(w, r)
 	case "send":
 		api.SendSessionMessage(w, r)
+	case "read":
+		api.ReadSessionMessages(w, r)
 	}
 }
 
@@ -134,5 +136,45 @@ func (api *apiConfig) SendSessionMessage(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
+}
 
+func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request) {
+	var entry struct {
+		Alpha       string `json:"alpha"`
+		AlphaPrvKey string `json:"alpha_prv_key"`
+		Beta        string `json:"beta"`
+		Count       int    `json:"count"`
+	}
+	err := api.readJson(w, r, &entry)
+	if err != nil {
+		api.badRequestResponse(w, r, err)
+		return
+	}
+	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	ActvUser.PrvIdentityKey, err = pgp.GetKeyfromArmored(entry.AlphaPrvKey)
+	if err != nil {
+		err = fmt.Errorf("there was an error while getting IdentityKey from armored: %v", err)
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	messages, err := ActvUser.ReadSessionMessage(entry.Beta, entry.Count)
+	if err != nil {
+		err = fmt.Errorf("there was an error while reading messages: %v", err)
+		api.serverErrorResponse(w, r, err)
+		return
+
+	}
+	response := envelope{
+		"error":   false,
+		"message": "Messages has been red Successfully!",
+		"result":  messages,
+	}
+	err = api.writeJSON(w, 200, response, nil)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+	}
 }

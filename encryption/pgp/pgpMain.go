@@ -9,19 +9,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v3/profile"
 )
 
-var InMemoryTestingSessionSave []Session
-
-func TestingFindSession(id int64) *Session {
-	for in, it := range InMemoryTestingSessionSave {
-		if it.Id == id {
-			return &InMemoryTestingSessionSave[in]
-		}
-	}
-	return &Session{}
-}
-
 func (S *Session) Save() error {
-	InMemoryTestingSessionSave = append(InMemoryTestingSessionSave, *S)
 	model := SessionModel{
 		DB: internal.App.Db,
 	}
@@ -106,40 +94,41 @@ func (alpha *Profile) SendMessage(alphaPrvKey crypto.Key, beta *Profile, session
 	} else {
 		return errors.New("There was a mismatch among audience while sending message")
 	}
-	sessionMod := SessionModel{DB: internal.App.Db}
-	return sessionMod.Update(session)
+	model := SessionModel{
+		DB: internal.App.Db,
+	}
+	return model.Update(session)
 }
 
-func (alpha *Profile) ReadMessage(alphaPrvKey crypto.Key, beta *Profile, session *Session, n int) ([]string, error) {
+func (alpha *Profile) ReadMessage(alphaPrvKey *crypto.Key, beta *Profile, session *Session, count int) (*[]string, error) {
 	var Messages *[][]byte
 	if alpha.Address == session.Alpha && beta.Address == session.Beta {
 		Messages = &session.BetaMessages
 	} else if alpha.Address == session.Beta && beta.Address == session.Alpha {
 		Messages = &session.AlphaMessages
 	} else {
-		return []string{}, errors.New("There was a mismatch among audience while sending message")
+		return nil, errors.New("There was a mismatch among audience while sending message")
 	}
 	pgpCryptoRefresh := crypto.PGPWithProfile(profile.RFC9580())
 	decHandle, err := pgpCryptoRefresh.Decryption().
-		DecryptionKey(&alphaPrvKey).
+		DecryptionKey(alphaPrvKey).
 		New()
 	defer decHandle.ClearPrivateParams()
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 	res := []string{}
-	for i := 0; i < len(*Messages) && (n > 0 || n == -1); i++ {
+	for i := 0; i < len(*Messages) && (count > 0 || count == -1); i++ {
 		armMessage := (*Messages)[i]
 		decrypted, err := decHandle.Decrypt(armMessage, crypto.Armor)
 		if err != nil {
-			return []string{}, err
+			return nil, err
 		}
 		decMessage := decrypted.Bytes()
 		res = append(res, string(decMessage))
-		if n != -1 {
-			n--
+		if count != -1 {
+			count--
 		}
 	}
-
-	return res, nil
+	return &res, nil
 }

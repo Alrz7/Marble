@@ -110,6 +110,7 @@ type SessionModel struct {
 	DB *sql.DB
 }
 
+
 func (U *SessionModel) Insert(session *Session) error {
 	query := `
 	INSERT INTO pgp_sessions (alpha, beta, alpha_messages, beta_messages)

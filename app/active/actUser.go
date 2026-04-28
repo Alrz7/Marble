@@ -39,25 +39,47 @@ func (AU *ActvUser) CreateSession(beta, message string) error {
 	return nil
 }
 
-func (AU *ActvUser) SendSessionMessage(beta string, message string) error {
+func (AU *ActvUser) SendSessionMessage(beta, message string) error {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return loggy.Sayr("error while fetching beta for sending message", err)
 	}
-	// loggy.DefaultLogger.Info(AU.User.PgpProfile.Sessions)
-	// loggy.DefaultLogger.Info(pgp.Profileaddress(beta))
-	// loggy.DefaultLogger.Info(AU.User.PgpProfile)
-
-	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
-	if !ok {
-		return loggy.Say("there was no Session found among these two audience")
-	}
-	sessionMod := pgp.SessionModel{DB: internal.App.Db}
-	session, err := sessionMod.Get(sessionId)
+	session, err := AU.GetActiveSession(beta)
 	if err != nil {
-		return loggy.Sayr("error while fetching session", err)
+		return err
 	}
 	return AU.User.PgpProfile.SendMessage(*AU.PrvIdentityKey, &Beta.PgpProfile, session, message)
+}
+
+func (AU *ActvUser) ReadSessionMessage(beta string, count int) (*[]string, error) {
+	Beta, err := users.GetUserProfile(beta)
+	if err != nil {
+		return nil, loggy.Sayr("error while fetching beta for sending message", err)
+	}
+	session, err := AU.GetActiveSession(beta)
+	if err != nil {
+		return nil, err
+	}
+	res, err := AU.User.PgpProfile.ReadMessage(AU.PrvIdentityKey, &Beta.PgpProfile, session, count)
+	if err != nil {
+		return nil, loggy.Sayr("an error while reading the message from session", err)
+	}
+	return res, nil
+}
+
+func (AU *ActvUser) GetActiveSession(beta string) (*pgp.Session, error) {
+	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
+	if !ok {
+		return nil, loggy.Say("there was no Session found among these two audience")
+	}
+	model := pgp.SessionModel{
+		DB: internal.App.Db,
+	}
+	session, err := model.Get(sessionId)
+	if err != nil {
+		return nil, loggy.Sayr("error while fetching session", err)
+	}
+	return session, nil
 }
 
 /*

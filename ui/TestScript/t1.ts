@@ -85,6 +85,39 @@ async function SendMesssage(alpha: User, beta: User, message: string) {
   console.log(result);
 }
 
+async function ReadMessages(alpha: User, beta: User, count: number) {
+  const body = {
+    alpha: alpha.user_address,
+    alpha_prv_key: alpha.identity_key,
+    beta: beta.user_address,
+    count: count,
+  };
+
+  const response = await fetch("http://localhost:6280/account/session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      task: "read",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.log("error:", result);
+    return;
+  }
+  console.log(result);
+}
+
+async function main() {
+  // CreateTestAccountAndSession()
+  // testSendMesage();
+  testReadMessage();
+}
+main();
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -92,22 +125,20 @@ function sleep(ms: number): Promise<void> {
 async function CreateTestAccountAndSession() {
   const alpha = await createAccount("nick", "nick@gmail.com", "nick123");
   await sleep(1000);
-
   const beta = await createAccount("laila", "laila@gmail.com", "laila456");
   await sleep(2000);
-
   await createSession(alpha, beta, "hi there this is a test!");
 }
 
-async function testAlphaSendMesage() {
-  SendMesssage(nick, laila, "hi there this is a test message");
+async function testReadMessage() {
+  ReadMessages(nick, laila, -1);
+  // ReadMessages(laila, nick, -1);
 }
 
-async function main() {
-  // CreateTestAccountAndSession()
-  testAlphaSendMesage()
+async function testSendMesage() {
+  // SendMesssage(nick, laila, "hi there this is a test message");
+  SendMesssage(laila, nick, "Hi There, looks like it's working! :)");
 }
-main();
 
 // async function CreateNewTask() {
 //   const duration = {
