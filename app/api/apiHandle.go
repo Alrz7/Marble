@@ -15,6 +15,8 @@ func (api *apiConfig) hndlAccount(w http.ResponseWriter, r *http.Request) {
 	switch order {
 	case "create":
 		api.createAccount(w, r)
+		// case "delete":
+		// not decided yet... (this needs auth works)
 	}
 }
 
@@ -57,6 +59,8 @@ func (api *apiConfig) hndlSession(w http.ResponseWriter, r *http.Request) {
 		api.SendSessionMessage(w, r)
 	case "read":
 		api.ReadSessionMessages(w, r)
+	case "delete":
+
 	}
 }
 
@@ -172,6 +176,37 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 		"error":   false,
 		"message": "Messages has been red Successfully!",
 		"result":  messages,
+	}
+	err = api.writeJSON(w, 200, response, nil)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+	}
+}
+
+func (api *apiConfig) DeleteDession(w http.ResponseWriter, r *http.Request) {
+	var entry struct {
+		Alpha string `json:"alpha"`
+		// AlphaPrvKey string `json:"alpha_prv_key"`
+		Beta string `json:"beta"`
+	}
+	err := api.readJson(w, r, &entry)
+	if err != nil {
+		api.badRequestResponse(w, r, err)
+		return
+	}
+	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	err = ActvUser.DeleteSession(entry.Beta)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+	response := envelope{
+		"error":   false,
+		"message": "Session has been Removed Successfully!",
 	}
 	err = api.writeJSON(w, 200, response, nil)
 	if err != nil {

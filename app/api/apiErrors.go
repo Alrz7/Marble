@@ -13,7 +13,10 @@ func (api *apiConfig) logError(r *http.Request, err error) {
 }
 
 func (api *apiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	env := envelope{"error": message}
+	env := envelope{
+		"error":   true,
+		"message": message,
+	}
 	err := api.writeJSON(w, status, env, nil)
 	if err != nil {
 		api.logError(r, err)

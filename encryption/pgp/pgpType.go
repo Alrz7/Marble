@@ -34,6 +34,9 @@ type Session struct {
 	BetaMessages  [][]byte
 }
 
+// ---------------------------------------
+// Pgp_profile's DB works
+// ---------------------------------------
 type ProfileModel struct {
 	DB *sql.DB
 }
@@ -102,14 +105,29 @@ func (U *ProfileModel) Update(profile *Profile) error {
 }
 
 func (U *ProfileModel) Delete(id int32) error {
+	query := `DELETE FROM pgp_profile
+				WHERE id = $1`
+	res, err := U.DB.Exec(query, id)
+	if err != nil {
+		return loggy.Sayr("an error while trying to delete the Profile data", err)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+	}
+	if count != 1 {
+		return internal.ErrRecordNotFound
+	}
 	return nil
 }
 
-// -------
+// ---------------------------------------
+// SessionModel's DB works
+// ---------------------------------------
+
 type SessionModel struct {
 	DB *sql.DB
 }
-
 
 func (U *SessionModel) Insert(session *Session) error {
 	query := `
@@ -164,5 +182,18 @@ func (U *SessionModel) Update(session *Session) error {
 }
 
 func (U *SessionModel) Delete(id int64) error {
+	query := `DELETE FROM pgp_sessions
+				WHERE id = $1`
+	res, err := U.DB.Exec(query, id)
+	if err != nil {
+		return loggy.Sayr("an error while trying to delete the session data", err)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+	}
+	if count != 1 {
+		return internal.ErrRecordNotFound
+	}
 	return nil
 }

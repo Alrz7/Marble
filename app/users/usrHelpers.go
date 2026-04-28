@@ -74,5 +74,18 @@ func (U *UserModel) Update(user *User) error {
 }
 
 func (U *UserModel) Delete(id int32) error {
+	query := `DELETE FROM users
+				WHERE id = $1`
+	res, err := U.DB.Exec(query, id)
+	if err != nil {
+		return loggy.Sayr("an error while trying to delete the User data", err)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+	}
+	if count != 1 {
+		return internal.ErrRecordNotFound
+	}
 	return nil
 }

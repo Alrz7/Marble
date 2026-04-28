@@ -67,6 +67,36 @@ func (AU *ActvUser) ReadSessionMessage(beta string, count int) (*[]string, error
 	return res, nil
 }
 
+func (AU *ActvUser) DeleteSession(beta string) error {
+	Beta, err := users.GetUserProfile(beta)
+	if err != nil {
+		return loggy.Sayr("error while fetching beta for sending message", err)
+	}
+	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
+	if !ok {
+		return loggy.Say("there was no Session found among these two audience")
+	}
+	sessionModel := pgp.SessionModel{
+		DB: internal.App.Db,
+	}
+	err = sessionModel.Delete(sessionId)
+	if err != nil {
+		return err
+	}
+	delete(AU.User.PgpProfile.Sessions, Beta.PgpProfile.Address)
+	delete(Beta.PgpProfile.Sessions, AU.User.PgpProfile.Address)
+	ProfileModle := pgp.ProfileModel{
+		DB: internal.App.Db,
+	}
+	for _, prf := range []*pgp.Profile{&AU.User.PgpProfile, &Beta.PgpProfile} {
+		err = ProfileModle.Update(prf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (AU *ActvUser) GetActiveSession(beta string) (*pgp.Session, error) {
 	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
 	if !ok {
