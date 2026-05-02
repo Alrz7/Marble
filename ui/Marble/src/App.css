@@ -10,17 +10,33 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+@font-face {
+  font-family: "Crf-reg";
+  src: url("components/styles/fonts/ComicRelief-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
 
-.main-background {
+.chat-app {
+  font-family: "Crf-reg", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(150deg, #212121 10%, #272727 40%, #191919 84%);
+  color: #e6e6e6;
+  overflow: hidden;
+}
+
+/* .main-background {
   overflow: hidden;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(150deg, #212121 10%,#272727 40%, #191919 84%);
+  background: linear-gradient(150deg, #212121 10%, #272727 40%, #191919 84%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
+} */
 
-.mainBox{
+.mainBox {
   align-items: center;
   justify-content: center;
 }
