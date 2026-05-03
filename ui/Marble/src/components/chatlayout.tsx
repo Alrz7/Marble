@@ -109,9 +109,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
             marginTop: "auto",
           }}
         >
-          <p>چت اپلیکیشن با تم متالیک</p>
           <p style={{ fontSize: "12px", marginTop: "8px" }}>
-            از رنگ‌های بنفش متال و سبز در طراحی استفاده شده است
           </p>
         </div> */}
       </div>

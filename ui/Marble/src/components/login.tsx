@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import "./styles/login.css";
-import { auth } from "./types";
+import * as internal from "../logic/internal/commonTtypes";
 export default function Login({
   setAuth,
 }: {
-  setAuth: React.Dispatch<React.SetStateAction<auth>>;
+  setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
 }) {
   const [email, setEmail] = useState("");
   const [emailText, setEmailText] = useState("Email");
@@ -13,7 +13,7 @@ export default function Login({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // اینجا منطق لاگین رو بذار
+    // loggin logic goes here
     console.log("Login:", email, password);
   };
 
