@@ -1,0 +1,107 @@
+.terminal-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #191919;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.terminal-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #212121 10%, #272727 40%, #191919 84%);
+}
+
+.terminal-card {
+  position: relative;
+  width: clamp(280px, 60vw, 520px);
+  background: rgba(131, 131, 131, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(157, 157, 157, 0.3);
+  border-radius: 14px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 20px 24px 28px;
+}
+
+.terminal-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red {
+  background: #ff5f56;
+  box-shadow: 0 0 6px #ff5f56aa;
+}
+
+.terminal-dot.yellow {
+  background: #ffbd2e;
+  box-shadow: 0 0 6px #ffbd2eaa;
+}
+
+.terminal-dot.green {
+  background: #27c93f;
+  box-shadow: 0 0 6px #27c93faa;
+}
+
+.terminal-body {
+  font-family:
+    "Fira Code", "JetBrains Mono", "Cascadia Code", "Courier New", monospace;
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  color: #61efff;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.prompt {
+  color: #11c6bd;
+  text-shadow: 2px 2px 2px #61efff55;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.typed-text {
+  color: #11c6bd;
+  text-shadow: 2px 2px 2px #61efff55;
+  letter-spacing: 2px;
+  font-weight: 800;
+}
+
+.cursor {
+  display: inline-block;
+  color: #61efff;
+  font-weight: 700;
+  margin-left: 2px;
+  animation: cursorBlink 530ms step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-card {
+    width: 90vw;
+    padding: 16px 18px 20px;
+  }
+  .terminal-body {
+    font-size: 1.4rem;
+  }
+}

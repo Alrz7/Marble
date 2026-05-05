@@ -1,5 +1,5 @@
 // App.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatLayout from "./components/chatlayout";
 import { MessageProps } from "./components/message";
 import Login from "./components/login";
@@ -7,9 +7,24 @@ import SignUp from "./components/signUp";
 
 import "./App.css";
 import * as internal from "./logic/internal/commonTtypes";
+import * as main from "./logic/main";
+import LoadingPage from "./components/loadingPage";
 export default function App() {
-  const [isLoggedIn, setLoggedin] = useState<boolean>(false);
+  const [loadingPage, setLoadingPage] = useState<boolean>(true);
+  const [user, setUserData] = useState<main.user>(null);
   const [authPage, setAuthPage] = useState<internal.auth>("login");
+
+  useEffect(() => {
+    async function load() {
+      const userData = await main.LoadConfig();
+      if (userData) {
+        setLoadingPage(false)
+        setUserData(userData);
+      }
+    }
+    load();
+  }, []);
+
   const [messages, setMessages] = useState<MessageProps[]>([
     {
       id: "1",
@@ -44,9 +59,8 @@ export default function App() {
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
-
   const handleSendMessage = async (content: string) => {
-// loading simulation
+    // loading simulation
     setIsLoading(true);
 
     // backend call
@@ -63,7 +77,7 @@ export default function App() {
     setMessages((prev) => [...prev, newMessage]);
     setIsLoading(false);
 
- // new message simulation
+    // new message simulation
     setTimeout(() => {
       const autoReply: MessageProps = {
         id: (Date.now() + 1).toString(),
@@ -84,22 +98,24 @@ export default function App() {
 
   return (
     <div className="chat-app">
-      {isLoggedIn ? (
+      {(user && !loadingPage) ? (
         <ChatLayout
           onSendMessage={handleSendMessage}
           messages={messages}
           currentUser={{
-            name: "bob",
+            name: user.name,
             status: "online",
-            avatar: undefined,// we can add avatar as a URL
+            avatar: undefined, // we can add avatar as a URL
           }}
           onBack={handleBack}
           isLoading={isLoading}
         />
+      ) : loadingPage ? (
+        <LoadingPage />
       ) : authPage == "login" ? (
-        <Login setAuth={setAuthPage} />
+        <Login setAuth={setAuthPage} setUserData={setUserData} />
       ) : authPage == "signup" ? (
-        <SignUp setAuth={setAuthPage} />
+        <SignUp setAuth={setAuthPage} setUserData={setUserData} />
       ) : (
         ""
       )}

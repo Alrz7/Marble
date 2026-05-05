@@ -1,7 +1,16 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn hash_password(password: &str) -> Vec<u8> {
+    use blake2b_simd::Params;
+    
+    let salt = b"your-salt-here-change-this";
+    let mut context = Params::new()
+        .hash_length(32)  // 256-bit key
+        .key(salt)
+        .to_state();
+    
+    context.update(password.as_bytes());
+    let hash = context.finalize();
+    
+    hash.as_bytes().to_vec()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -10,7 +19,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_keyring::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(tauri_plugin_stronghold::Builder::new(hash_password).build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

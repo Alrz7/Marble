@@ -1,26 +1,31 @@
 import * as enc from "../enc/encMain.ts";
-import * as encHlp from "../enc/encHelpers.ts";
+import * as hold from "../enc/encStoreManagement.ts";
 import { fetch } from "@tauri-apps/plugin-http";
-// import { User } from "../internal/commonTtypes";
 
-export type SignUpToken = {
+export type keyGroup = {
+  privateKey: string;
+  publicKey: string;
+  revocationCertificate: string;
+};
+
+export type userConfig = {
   name: string;
   email: string;
   id: string;
   address: string;
-  IdentityKey: {
-    privateKey: string;
-    publicKey: string;
-    revocationCertificate: string;
-  };
-} | null;
+  identityKey: keyGroup;
+  // strongHoldKey: keyGroup;
+};
+
+// the IdentityKey & strongHoldKey Key-Groups are going to be saved in the StrongHold
+// there are save there but i'll add encryption to these keys later too
 
 export async function createAccount(
   name: string,
   email: string,
   password: string,
-): Promise<SignUpToken> {
-  const IdentityKey = await enc.GenerateAuthKey(name, email, password);
+): Promise<userConfig | null> {
+  const IdentityKey = await enc.GenerateIdntKey(name, email);
   const userInfo: {
     name: string;
     email: string;
@@ -47,22 +52,22 @@ export async function createAccount(
   if (!response.ok) {
     console.log("Error: Failed to create account", result);
     return null;
-    // throw new Error("Failed to create account");
   }
   console.log(result);
+  // const strongHoldKey = await enc.GenerateIdntKey(name, email);
+  hold.SetkeyChainObject("prvIdentKey", IdentityKey.privateKey);
+  // hold.SetkeyChainObject("strongHoldKey", strongHoldKey.privateKey);
 
-  encHlp.SetkeyChainObject("prvIdentKey", IdentityKey.privateKey);
-  encHlp.SetkeyChainObject("passphrase", password);
-  encHlp.SetkeyChainObject(
-    "revocationCertificate",
-    IdentityKey.revocationCertificate,
-  );
-
-  return {
+  const newUser: userConfig = {
     name: name,
     email: email,
     id: result.id,
     address: result.address,
-    IdentityKey: IdentityKey
+    identityKey: IdentityKey,
+    // strongHoldKey: strongHoldKey,
   };
+  const load = await hold.initStrHoldClient(undefined, hold.MarbleStrongHold);
+  if (!load) return null;
+  hold.SetStrHoldObject(newUser, load, hold.DefualtObjectKey);
+  return newUser;
 }

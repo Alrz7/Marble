@@ -1,10 +1,15 @@
 import * as openpgp from "openpgp";
 // import { app } from "../internal/config";
+import { config } from "openpgp";
+config.aeadProtect = true;
+config.v6Keys = true;
+config.preferredSymmetricAlgorithm = openpgp.enums.symmetric.aes256;
 
-export async function GenerateAuthKey(
+
+export async function GenerateIdntKey(
   name: string,
   email: string,
-  passphrase: string,
+  // passphrase: string,
 ): Promise<{
   privateKey: string;
   publicKey: string;
@@ -13,8 +18,13 @@ export async function GenerateAuthKey(
   return await openpgp.generateKey({
     type: "curve25519",
     userIDs: [{ name: name, email: email }],
-    passphrase: passphrase,
+    // passphrase: passphrase,
     format: "armored",
+    // config: {
+    //   preferredSymmetricAlgorithm: openpgp.enums.symmetric.aes256,
+    //   aeadProtect: true,
+    //   v6Keys: true,
+    // },
   });
 }
 
@@ -48,9 +58,9 @@ export async function EncryptMessage(
   console.log(encMessage);
 }
 
-const s = await GenerateAuthKey(
-  "navid",
-  "navid@gmail.com",
-  "lkjlfsdlfdsjkffkj",
-);
-EncryptMessage(s.publicKey, "this is a message");
+// const s = await GenerateAuthKey(
+//   "navid",
+//   "navid@gmail.com",
+//   "lkjlfsdlfdsjkffkj",
+// );
+// EncryptMessage(s.publicKey, "this is a message");

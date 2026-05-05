@@ -15,6 +15,6 @@ export const app: application = {
   openpgp: {
     encType: "curve25519",
     encFormat: "armored",
-    lockPrvIdentityKey: false,
+    lockPrvIdentityKey: true,
   },
 };

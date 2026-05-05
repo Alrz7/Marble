@@ -5,8 +5,6 @@ import (
 	"marble/encryption/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
-
-	"github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
 var logger = loggy.DefaultLogger
@@ -14,7 +12,7 @@ var logger = loggy.DefaultLogger
 /*
 isn't it Obvious??
 */
-func CreateNewUser(username, email, password string) (*User, *crypto.Key, error) {
+func CreateNewUser(username, email, password string, pubIdentKey string) (*User, error) {
 	// check valid Email
 	newUser := User{
 		UserName: username,
@@ -22,26 +20,28 @@ func CreateNewUser(username, email, password string) (*User, *crypto.Key, error)
 	}
 	authorizationKey, err := pgp.GenAuthKey(password)
 	if err != nil {
-		return &User{}, nil, err
+		return &User{}, err
 	}
-	newUser.PgpProfile.AuthKey = authorizationKey
+	newUser.PgpProfile.AuthKey = authorizationKey // this is good aproach But it costs alot of memory
+	// and speed so im going to replace this with the standard auth methods.
 
-	identityKey, err := pgp.GenPrivateKey()
-	if err != nil {
-		return &User{}, nil, err
-	}
-	newUser.PgpProfile.PubIdentityKey, err = identityKey.GetArmoredPublicKey()
-	if err != nil {
-		return &User{}, nil, err
-	}
+	newUser.PgpProfile.PubIdentityKey = pubIdentKey
+
 	newUser.PgpProfile.Sessions = map[pgp.Profileaddress]int64{}
-	err = newUser.Save()
+	err = newUser.fakeSave()
 	if err != nil {
-		return &User{}, nil, err
+		return &User{}, err
 	}
 	newUser.SetPgpAdress()
-	return &newUser, identityKey, nil
+	return &newUser, nil
 
+}
+
+func (U *User) fakeSave() error {
+	U.Id = 14444444
+	U.PgpProfile.Id = 14444444
+	// U.PgpProfile.Address = pgp.GetPgpAddress(U.UserName, U.Id)
+	return nil
 }
 
 func (U *User) Save() error {

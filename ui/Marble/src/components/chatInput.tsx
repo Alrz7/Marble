@@ -60,7 +60,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           className="send-button"
           onClick={handleSend}
           disabled={disabled || !message.trim()}
-          aria-label="ارسال پیام"
+          aria-label="sending"
         >
           <svg
             viewBox="0 0 24 24"

@@ -2,23 +2,32 @@ import React, { useState } from "react";
 import "./styles/login.css";
 import * as internal from "../logic/internal/commonTtypes";
 import { createAccount } from "../logic/auth/signUp";
+import { user } from "../logic/main";
+import { GetKeyfromArmored } from "../logic/enc/encStoreManagement";
 export default function SignUp({
   setAuth,
+  setUserData,
 }: {
   setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
+  setUserData: React.Dispatch<React.SetStateAction<user>>;
 }) {
-  const [emailText, setEmailText] = useState("Email");
-  const [passText, setPassText] = useState("Password");
+  const [emailText, setEmailText] = useState("Email"); // for email input logic failiur
+  const [passText, setPassText] = useState("Password"); // -same-
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    createAccount(name, email, password);
+    const userConfig = await createAccount(name, email, password);
+    if (userConfig != null) {
+      const prvKey = await GetKeyfromArmored(userConfig.identityKey.privateKey);
+      if (prvKey) {
+        setUserData({ ...userConfig, prvIdentKey: prvKey });
+      }
+    }
     // signUp logic goes here
-    console.log("signUp:", name, email, password);
-  };
+  }
 
   return (
     <div className="login-container">
