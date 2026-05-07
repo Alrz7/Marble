@@ -5,8 +5,7 @@ config.aeadProtect = true;
 config.v6Keys = true;
 config.preferredSymmetricAlgorithm = openpgp.enums.symmetric.aes256;
 
-
-export async function GenerateIdntKey(
+export async function generateIdntKey(
   name: string,
   email: string,
   // passphrase: string,
@@ -37,9 +36,9 @@ export async function EncryptMessage(
 
   const privateKey = armPrivateKey
     ? await openpgp.decryptKey({
-        privateKey: await openpgp.readPrivateKey({ armoredKey: armPrivateKey }),
-        // passphrase
-      })
+      privateKey: await openpgp.readPrivateKey({ armoredKey: armPrivateKey }),
+      // passphrase
+    })
     : undefined;
 
   const encrypted = await openpgp.encrypt({
@@ -49,6 +48,7 @@ export async function EncryptMessage(
     }),
     encryptionKeys: publicKey,
     signingKeys: privateKey, // optional
+    format: "binary"
   });
   console.log(encrypted); // '-----BEGIN PGP MESSAGE ... END PGP MESSAGE-----'
 

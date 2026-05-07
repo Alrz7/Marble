@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import "./styles/login.css";
-import * as internal from "../logic/internal/commonTtypes";
 import { createAccount } from "../logic/auth/signUp";
-import { user } from "../logic/main";
-import { GetKeyfromArmored } from "../logic/enc/encStoreManagement";
+import { getKeyFromArmored } from "../logic/enc/encStoreManagement";
+import { auth, User } from "../logic/internal/commonTtypes";
 export default function SignUp({
   setAuth,
   setUserData,
 }: {
-  setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
-  setUserData: React.Dispatch<React.SetStateAction<user>>;
+  setAuth: React.Dispatch<React.SetStateAction<auth>>;
+  setUserData: React.Dispatch<React.SetStateAction<User | null>>;
 }) {
   const [emailText, setEmailText] = useState("Email"); // for email input logic failiur
   const [passText, setPassText] = useState("Password"); // -same-
@@ -21,9 +20,12 @@ export default function SignUp({
     e.preventDefault();
     const userConfig = await createAccount(name, email, password);
     if (userConfig != null) {
-      const prvKey = await GetKeyfromArmored(userConfig.identityKey.privateKey);
+      const prvKey = await getKeyFromArmored(
+        userConfig.identityKey.privateKey,
+        null,
+      );
       if (prvKey) {
-        setUserData({ ...userConfig, prvIdentKey: prvKey });
+        setUserData({ config: userConfig, prvIdentKey: prvKey });
       }
     }
     // signUp logic goes here

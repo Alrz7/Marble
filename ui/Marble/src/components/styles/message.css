@@ -119,10 +119,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .chat-sidebar {
-    width: 280px;
-  }
-
   .message {
     max-width: 80%;
   }

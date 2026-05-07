@@ -1,124 +1,142 @@
-// this file has the responsibilitties to manage the data that has been stored in StrongHold
-// & the key to enc those datas
-// Stronghold is secured by a openPGP<curve25519> key which is saved in the Keychain itself
-// the key should be created once automaticaly at the first start and editble by user
+/**
+ * Manages data stored in Stronghold and the keys to encrypt them.
+ * Stronghold is secured by an OpenPGP Curve25519 key which is saved in the Keychain.
+ * The key is created once automatically on first start and can be changed by the user.
+ */
 
 import { Stronghold, Client } from "@tauri-apps/plugin-stronghold";
 import { appDataDir } from "@tauri-apps/api/path";
-
 import {
   getPassword,
   setPassword,
   deletePassword,
 } from "tauri-plugin-keyring-api";
 import * as openpgp from "openpgp";
-export const DefualtObjectKey = "MarbleUserData";
-export const MarbleStrongHold = "MarbleStrongHold";
+import { UserConfig, MARBLE_STRONGHOLD_KEY, DEFAULT_OBJECT_KEY, KEYCHAIN_USER } from "../internal/commonTtypes";
 
-export async function initStrHoldClient(
+// ---------------------------------------------------------------------------
+// Stronghold Initialisation
+
+export async function initStrholdClient(
   vaultKey?: string,
   clientName?: string,
-) {
+): Promise<{ stronghold: Stronghold; client: Client } | null> {
   const vaultPath = `${await appDataDir()}/vault.hold`;
-
+  // If no vault key is provided, try to load from Keychain
   if (!vaultKey) {
-    const selfLoadKey = await GetkeyChainObject(MarbleStrongHold);
-    if (!selfLoadKey) return null;
-    vaultKey = selfLoadKey;
+    const storedKey = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
+    if (!storedKey) throw new Error("couldn't Provide the Strong-Hold-Key")
+    vaultKey = storedKey;
   }
   const stronghold = await Stronghold.load(vaultPath, vaultKey);
-  let client: Client;
-  try {
-    client = await stronghold.loadClient(clientName ?? MarbleStrongHold);
-  } catch {
-    client = await stronghold.createClient(clientName ?? MarbleStrongHold);
-  }
-  return {
-    stronghold,
-    client,
-  };
+  const client = await loadOrCreateClient(stronghold, clientName ?? MARBLE_STRONGHOLD_KEY);
+
+  return { stronghold, client };
 }
 
-// export async function LoadStrHoldClient(clientName: string) {
-//   const vaultPath = `${await appDataDir()}/vault.hold`;
-//   const vaultKey = await GetkeyChainObject(MarbleStrongHold);
-//   if (!vaultKey) return null;
-//   const stronghold = await Stronghold.load(vaultPath, vaultKey);
-//   let client: Client;
-//   try {
-//     client = await stronghold.loadClient(clientName ?? MarbleStrongHold);
-//     return { client, stronghold };
-//   } catch (err) {
-//     console.error(`there was an erorr while loading the client: ${err}`);
-//     return null;
-//   }
-// }
+async function loadOrCreateClient(
+  stronghold: Stronghold,
+  clientName: string,
+): Promise<Client> {
+  try {
+    return await stronghold.loadClient(clientName);
+  } catch {
+    return await stronghold.createClient(clientName);
+  }
+}
 
-export async function SetStrHoldObject(
-  data: any,
-  load: {
-    client: Client;
-    stronghold: Stronghold;
-  },
-  ObjectKey?: string,
-) {
+// ---------------------------------------------------------------------------
+// User Config Management (CRUD on Stronghold)
+
+export async function setHoldUser(
+  userData: UserConfig,
+  objectKey: string | null,
+  load?: { stronghold: Stronghold; client: Client } | null
+): Promise<void> {
+
+  if (!load) {
+    load = await initStrholdClient()
+    if (!load) throw new Error("could't load a storeClient")
+  }
+
+  let existingData = await getHoldUser(objectKey);
+  if (!existingData) {
+    existingData = new Map<string, UserConfig>();
+  }
+  existingData.set(userData.address, userData);
+
   const store = load.client.getStore();
-  const datainByte = Array.from(new TextEncoder().encode(JSON.stringify(data)));
-  await store.insert(ObjectKey ?? DefualtObjectKey, datainByte);
+  const dataBytes = new TextEncoder().encode(JSON.stringify([...existingData]));
+  await store.insert(objectKey ?? DEFAULT_OBJECT_KEY, Array.from(dataBytes));
   await load.stronghold.save();
 }
 
-export async function GetStrHoldObject(
-  load: {
-    client: Client;
-    stronghold: Stronghold;
-  },
-  ObjectKey?: string,
-): Promise<any | null> {
-  const store = load.client.getStore();
-  const data = await store.get(ObjectKey ?? DefualtObjectKey);
-  if (!data) return null;
-  const stringData = new TextDecoder().decode(new Uint8Array(data));
-  return await JSON.parse(stringData);
-}
+export async function getHoldUser(
+  objectKey: string | null,
+  load?: { stronghold: Stronghold; client: Client } | null
+): Promise<Map<string, UserConfig> | null> {
 
-export async function DeleteStrHoldObject(
-  load: {
-    client: Client;
-    stronghold: Stronghold;
-  },
-  ObjectKey?: string,
-) {
-  const store = load.client.getStore();
-  await store.remove(ObjectKey ?? DefualtObjectKey);
-}
-
-// <<<<----------------keychain Storage----------------->>>>
-
-const user = "Marble";
-
-export async function SetkeyChainObject(service: string, password: string) {
-  await setPassword(service, user, password);
-}
-
-export async function GetkeyChainObject(service: string) {
-  return await getPassword(service, user);
-}
-
-export async function DeletekeyChainObject(service: string) {
-  await deletePassword(service, user);
-}
-
-export async function GetKeyfromArmored(
-  armKey: string,
-  password?: string,
-): Promise<openpgp.PrivateKey | null> {
-  let privateKey = await openpgp.readPrivateKey({ armoredKey: armKey });
-  if (password) {
-    privateKey = await openpgp.decryptKey({
-      privateKey,
-      passphrase: password,
-    });
+  if (!load) {
+    load = await initStrholdClient()
+    if (!load) throw new Error("could't load a storeClient")
   }
-  return privateKey;
+
+  const store = load.client.getStore();
+  const data = await store.get(objectKey ?? DEFAULT_OBJECT_KEY);
+  if (!data) return null;
+
+  const jsonString = new TextDecoder().decode(new Uint8Array(data));
+  const parsedObject = JSON.parse(jsonString) as Array<[string, UserConfig]>;
+  return new Map(parsedObject);
+}
+
+export async function deleteHoldUser(
+  objectKey: string | null,
+  load?: { stronghold: Stronghold; client: Client } | null
+
+): Promise<void> {
+  if (!load) {
+    load = await initStrholdClient()
+    if (!load) throw new Error("could't load a storeClient")
+  }
+
+  const store = load.client.getStore();
+  await store.remove(objectKey ?? DEFAULT_OBJECT_KEY);
+}
+
+// ---------------------------------------------------------------------------
+// Keychain Storage (OS keychain)
+
+export async function setKeychainObject(service: string, password: string): Promise<void> {
+  await setPassword(service, KEYCHAIN_USER, password);
+}
+
+export async function getKeychainObject(service: string): Promise<string | null> {
+  return await getPassword(service, KEYCHAIN_USER);
+}
+
+export async function deleteKeychainObject(service: string): Promise<void> {
+  await deletePassword(service, KEYCHAIN_USER);
+}
+
+// ---------------------------------------------------------------------------
+// OpenPGP Key Helpers
+// ---------------------------------------------------------------------------
+
+export async function getKeyFromArmored(
+  armoredKey: string,
+  password: string | null,
+): Promise<openpgp.PrivateKey | null> {
+  try {
+    let privateKey = await openpgp.readPrivateKey({ armoredKey });
+    if (password) {
+      privateKey = await openpgp.decryptKey({
+        privateKey,
+        passphrase: password,
+      });
+    }
+    return privateKey;
+  } catch {
+    return null;
+  }
 }

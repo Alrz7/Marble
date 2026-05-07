@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import "./styles/login.css";
 import * as internal from "../logic/internal/commonTtypes";
-import { user } from "../logic/main";
 export default function Login({
   setAuth,
   setUserData,
 }: {
   setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
-  setUserData: React.Dispatch<React.SetStateAction<user>>;
+  setUserData: React.Dispatch<React.SetStateAction<internal.User | null>>;
 }) {
   const [email, setEmail] = useState("");
   const [emailText, setEmailText] = useState("Email");

@@ -3,29 +3,51 @@ import React, { useState, useRef, useEffect } from "react";
 import Message, { MessageProps } from "./message";
 import ChatInput from "./chatInput";
 import ChatHeader from "./chatHeader";
+import Sessions from "./sessions";
 import "./styles/chatLayout.css";
+import * as main from "../logic/auth/authMain";
 
 export interface ChatLayoutProps {
-  onSendMessage: (message: string) => Promise<void>;
-  messages: MessageProps[];
-  currentUser: {
-    name: string;
-    status: string;
-    avatar?: string;
-  };
-  onBack?: () => void;
-  isLoading?: boolean;
+  user: main.user;
+  onBack: () => void;
 }
 
-const ChatLayout: React.FC<ChatLayoutProps> = ({
-  onSendMessage,
-  messages,
-  currentUser,
-  onBack = () => console.log("Back clicked"),
-  isLoading = false,
-}) => {
-  const [localMessages, setLocalMessages] = useState<MessageProps[]>(messages);
+const ChatLayout: React.FC<ChatLayoutProps> = ({ user, onBack }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<MessageProps[]>([
+    {
+      id: "1",
+      content: "Hi, how you doing mate?",
+      sender: "audience",
+      timestamp: new Date("2025-04-10T10:30:00"),
+      status: "read",
+      senderName: "bob",
+    },
+    {
+      id: "2",
+      content: "Wussup!, I'm doing great What about you",
+      sender: "user",
+      timestamp: new Date("2025-04-10T10:32:30"),
+      status: "read",
+    },
+    {
+      id: "3",
+      content: "Have you heart of the new Messager app thats Commin out?",
+      sender: "audience",
+      timestamp: new Date("2025-04-10T10:34:24"),
+      status: "read",
+      senderName: "bob",
+    },
+    {
+      id: "4",
+      content: "I have!!!, it's going to be the GOAT",
+      sender: "user",
+      timestamp: new Date("2025-04-10T10:37:06"),
+      status: "read",
+    },
+  ]);
+
+  async function onSendMessage(content: string) {}
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,10 +55,10 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
-  }, [localMessages]);
+  }, [messages]);
 
   useEffect(() => {
-    setLocalMessages(messages);
+    setMessages(messages);
   }, [messages]);
 
   const handleSendMessage = async (content: string) => {
@@ -49,13 +71,13 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
     };
 
     // Add temporary message immediately
-    setLocalMessages((prev) => [...prev, tempMessage]);
+    setMessages((prev) => [...prev, tempMessage]);
 
     try {
       await onSendMessage(content);
 
       // Update message status after successful send
-      setLocalMessages((prev) =>
+      setMessages((prev) =>
         prev.map((msg) =>
           msg.id === tempMessage.id
             ? { ...msg, status: "delivered" as const }
@@ -77,7 +99,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
   };
 
   // Group messages by date
-  const groupedMessages = localMessages.reduce(
+  const groupedMessages = messages.reduce(
     (groups, message) => {
       const date = formatDate(message.timestamp);
       if (!groups[date]) {
@@ -92,26 +114,8 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
   return (
     <div className="chat-layout">
       <div className="chat-sidebar">
-        <ChatHeader
-          onBack={onBack}
-          userName={currentUser.name}
-          userStatus={currentUser.status}
-          userAvatar={currentUser.avatar}
-        />
-
-        {/* Additional sidebar content can go here */}
-        {/* <div
-          style={{
-            padding: "20px",
-            color: "rgba(230, 230, 230, 0.6)",
-            fontSize: "14px",
-            borderTop: "1px solid rgba(123, 97, 255, 0.1)",
-            marginTop: "auto",
-          }}
-        >
-          <p style={{ fontSize: "12px", marginTop: "8px" }}>
-          </p>
-        </div> */}
+        <ChatHeader onBack={onBack} user={user} />
+        <Sessions />
       </div>
 
       <div className="chat-main">
@@ -147,42 +151,46 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
                   key={message.id}
                   {...message}
                   senderName={
-                    message.sender === "audience" ? currentUser.name : undefined
+                    message.sender === "audience" && user
+                      ? user.name
+                      : undefined
                   }
                 />
               ))}
             </React.Fragment>
           ))}
 
-          {isLoading && (
-            <div
-              className="message message-audience"
-              style={{ alignSelf: "flex-start" }}
-            >
-              <div
-                className="message-content"
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <div
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    border: "2px solid rgba(46, 183, 204, 0.3)",
-                    borderTopColor: "#ffffff",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                  }}
-                />
-                typing...
-              </div>
-              <style>{`
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              `}</style>
-            </div>
-          )}
+          {
+            /* // {true && ( */
+            //   <div
+            //     className="message message-audience"
+            //     style={{ alignSelf: "flex-start" }}
+            //   >
+            //     <div
+            //       className="message-content"
+            //       style={{ display: "flex", alignItems: "center", gap: "8px" }}
+            //     >
+            //       <div
+            //         style={{
+            //           width: "20px",
+            //           height: "20px",
+            //           border: "2px solid rgba(46, 183, 204, 0.3)",
+            //           borderTopColor: "#ffffff",
+            //           borderRadius: "50%",
+            //           animation: "spin 1s linear infinite",
+            //         }}
+            //       />
+            //       typing...
+            //     </div>
+            //     <style>{`
+            //       @keyframes spin {
+            //         0% { transform: rotate(0deg); }
+            //         100% { transform: rotate(360deg); }
+            //       }
+            //     `}</style>
+            //   </div>
+            // )
+          }
 
           <div ref={messagesEndRef} />
         </div>
@@ -190,7 +198,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({
         <ChatInput
           onSendMessage={handleSendMessage}
           placeholder="Message"
-          disabled={isLoading}
+          // disabled={isLoading}
         />
       </div>
     </div>

@@ -82,6 +82,10 @@
   transform: none;
 }
 
+.send-button:active {
+  transform: translateY(2px);
+}
+
 .send-button svg {
   width: 20px;
   height: 20px;

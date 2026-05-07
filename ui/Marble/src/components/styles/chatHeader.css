@@ -1,12 +1,10 @@
 .sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid rgba(185, 185, 185, 0.165);
+  padding: 18px;
+  border-bottom: 3px solid rgba(185, 185, 185, 0.117);
   display: flex;
   align-items: center;
   gap: 15px;
 }
-
-
 
 .back-button {
   background: rgba(123, 97, 255, 0.1);
@@ -43,7 +41,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #15d9c588;
+  background: #13e3cf88;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,6 +49,18 @@
   font-weight: bold;
   color: white;
   border: 2px solid rgba(46, 204, 183, 0);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.profile-avatar:hover {
+  transform: translateY(-1px);
+  background: #129494;
+  box-shadow: 0 2px 15px rgba(59, 201, 214, 0.398);
+}
+
+.profile-avatar:active {
+  transform: translateY(1px);
 }
 
 .profile-info h3 {
@@ -65,3 +75,5 @@
   color: #15d6c6;
   opacity: 0.8;
 }
+
+
