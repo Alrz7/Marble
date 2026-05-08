@@ -1,27 +1,29 @@
+import { JSX } from "react";
+import { User } from "../logic/internal/commonTtypes";
 import "./styles/sessions.css";
+import { getInitials } from "../logic/internal/helperfuncs";
 
-export default function Sessions() {
+interface entry {
+  user: User;
+  // setUserData: React.Dispatch<React.SetStateAction<User | null>>;
+}
+
+export default function Sessions({ user }: entry) {
   return (
     <>
       <div className="sessions-container">
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
-        <Session />
+        {user?.config?.sessions
+          ? Object.entries(user.config.sessions).map(([addr, sessionKey]) =>
+              Session(addr, sessionKey),
+            )
+          : ""}
+        {/* <Session /> */}
       </div>
     </>
   );
 }
 
-function Session() {
+function Session(addr: string, sessionKey: number) {
   return (
     <>
       <div className="session">
@@ -29,18 +31,17 @@ function Session() {
           <button className="session-avatar">
             {false ? (
               <img
-                src={"j"}
-                alt={"j"}
+                src={addr}
+                alt={addr}
                 style={{ width: "100%", height: "100%", borderRadius: "50%" }}
               />
             ) : (
-              //   getInitials("john")
-              "J"
+              getInitials(addr)
             )}
           </button>
           <div className="session-info">
-            <h3>{"john"}</h3>
-            <p>{"online"}</p>
+            <h3>{addr}</h3>
+            <p>{"recently"}</p>
           </div>
         </div>
       </div>

@@ -1,9 +1,8 @@
 // ChatHeader.tsx
 import React from "react";
 import "./styles/chatHeader.css";
-import * as main from "../logic/auth/authMain";
 import { User } from "../logic/internal/commonTtypes";
-
+import { getInitials } from "../logic/internal/helperfuncs";
 export interface ChatHeaderProps {
   user: User;
   onBack: () => void;
@@ -13,14 +12,7 @@ export interface ChatHeaderProps {
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+
 
   return (
     <div>

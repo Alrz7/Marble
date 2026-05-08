@@ -25,8 +25,8 @@ export async function loadConfig(): Promise<User | null> {
   if (!strongholdClient) {
     throw new Error("Failed to initialize Stronghold client");
   }
-
   const existingUserData = await getHoldUser(strongholdClient)
+
   if (!existingUserData || Object.keys(existingUserData).length == 0 || !existingUserData.primaryUser) return null
 
   const entry = existingUserData.users[existingUserData.primaryUser]

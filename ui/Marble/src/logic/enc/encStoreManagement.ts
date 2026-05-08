@@ -19,21 +19,43 @@ import { UserConfig, MARBLE_STRONGHOLD_KEY, STRONGHOLD_OBJECT_KEYS, KEYCHAIN_USE
 
 export type Load = { stronghold: Stronghold; client: Client }
 
+
+let cachedLoad: Load | null = null;
+let isInitializing = false;
+
 export async function initStrholdClient(
   vaultKey?: string,
   clientName?: string,
 ): Promise<Load | null> {
-  const vaultPath = `${await appDataDir()}/vault.hold`;
-  // If no vault key is provided, try to load from Keychain
-  if (!vaultKey) {
-    const storedKey = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
-    if (!storedKey) throw new Error("couldn't Provide the Strong-Hold-Key")
-    vaultKey = storedKey;
+  if (cachedLoad) {
+    return cachedLoad;
   }
-  const stronghold = await Stronghold.load(vaultPath, vaultKey);
-  const client = await loadOrCreateClient(stronghold, clientName ?? MARBLE_STRONGHOLD_KEY);
 
-  return { stronghold, client };
+  if (isInitializing) {
+    while (isInitializing) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return cachedLoad;
+  }
+  isInitializing = true;
+
+  try {
+    const vaultPath = `${await appDataDir()}/vault.hold`;
+
+    if (!vaultKey) {
+      const storedKey = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
+      if (!storedKey) throw new Error("couldn't Provide the Strong-Hold-Key");
+      vaultKey = storedKey;
+    }
+
+    const stronghold = await Stronghold.load(vaultPath, vaultKey);
+    const client = await loadOrCreateClient(stronghold, clientName ?? MARBLE_STRONGHOLD_KEY);
+
+    cachedLoad = { stronghold, client };
+    return cachedLoad;
+  } finally {
+    isInitializing = false;
+  }
 }
 
 async function loadOrCreateClient(
@@ -45,6 +67,11 @@ async function loadOrCreateClient(
   } catch {
     return await stronghold.createClient(clientName);
   }
+}
+
+export function resetStronghold() {
+  cachedLoad?.stronghold.unload
+  cachedLoad = null;
 }
 
 // ---------------------------------------------------------------------------

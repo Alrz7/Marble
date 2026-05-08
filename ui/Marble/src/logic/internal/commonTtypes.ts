@@ -12,6 +12,7 @@ export interface UserConfig {
   id: number;
   address: string;
   identityKey: KeyGroup;
+  sessions: Record<string, number>
   // avatar: string
   // strongHoldKey: keyGroup;
 };

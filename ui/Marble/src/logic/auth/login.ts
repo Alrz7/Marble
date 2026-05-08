@@ -1,6 +1,6 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { getHoldUser, addHoldUser, setPrimaryUser } from "../enc/encStoreManagement";
-import { UserConfig } from "../internal/commonTtypes";
+import { getHoldUser, addHoldUser, setPrimaryUser, deletePrimaryUser } from "../enc/encStoreManagement";
+import { User, UserConfig } from "../internal/commonTtypes";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
@@ -36,6 +36,7 @@ export async function login(
         email: result.email,
         address: result.address,
         identityKey: existingUser.identityKey,
+        sessions: result.sessions
     };
     setPrimaryUser(currentUser.address)
     addHoldUser(currentUser);
@@ -43,9 +44,9 @@ export async function login(
 }
 
 
-// while logging out there can be two approaches :-> we aither set the User's Primary parameter as Null (then on a reload there wont be any 
-// auto Login) OR we Do NOT change the user's Primary property (which in this case the user will log back to the same Out-logged account
-// i they don't Log in Another account before the reload)
-export async function logOut() {
-
+export async function logOut(setUserData: React.Dispatch<React.SetStateAction<User | null>>) {
+    await deletePrimaryUser()
+    setTimeout(() => {
+        setUserData(null)
+    }, 500)
 }

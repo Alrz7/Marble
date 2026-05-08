@@ -1,5 +1,5 @@
 .sessions-container {
-  display: grid;
+  display:flexbox;
   position: relative;
   margin-top: 6px;
   margin-bottom: 6px;

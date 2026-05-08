@@ -5,10 +5,10 @@ import ChatInput from "./chatInput";
 import ChatHeader from "./chatHeader";
 import Sessions from "./sessions";
 import "./styles/chatLayout.css";
-import * as main from "../logic/auth/authMain";
+import { User } from "../logic/internal/commonTtypes";
 
 export interface ChatLayoutProps {
-  user: main.user;
+  user: User;
   onBack: () => void;
 }
 
@@ -115,7 +115,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ user, onBack }) => {
     <div className="chat-layout">
       <div className="chat-sidebar">
         <ChatHeader onBack={onBack} user={user} />
-        <Sessions />
+        <Sessions user={user} />
       </div>
 
       <div className="chat-main">
@@ -151,9 +151,9 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ user, onBack }) => {
                   key={message.id}
                   {...message}
                   senderName={
-                    message.sender === "audience" && user
-                      ? user.name
-                      : undefined
+                    message.sender === "audience"
+                      ? "audience"
+                      : user.config.name
                   }
                 />
               ))}
