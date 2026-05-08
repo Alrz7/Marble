@@ -22,8 +22,8 @@ if Beta was found it creates a new Session;
 the detaled tasks like checking for blocked Users and managing
 Session&signature verifiers will happen here.
 */
-func (AU *ActvUser) CreateSession(beta, message string) error {
-	// AU.User.SetPgpAdress()
+func (AU *ActvUser) CreateSession(beta pgp.Profileaddress, message string) error {
+	// AU.User.SetPgpAddress()
 	// fmt.Println(*(AU.User))
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
@@ -39,7 +39,7 @@ func (AU *ActvUser) CreateSession(beta, message string) error {
 	return nil
 }
 
-func (AU *ActvUser) SendSessionMessage(beta, message string) error {
+func (AU *ActvUser) SendSessionMessage(beta pgp.Profileaddress, message string) error {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return loggy.Sayr("error while fetching beta for sending message", err)
@@ -51,7 +51,7 @@ func (AU *ActvUser) SendSessionMessage(beta, message string) error {
 	return AU.User.PgpProfile.SendMessage(*AU.PrvIdentityKey, &Beta.PgpProfile, session, message)
 }
 
-func (AU *ActvUser) ReadSessionMessage(beta string, count int) (*[]string, error) {
+func (AU *ActvUser) ReadSessionMessage(beta pgp.Profileaddress, count int) (*[]string, error) {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return nil, loggy.Sayr("error while fetching beta for sending message", err)
@@ -67,7 +67,7 @@ func (AU *ActvUser) ReadSessionMessage(beta string, count int) (*[]string, error
 	return res, nil
 }
 
-func (AU *ActvUser) DeleteSession(beta string) error {
+func (AU *ActvUser) DeleteSession(beta pgp.Profileaddress) error {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return loggy.Sayr("error while fetching beta for sending message", err)
@@ -97,7 +97,7 @@ func (AU *ActvUser) DeleteSession(beta string) error {
 	return nil
 }
 
-func (AU *ActvUser) GetActiveSession(beta string) (*pgp.Session, error) {
+func (AU *ActvUser) GetActiveSession(beta pgp.Profileaddress) (*pgp.Session, error) {
 	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
 	if !ok {
 		return nil, loggy.Say("there was no Session found among these two audience")
@@ -116,10 +116,10 @@ func (AU *ActvUser) GetActiveSession(beta string) (*pgp.Session, error) {
 GetActiveUser adds the Users to a Online Client Session to
 keep it in use for next Requests & tasks
 */
-func GetActiveUser(betaAddrs string) (*ActvUser, error) {
+func GetActiveUser(userAddress pgp.Profileaddress) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
-	newActiveUser.User, err = users.GetUserProfile(betaAddrs)
+	newActiveUser.User, err = users.GetUserProfile(userAddress)
 	if err != nil {
 		return nil, err
 	}

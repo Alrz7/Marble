@@ -7,6 +7,7 @@ import "./App.css";
 import LoadingPage from "./components/loadingPage";
 import { User, auth } from "./logic/internal/commonTtypes";
 import { loadConfig } from "./logic/auth/authMain";
+import { deletePrimaryUser } from "./logic/enc/encStoreManagement";
 export default function App() {
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [user, setUserData] = useState<User | null>(null);
@@ -24,6 +25,7 @@ export default function App() {
   }, []);
 
   const handleBack = () => {
+    deletePrimaryUser()
     setUserData(null);
   };
 

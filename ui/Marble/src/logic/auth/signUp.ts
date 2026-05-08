@@ -1,7 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { UserConfig } from "../internal/commonTtypes";
 import { generateIdntKey } from "../enc/encMain";
-import { setHoldUser } from "../enc/encStoreManagement";
+import { addHoldUser } from "../enc/encStoreManagement";
 
 // the IdentityKey & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too
@@ -39,8 +39,7 @@ export async function createAccount(
     id: result.id,
     address: result.address,
     identityKey: IdentityKey,
-    primary: true,
   };
-  setHoldUser(newUser, null);
+  addHoldUser(newUser);
   return newUser;
 }

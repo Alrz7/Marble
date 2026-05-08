@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./styles/login.css";
 import * as internal from "../logic/internal/commonTtypes";
+import { login } from "../logic/auth/login";
+import { getKeyFromArmored } from "../logic/enc/encStoreManagement";
 export default function Login({
   setAuth,
   setUserData,
@@ -8,15 +10,23 @@ export default function Login({
   setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
   setUserData: React.Dispatch<React.SetStateAction<internal.User | null>>;
 }) {
-  const [email, setEmail] = useState("");
-  const [emailText, setEmailText] = useState("Email");
-  const [passText, setPassText] = useState("Password");
+  const [name, setName] = useState("");
+  const [id, setId] = useState(0);
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newUserConfig = await login(name, id, password);
+    if (newUserConfig) {
+      const prvKey = await getKeyFromArmored(
+        newUserConfig.identityKey.privateKey,
+        null,
+      );
+      if (prvKey) {
+        setUserData({ config: newUserConfig, prvIdentKey: prvKey });
+      }
+    }
     // loggin logic goes here
-    console.log("Login:", email, password);
   };
 
   return (
@@ -28,37 +38,52 @@ export default function Login({
         </div>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              placeholder="name"
+              // value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
             <label
-              htmlFor="email"
-              style={{
-                color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
-              }}
+              htmlFor="id"
+              style={
+                {
+                  // color: idText == "Id" ? "#ffffffff" : "#e15d5dff",
+                }
+              }
             >
-              {emailText}
+              Id
             </label>
             <input
-              type="email"
-              id="email"
-              placeholder="example@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="id"
+              id="id"
+              placeholder="id"
+              // value={""}
+              onChange={(e) => setId(Number(e.target.value))}
               required
             />
           </div>
           <div className="input-group">
             <label
               htmlFor="password"
-              style={{
-                color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
-              }}
+              style={
+                {
+                  // color: idText == "Email" ? "#ffffffff" : "#e15d5dff",
+                }
+              }
             >
-              {passText}
+              Password
             </label>
             <input
               type="password"
               id="password"
               placeholder="••••••••"
-              value={password}
+              // value={}
               onChange={(e) => setPassword(e.target.value)}
               required
             />

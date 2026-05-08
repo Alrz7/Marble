@@ -37,7 +37,7 @@ func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	ActvUser, err := active.GetActiveUser(pgp.StringToPgpAddress(entry.Alpha))
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return
@@ -48,7 +48,7 @@ func (api *apiConfig) createSession(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	err = ActvUser.CreateSession(entry.Beta, entry.Message)
+	err = ActvUser.CreateSession(pgp.StringToPgpAddress(entry.Beta), entry.Message)
 	if err != nil {
 		err = fmt.Errorf("there was an error while creating the session: %v", err)
 		api.serverErrorResponse(w, r, err)
@@ -76,7 +76,7 @@ func (api *apiConfig) SendSessionMessage(w http.ResponseWriter, r *http.Request)
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	ActvUser, err := active.GetActiveUser(pgp.StringToPgpAddress(entry.Alpha))
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return
@@ -87,7 +87,7 @@ func (api *apiConfig) SendSessionMessage(w http.ResponseWriter, r *http.Request)
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	err = ActvUser.SendSessionMessage(entry.Beta, entry.Message)
+	err = ActvUser.SendSessionMessage(pgp.StringToPgpAddress(entry.Beta), entry.Message)
 	if err != nil {
 		err = fmt.Errorf("there was an error while sending the message: %v", err)
 		api.serverErrorResponse(w, r, err)
@@ -115,7 +115,7 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	ActvUser, err := active.GetActiveUser(pgp.StringToPgpAddress(entry.Alpha))
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return
@@ -126,7 +126,7 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	messages, err := ActvUser.ReadSessionMessage(entry.Beta, entry.Count)
+	messages, err := ActvUser.ReadSessionMessage(pgp.StringToPgpAddress(entry.Beta), entry.Count)
 	if err != nil {
 		err = fmt.Errorf("there was an error while reading messages: %v", err)
 		api.serverErrorResponse(w, r, err)
@@ -155,12 +155,12 @@ func (api *apiConfig) DeleteDession(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	ActvUser, err := active.GetActiveUser(entry.Alpha)
+	ActvUser, err := active.GetActiveUser(pgp.StringToPgpAddress(entry.Alpha))
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	err = ActvUser.DeleteSession(entry.Beta)
+	err = ActvUser.DeleteSession(pgp.StringToPgpAddress(entry.Beta))
 	if err != nil {
 
 		switch {

@@ -1,9 +1,9 @@
-export type application = {
+export interface application {
   name: string;
   stage: string;
   openpgp: cfgOpenpgp;
 };
-export type cfgOpenpgp = {
+export interface cfgOpenpgp {
   encType: "curve25519" | "ecc" | "rsa" | "curve448" | undefined;
   encFormat: "armored" | "binary" | "object";
   lockPrvIdentityKey: boolean;

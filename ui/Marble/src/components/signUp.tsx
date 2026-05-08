@@ -10,16 +10,14 @@ export default function SignUp({
   setAuth: React.Dispatch<React.SetStateAction<auth>>;
   setUserData: React.Dispatch<React.SetStateAction<User | null>>;
 }) {
-  const [emailText, setEmailText] = useState("Email"); // for email input logic failiur
-  const [passText, setPassText] = useState("Password"); // -same-
-  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const userConfig = await createAccount(name, email, password);
-    if (userConfig != null) {
+    if (userConfig) {
       const prvKey = await getKeyFromArmored(
         userConfig.identityKey.privateKey,
         null,
@@ -54,10 +52,10 @@ export default function SignUp({
             <label
               htmlFor="email"
               style={{
-                color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
+                // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
               }}
             >
-              {emailText}
+             Email
             </label>
             <input
               type="email"
@@ -72,10 +70,10 @@ export default function SignUp({
             <label
               htmlFor="password"
               style={{
-                color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
+                // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
               }}
             >
-              {passText}
+              Password
             </label>
             <input
               type="password"

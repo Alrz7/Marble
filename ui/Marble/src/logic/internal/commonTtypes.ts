@@ -9,10 +9,9 @@ export interface User {
 export interface UserConfig {
   name: string;
   email: string;
-  id: string;
+  id: number;
   address: string;
   identityKey: KeyGroup;
-  primary: boolean;
   // avatar: string
   // strongHoldKey: keyGroup;
 };
@@ -22,7 +21,15 @@ export interface KeyGroup {
   publicKey: string;
   revocationCertificate: string;
 };
+
+export type UserHold = {
+  users: Record<string, UserConfig>
+  primaryUser: string | null
+}
+
 // Constants
 export const MARBLE_STRONGHOLD_KEY = "marble_stronghold";
-export const DEFAULT_OBJECT_KEY = "default_object";
+export const STRONGHOLD_OBJECT_KEYS = {
+  Users: "users",
+}
 export const KEYCHAIN_USER = "Marble"; // Username for Keychain access

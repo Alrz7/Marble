@@ -9,7 +9,7 @@ import (
 	"marble/internal/loggy"
 )
 
-func (U *User) SetPgpAdress() {
+func (U *User) SetPgpAddress() {
 	U.PgpProfile.Address = pgp.GetPgpAddress(U.UserName, U.Id)
 }
 
@@ -51,7 +51,7 @@ func (U *UserModel) Get(id int32) (*User, error) {
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part
-	user.SetPgpAdress()
+	user.SetPgpAddress()
 	// we can add the Address right here instead of in many other single function
 	return &user, nil
 }

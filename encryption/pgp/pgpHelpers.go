@@ -53,7 +53,13 @@ func DoesUnlock(privKey, password string) (bool, error) {
 }
 
 func GetPgpAddress(name string, id int32) Profileaddress {
+	// NOTE the address Validation proccess goes here same as StringToPgpAddress down below
 	return Profileaddress(fmt.Sprintf("%s-%d", name, id))
+}
+
+func StringToPgpAddress(address string) Profileaddress {
+	// NOTE the address Validation proccess goes here
+	return Profileaddress(address)
 }
 
 func IsValidPair(alpha, beta *Profile) error {

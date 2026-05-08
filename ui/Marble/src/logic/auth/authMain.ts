@@ -1,7 +1,6 @@
 import { generateIdntKey } from "../enc/encMain.ts";
 import { getHoldUser, getKeychainObject, getKeyFromArmored, initStrholdClient, setKeychainObject } from "../enc/encStoreManagement.ts";
-import { User, MARBLE_STRONGHOLD_KEY, DEFAULT_OBJECT_KEY } from "../internal/commonTtypes.ts";
-
+import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTtypes.ts";
 
 
 async function getOrCreateVaultKey(): Promise<string> {
@@ -27,31 +26,19 @@ export async function loadConfig(): Promise<User | null> {
     throw new Error("Failed to initialize Stronghold client");
   }
 
-  const configEntries = await getHoldUser(
-    DEFAULT_OBJECT_KEY,
-    strongholdClient
-  );
-  if (!configEntries) {
-    // throw new Error("No configuration found");
-    return null
+  const existingUserData = await getHoldUser(strongholdClient)
+  if (!existingUserData || Object.keys(existingUserData).length == 0 || !existingUserData.primaryUser) return null
+
+  const entry = existingUserData.users[existingUserData.primaryUser]
+  if (!entry) return null
+
+  const privateKey = await getKeyFromArmored(entry.identityKey.privateKey, null);
+  if (!privateKey) {
+    throw new Error("Failed to decode primary user's private key");
   }
+  return {
+    config: entry,
+    prvIdentKey: privateKey,
+  };
 
-  for (const [, entry] of configEntries) {
-    if (!entry.primary) continue;
-
-    const privateKey = await getKeyFromArmored(
-      entry.identityKey.privateKey,
-      null,
-    );
-    if (!privateKey) {
-      throw new Error("Failed to decode primary user's private key");
-    }
-
-    return {
-      config: entry,
-      prvIdentKey: privateKey,
-    };
-  }
-
-  throw new Error("No primary user found in configuration");
 }
