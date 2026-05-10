@@ -108,6 +108,7 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 		Alpha       string `json:"alpha"`
 		AlphaPrvKey string `json:"alpha_prv_key"`
 		Beta        string `json:"beta"`
+		From        int    `json:"from"`
 		Count       int    `json:"count"`
 	}
 	err := api.readJson(w, r, &entry)
@@ -126,7 +127,7 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	messages, err := ActvUser.ReadSessionMessage(pgp.StringToPgpAddress(entry.Beta), entry.Count)
+	messages, lastIndex, err := ActvUser.ReadSessionMessage(pgp.StringToPgpAddress(entry.Beta), entry.From, entry.Count)
 	if err != nil {
 		err = fmt.Errorf("there was an error while reading messages: %v", err)
 		api.serverErrorResponse(w, r, err)
@@ -134,9 +135,10 @@ func (api *apiConfig) ReadSessionMessages(w http.ResponseWriter, r *http.Request
 
 	}
 	response := envelope{
-		"error":   false,
-		"message": "Messages has been red Successfully!",
-		"result":  messages,
+		"error":      false,
+		"message":    "Messages has been red Successfully!",
+		"result":     messages,
+		"last_index": lastIndex,
 	}
 	err = api.writeJSON(w, 200, response, nil)
 	if err != nil {

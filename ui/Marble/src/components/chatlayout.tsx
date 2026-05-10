@@ -6,45 +6,46 @@ import ChatHeader from "./chatHeader";
 import Sessions from "./sessions";
 import "./styles/chatLayout.css";
 import { User } from "../logic/internal/commonTtypes";
+import SearchBar from "./searchBar";
 
 export interface ChatLayoutProps {
   user: User;
   onBack: () => void;
 }
-
 const ChatLayout: React.FC<ChatLayoutProps> = ({ user, onBack }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [messages, setMessages] = useState<MessageProps[]>([
-    {
-      id: "1",
-      content: "Hi, how you doing mate?",
-      sender: "audience",
-      timestamp: new Date("2025-04-10T10:30:00"),
-      status: "read",
-      senderName: "bob",
-    },
-    {
-      id: "2",
-      content: "Wussup!, I'm doing great What about you",
-      sender: "user",
-      timestamp: new Date("2025-04-10T10:32:30"),
-      status: "read",
-    },
-    {
-      id: "3",
-      content: "Have you heart of the new Messager app thats Commin out?",
-      sender: "audience",
-      timestamp: new Date("2025-04-10T10:34:24"),
-      status: "read",
-      senderName: "bob",
-    },
-    {
-      id: "4",
-      content: "I have!!!, it's going to be the GOAT",
-      sender: "user",
-      timestamp: new Date("2025-04-10T10:37:06"),
-      status: "read",
-    },
+    // {
+    //   id: "1",
+    //   content: "Hi, how you doing mate?",
+    //   sender: "audience",
+    //   timestamp: new Date("2025-04-10T10:30:00"),
+    //   status: "read",
+    //   senderName: "bob",
+    // },
+    // {
+    //   id: "2",
+    //   content: "Wussup!, I'm doing great What about you",
+    //   sender: "user",
+    //   timestamp: new Date("2025-04-10T10:32:30"),
+    //   status: "read",
+    // },
+    // {
+    //   id: "3",
+    //   content: "Have you heart of the new Messager app thats Commin out?",
+    //   sender: "audience",
+    //   timestamp: new Date("2025-04-10T10:34:24"),
+    //   status: "read",
+    //   senderName: "bob",
+    // },
+    // {
+    //   id: "4",
+    //   content: "I have!!!, it's going to be the GOAT",
+    //   sender: "user",
+    //   timestamp: new Date("2025-04-10T10:37:06"),
+    //   status: "read",
+    // },
   ]);
 
   async function onSendMessage(content: string) {}
@@ -114,8 +115,13 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ user, onBack }) => {
   return (
     <div className="chat-layout">
       <div className="chat-sidebar">
-        <ChatHeader onBack={onBack} user={user} />
-        <Sessions user={user} />
+        <ChatHeader
+          onBack={onBack}
+          user={user}
+          isSearching={isSearching}
+          searchToggle={() => setIsSearching((prev) => !prev)}
+        />
+        {isSearching ? <SearchBar /> : <Sessions user={user} />}
       </div>
 
       <div className="chat-main">

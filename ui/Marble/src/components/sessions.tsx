@@ -1,4 +1,3 @@
-import { JSX } from "react";
 import { User } from "../logic/internal/commonTtypes";
 import "./styles/sessions.css";
 import { getInitials } from "../logic/internal/helperfuncs";
@@ -17,7 +16,6 @@ export default function Sessions({ user }: entry) {
               Session(addr, sessionKey),
             )
           : ""}
-        {/* <Session /> */}
       </div>
     </>
   );

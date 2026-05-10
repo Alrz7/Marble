@@ -30,8 +30,7 @@ func (AU *ActvUser) CreateSession(beta pgp.Profileaddress, message string) error
 		return err
 	}
 	// fmt.Println(*Beta)
-	_, err = AU.User.PgpProfile.
-		CreateSession(*AU.PrvIdentityKey, &Beta.PgpProfile, message)
+	_, err = AU.User.PgpProfile.CreateSession(&Beta.PgpProfile, message)
 	if err != nil {
 		return err
 	}
@@ -48,23 +47,23 @@ func (AU *ActvUser) SendSessionMessage(beta pgp.Profileaddress, message string) 
 	if err != nil {
 		return err
 	}
-	return AU.User.PgpProfile.SendMessage(*AU.PrvIdentityKey, &Beta.PgpProfile, session, message)
+	return AU.User.PgpProfile.SendMessage(&Beta.PgpProfile, session, message)
 }
 
-func (AU *ActvUser) ReadSessionMessage(beta pgp.Profileaddress, count int) (*[]string, error) {
+func (AU *ActvUser) ReadSessionMessage(beta pgp.Profileaddress, from, count int) (*[]string, int, error) {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
-		return nil, loggy.Sayr("error while fetching beta for sending message", err)
+		return nil, -1, loggy.Sayr("error while fetching beta for sending message", err)
 	}
 	session, err := AU.GetActiveSession(beta)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	res, err := AU.User.PgpProfile.ReadMessage(AU.PrvIdentityKey, &Beta.PgpProfile, session, count)
+	res, lastIndex, err := AU.User.PgpProfile.ReadMessage(&Beta.PgpProfile, session, from, count)
 	if err != nil {
-		return nil, loggy.Sayr("an error while reading the message from session", err)
+		return nil, -1, loggy.Sayr("an error while reading the message from session", err)
 	}
-	return res, nil
+	return res, lastIndex, nil
 }
 
 func (AU *ActvUser) DeleteSession(beta pgp.Profileaddress) error {

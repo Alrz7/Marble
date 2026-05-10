@@ -3,17 +3,23 @@ import React from "react";
 import "./styles/chatHeader.css";
 import { User } from "../logic/internal/commonTtypes";
 import { getInitials } from "../logic/internal/helperfuncs";
+import { SearchButton } from "./searchBar";
 export interface ChatHeaderProps {
   user: User;
   onBack: () => void;
+  isSearching: boolean;
+  searchToggle: () => void;
   // userName: string;
   // userStatus: string;
   // userAvatar?: string;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
-
-
+const ChatHeader: React.FC<ChatHeaderProps> = ({
+  user,
+  onBack,
+  isSearching,
+  searchToggle,
+}) => {
   return (
     <div>
       <div className="sidebar-header">
@@ -39,6 +45,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
             {/* <p>{userStatus}</p> */}
           </div>
         </div>
+          <SearchButton
+            isSearching={isSearching}
+            onToggle={searchToggle}
+          />
       </div>
     </div>
   );

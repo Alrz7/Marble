@@ -22,7 +22,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(150deg, #212121 10%, #272727 40%, #191919 84%);
+  background: linear-gradient(150deg, #242424 10%, #1f1f1f 40%, #151515 84%);
   color: #e6e6e6;
   overflow: hidden;
 }

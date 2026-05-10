@@ -1,4 +1,4 @@
-import { generateIdntKey } from "../enc/encMain.ts";
+import { generateIdntKey } from "../enc/encHelpers.ts";
 import { getHoldUser, getKeychainObject, getKeyFromArmored, initStrholdClient, setKeychainObject } from "../enc/encStoreManagement.ts";
 import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTtypes.ts";
 

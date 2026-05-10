@@ -14,10 +14,12 @@
     "@tauri-apps/plugin-http": "^2.5.8",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-stronghold": "^2.3.1",
+    "framer-motion": "^12.38.0",
     "openpgp": "^6.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tauri-plugin-keyring-api": "^0.1.1"
+    "tauri-plugin-keyring-api": "^0.1.1",
+    "vite-plugin-svgr": "^5.2.0"
   },
   "devDependencies": {
     "@openpgp/web-stream-tools": "^0.3.1",

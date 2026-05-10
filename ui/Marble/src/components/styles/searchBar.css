@@ -1,0 +1,131 @@
+.search-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #8d8e8e1e 10%, #29292a1c 90%);
+  border: 2px solid #eceeee4f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsla(200, 4%, 85%, 0.478);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.search-button:hover {
+  /* transform: translateY(-1px); */
+  background-color: #64656527;
+  border: 2px solid #d4ebeb78;
+  color: #dbeaea82;
+}
+
+.search-button:active {
+  transform: scale(0.98);
+}
+
+.search-button.active {
+  background: linear-gradient(135deg, #8d8e8e1e 10%, #29292a1c 90%);
+  border: 2px solid #ea3d71b4;
+  color: #ea3d71b4;
+}
+
+.search-button svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+}
+.search-button.active  svg {
+  width: 40px;
+  height: 40px;
+  fill: currentColor;
+}
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 0px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.search-input {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(131, 131, 131, 0.08);
+  border: 1px solid rgba(157, 157, 157, 0.3);
+  padding: 0 16px;
+  font-size: 16px;
+  font-family: "Crf-reg";
+  color: #e6e6e6;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  background: rgba(36, 36, 36, 0.918);
+  border-color: #61efff1e;
+  box-shadow: 0 0 0 2px rgba(97, 208, 255, 0.444);
+}
+
+.search-input::placeholder {
+  color: rgba(230, 230, 230, 0.5);
+}
+
+.search-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8d8e8e1e 10%, #29292a1c 90%);
+  border: 2px solid #eceeee4f;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d9d9d9b1;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  /* transition:
+    background 0.2s,
+    transform 0.15s; */
+  flex-shrink: 0;
+}
+
+.search-btn svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+}
+
+.search-btn:hover {
+  /* transform: translateY(-1px); */
+  background-color: #64656527;
+  border: 2px solid #d4ebeb78;
+  color: #dbeaea82;
+}
+
+.search-btn:active {
+  transform: scale(0.98);
+}
+
+.search-results {
+  width: 100%;
+  min-height: 80px;
+  margin-top: 8px;
+}
