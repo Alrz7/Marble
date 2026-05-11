@@ -3,6 +3,7 @@ package api
 import (
 	"flag"
 	"fmt"
+	"marble/app/active"
 	"marble/config"
 	"marble/internal"
 	"marble/internal/loggy"
@@ -47,6 +48,7 @@ func (api *apiConfig) Run() {
 	mux.HandleFunc("/", api.handleHome)
 	mux.HandleFunc("/account/", api.hndlAccount)
 	mux.HandleFunc("/account/session", api.hndlSession)
+	mux.HandleFunc("/actv", active.HandleWebSocket)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", api.Port),

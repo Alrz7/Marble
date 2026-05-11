@@ -19,7 +19,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self' ws://localhost:6280 wss://mydomain.com;"
     }
   },
   "bundle": {

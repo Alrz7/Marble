@@ -1,15 +1,9 @@
 // Message.tsx
 import React from 'react';
 import './styles/message.css';
+import { MessageProps } from '../logic/internal/commonTtypes';
 
-export interface MessageProps {
-  id: string;
-  content: string;
-  sender: 'user' | 'audience';
-  timestamp: Date;
-  status?: 'sent' | 'delivered' | 'read';
-  senderName?: string;
-}
+
 
 const Message: React.FC<MessageProps> = ({ 
   content, 

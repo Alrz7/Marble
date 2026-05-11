@@ -3,7 +3,9 @@ export interface application {
   stage: string;
   openpgp: cfgOpenpgp;
 };
-export interface cfgOpenpgp {
+
+// --- enc ---
+export type cfgOpenpgp = {
   encType: "curve25519" | "ecc" | "rsa" | "curve448" | undefined;
   encFormat: "armored" | "binary" | "object";
   lockPrvIdentityKey: boolean;
@@ -18,3 +20,10 @@ export const app: application = {
     lockPrvIdentityKey: true,
   },
 };
+
+// -------StoreConfig & Deps---------
+export type strgSession = Record<string, string[]>
+export type StoreConfig = {
+  sessions: strgSession
+  //...
+}
