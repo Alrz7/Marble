@@ -7,11 +7,12 @@ import "./styles/chatLayout.css";
 import { MessageProps, User } from "../logic/internal/commonTtypes";
 import SearchBar from "./searchBar";
 import Message from "./message";
+import { sendMessage } from "../logic/active/activeMain";
 
 export interface ChatLayoutProps {
   user: User;
-  onBack: () => void;
-  messages: MessageProps[];
+  onBack: () => void | null;
+  messages: MessageProps[] | null;
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>;
 }
 export function ChatLayout({
@@ -22,8 +23,11 @@ export function ChatLayout({
 }: ChatLayoutProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSearching, setIsSearching] = useState(false);
-  
-  async function onSendMessage(content: string) {}
+
+  async function onSendMessage(content: string) {
+    sendMessage(content);
+    setMessages((prev) => prev);
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,10 +37,7 @@ export function ChatLayout({
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    setMessages(messages);
-  }, [messages]);
-
+  
   const handleSendMessage = async (content: string) => {
     const tempMessage: MessageProps = {
       id: `temp-${Date.now()}`,
@@ -75,7 +76,7 @@ export function ChatLayout({
   };
 
   // Group messages by date
-  const groupedMessages = messages.reduce(
+  const groupedMessages = messages?.reduce(
     (groups, message) => {
       const date = formatDate(message.timestamp);
       if (!groups[date]) {
@@ -101,7 +102,7 @@ export function ChatLayout({
 
       <div className="chat-main">
         <div className="messages-container">
-          {Object.entries(groupedMessages).map(([date, dateMessages]) => (
+          {groupedMessages && Object.entries(groupedMessages).map(([date, dateMessages]) => (
             <React.Fragment key={date}>
               <div
                 style={{

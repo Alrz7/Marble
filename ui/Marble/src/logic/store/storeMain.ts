@@ -1,12 +1,13 @@
 import { Store } from '@tauri-apps/plugin-store'
 import { StoreConfig } from '../internal/config';
+import { appDataDir } from '@tauri-apps/api/path';
 
 
 // Store Load Init
 let storeLoadCache: Store | null = null
 let isStoreLoadInitializing = false;
 
-export async function initStoreClient(storagePath: string): Promise<Store | null> {
+export async function initStoreClient(storageId: string): Promise<Store | null> {
     if (storeLoadCache) return storeLoadCache
 
     if (isStoreLoadInitializing) {
@@ -16,6 +17,7 @@ export async function initStoreClient(storagePath: string): Promise<Store | null
         return storeLoadCache
     }
     isStoreLoadInitializing = true
+    const storagePath = `${await appDataDir()}/localStorage/${storageId}`;
     storeLoadCache = await Store.load(storagePath)
     isStoreLoadInitializing = false
     return storeLoadCache
@@ -53,9 +55,9 @@ export async function getStoreSession(sessionStorageId: string, force?: boolean)
     return null
 }
 
-export async function setStoreSession(sessionStorageId: string, session: string[]): Promise<void> {
+export async function setStoreSession(sessionStorageId: string, message: string[]): Promise<void> {
     if (!storeLoadCache) throw new Error("store client is not Loaded!")
-    storeConfigCache.sessions[sessionStorageId] = session
-    await storeLoadCache.set(sessionStorageId, session)
+    storeConfigCache.sessions[sessionStorageId] = message
+    await storeLoadCache.set(sessionStorageId, message)
 
 }

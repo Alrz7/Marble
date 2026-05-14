@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./styles/login.css";
 import * as internal from "../logic/internal/commonTtypes";
 import { login } from "../logic/auth/login";
-import { getKeyFromArmored } from "../logic/enc/encStoreManagement";
+import { getKeyFromArmored } from "../logic/enc/keyChain";
 export default function Login({
   setAuth,
   setUserData,

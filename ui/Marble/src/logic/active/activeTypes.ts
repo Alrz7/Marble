@@ -1,6 +1,8 @@
 export type Request = {
+    status: number
     channel: string
-    body: string
+    headers: Record<string, string>
+    body: any
 }
 
 export type Handler = (requestBody: any) => void

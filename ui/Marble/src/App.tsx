@@ -5,19 +5,21 @@ import Login from "./components/login";
 import SignUp from "./components/signUp";
 import "./App.css";
 import LoadingPage from "./components/loadingPage";
-import { User, auth } from "./logic/internal/commonTtypes";
-import { loadConfig } from "./logic/auth/authMain";
-import { logOut } from "./logic/auth/login";
 import {
-  disconnectWS,
-  openConnection,
-  setHandlers,
-} from "./logic/active/activeMain";
+  GroupSession,
+  Session,
+  User,
+  auth,
+} from "./logic/internal/commonTtypes";
+import { loadConfig } from "./logic/appMain";
+import { logOut } from "./logic/auth/login";
+import { openConnection, setHandlers } from "./logic/active/activeMain";
 import { MessageProps } from "./logic/internal/commonTtypes";
 export default function App() {
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [user, setUserData] = useState<User | null>(null);
   const [authPage, setAuthPage] = useState<auth>("login");
+  const [session, setSession] = useState<Session | GroupSession | null>(null);
   const [messages, setMessages] = useState<MessageProps[]>([]);
   //   [
   //   {
@@ -58,6 +60,8 @@ export default function App() {
       const userData = await loadConfig();
       if (userData) {
         setUserData(userData);
+        openConnection();
+        setHandlers(handlersRef.current);
       }
       setLoadingPage(false);
     }
@@ -70,17 +74,6 @@ export default function App() {
     },
     // notifications: (body: any) => { ... },
   });
-
-  useEffect(() => {
-    setHandlers(handlersRef.current);
-  }, []);
-
-  useEffect(() => {
-    openConnection();
-    // return () => {
-    //   disconnectWS();
-    // };
-  }, []);
 
   const handleBack = () => {
     logOut(setUserData);

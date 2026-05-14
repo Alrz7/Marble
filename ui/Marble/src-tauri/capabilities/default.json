@@ -10,6 +10,7 @@
       "deny": [{ "url": "https://private.tauri.app" }]
     },
     "core:default",
+    "store:default",
     "opener:default",
     "keyring:default",
     "stronghold:default"

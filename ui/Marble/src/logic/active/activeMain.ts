@@ -60,10 +60,28 @@ export function disconnectWS() {
     }
 }
 
-// export function sendMessage(msg: string) {
-//     if (ws && ws.readyState === WebSocket.OPEN) {
-//         ws.send(JSON.stringify(msg));
-//     } else {
-//         console.warn('WebSocket not open. Message not sent.');
-//     }
-// }
+export function sendRequest(req: Request) {
+    console.log(req)
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(req));
+    } else {
+        console.warn('WebSocket not open. Message not sent.');
+    }
+}
+
+export function sendMessage(session_id: string, message: string) {
+    const messagestruct: {
+        session_id: String,
+        message: String
+    } = {
+        session_id: session_id,
+        message: message
+    }
+    const req: Request = {
+        status: 0,
+        channel: "session",
+        headers: {},
+        body: JSON.stringify(messagestruct)
+    }
+    sendRequest(req)
+}

@@ -1,6 +1,8 @@
 import { PrivateKey } from "openpgp";
-
 export type auth = "login" | "signup" | "resetpass";
+
+
+// User Types ---------------------------------
 
 // type userProfile = {
 //     avatar: string
@@ -22,15 +24,11 @@ export type UserConfig = {
   storagePath: string
 };
 
-export type KeyGroup = {
-  privateKey: string;
-  publicKey: string;
-  revocationCertificate: string;
-};
+export type GroupSession = {}
 
-export type UserHold = {
-  users: Record<string, UserConfig>
-  primaryUser: string | null
+export type Session = {
+  sessionId: number
+  beta: string
 }
 
 export interface MessageProps {
@@ -42,8 +40,20 @@ export interface MessageProps {
   senderName?: string;
 }
 
+export type KeyGroup = {
+  privateKey: string;
+  publicKey: string;
+  revocationCertificate: string;
+};
 
-// Constants
+export type UserHold = {
+  users: Record<string, UserConfig>
+  primaryUser: string | null
+}
+
+
+// Constants-----------------------------------
+
 export const MARBLE_STRONGHOLD_KEY = "marble_stronghold";
 export const STRONGHOLD_OBJECT_KEYS = {
   Users: "users",

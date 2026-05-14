@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./styles/login.css";
 import { createAccount } from "../logic/auth/signUp";
-import { getKeyFromArmored } from "../logic/enc/encStoreManagement";
+import { getKeyFromArmored } from "../logic/enc/keyChain";
 import { auth, User } from "../logic/internal/commonTtypes";
 export default function SignUp({
   setAuth,
@@ -51,11 +51,13 @@ export default function SignUp({
           <div className="input-group">
             <label
               htmlFor="email"
-              style={{
-                // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
-              }}
+              style={
+                {
+                  // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
+                }
+              }
             >
-             Email
+              Email
             </label>
             <input
               type="email"
@@ -69,9 +71,11 @@ export default function SignUp({
           <div className="input-group">
             <label
               htmlFor="password"
-              style={{
-                // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
-              }}
+              style={
+                {
+                  // color: emailText == "Email" ? "#ffffffff" : "#e15d5dff",
+                }
+              }
             >
               Password
             </label>

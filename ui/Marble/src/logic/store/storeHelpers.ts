@@ -2,7 +2,7 @@ import { getRandomString } from "../internal/helperfuncs";
 
 export function getUserStoragePath(): string{
     const randIdString = getRandomString(12)
-    return `mrstg@${randIdString}.json`
+    return `Marble-stg@${randIdString}.json`
 }
 
 export function getSessionStorageId(): string{
