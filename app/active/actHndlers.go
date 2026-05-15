@@ -15,3 +15,4 @@ func HndlSessions(req *Request) {
 	}
 	DefaultLogger.Info(entry.Message)
 }
+

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./styles/login.css";
 import { createAccount } from "../logic/auth/signUp";
 import { getKeyFromArmored } from "../logic/enc/keyChain";
-import { auth, User } from "../logic/internal/commonTtypes";
+import { auth, User } from "../logic/internal/commonTypes";
 export default function SignUp({
   setAuth,
   setUserData,

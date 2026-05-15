@@ -1,4 +1,4 @@
-import { Handelers, Request } from "./activeTypes";
+import { Handelers, Request } from "./actTypes";
 
 let ws: WebSocket | null = null;
 let handlersRef: { current: Handelers } = { current: {} };
@@ -69,9 +69,9 @@ export function sendRequest(req: Request) {
     }
 }
 
-export function sendMessage(session_id: string, message: string) {
+export function onSendMessage(session_id: number, message: string) {
     const messagestruct: {
-        session_id: String,
+        session_id: number,
         message: String
     } = {
         session_id: session_id,

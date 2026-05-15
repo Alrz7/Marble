@@ -1,7 +1,7 @@
 // ChatHeader.tsx
 import React from "react";
 import "./styles/chatHeader.css";
-import { User } from "../logic/internal/commonTtypes";
+import { User } from "../logic/internal/commonTypes";
 import { getInitials } from "../logic/internal/helperfuncs";
 import { SearchButton } from "./searchBar";
 export interface ChatHeaderProps {
@@ -45,10 +45,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             {/* <p>{userStatus}</p> */}
           </div>
         </div>
-          <SearchButton
-            isSearching={isSearching}
-            onToggle={searchToggle}
-          />
+        <SearchButton isSearching={isSearching} onToggle={searchToggle} />
       </div>
     </div>
   );

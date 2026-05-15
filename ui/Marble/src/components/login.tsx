@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./styles/login.css";
-import * as internal from "../logic/internal/commonTtypes";
+import * as internal from "../logic/internal/commonTypes";
 import { login } from "../logic/auth/login";
 import { getKeyFromArmored } from "../logic/enc/keyChain";
 export default function Login({

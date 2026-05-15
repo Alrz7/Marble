@@ -47,7 +47,7 @@ func (api *apiConfig) Run() {
 
 	mux.HandleFunc("/", api.handleHome)
 	mux.HandleFunc("/account/", api.hndlAccount)
-	mux.HandleFunc("/account/session", api.hndlSession)
+	// mux.HandleFunc("/account/session", api.hndlSession)
 	mux.HandleFunc("/actv", active.HandleWebSocket)
 
 	srv := &http.Server{

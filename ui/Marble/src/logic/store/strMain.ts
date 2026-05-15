@@ -1,6 +1,7 @@
 import { Store } from '@tauri-apps/plugin-store'
 import { StoreConfig } from '../internal/config';
 import { appDataDir } from '@tauri-apps/api/path';
+import { MessageProps } from '../internal/commonTypes';
 
 
 // Store Load Init
@@ -33,7 +34,7 @@ export async function initStoreClient(storageId: string): Promise<Store | null> 
 let storeConfigCache: StoreConfig = { sessions: {} }
 let isStoreConfigInitializing = false;
 
-export async function getStoreSession(sessionStorageId: string, force?: boolean): Promise<string[] | null> {
+export async function getStoreSession(sessionStorageId: string, force?: boolean): Promise<MessageProps[] | null> {
     if (!storeLoadCache) throw new Error("store client is not Loaded!")
 
     const existing = storeConfigCache.sessions[sessionStorageId]
@@ -47,7 +48,7 @@ export async function getStoreSession(sessionStorageId: string, force?: boolean)
 
     const DoesExist = await storeLoadCache.has(sessionStorageId)
     if (DoesExist) {
-        const session = await storeLoadCache.get<string[]>(sessionStorageId)
+        const session = await storeLoadCache.get<MessageProps[]>(sessionStorageId)
         if (!session) return null
         storeConfigCache.sessions[sessionStorageId] = session
         return session
@@ -55,9 +56,9 @@ export async function getStoreSession(sessionStorageId: string, force?: boolean)
     return null
 }
 
-export async function setStoreSession(sessionStorageId: string, message: string[]): Promise<void> {
+export async function setStoreSession(sessionStorageId: string, messages: MessageProps[]): Promise<void> {
     if (!storeLoadCache) throw new Error("store client is not Loaded!")
-    storeConfigCache.sessions[sessionStorageId] = message
-    await storeLoadCache.set(sessionStorageId, message)
+    storeConfigCache.sessions[sessionStorageId] = messages
+    await storeLoadCache.set(sessionStorageId, messages)
 
 }

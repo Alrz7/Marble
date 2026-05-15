@@ -4,10 +4,18 @@ import ChatInput from "./chatInput";
 import ChatHeader from "./chatHeader";
 import Sessions from "./sessions";
 import "./styles/chatLayout.css";
-import { MessageProps, User } from "../logic/internal/commonTtypes";
+import {
+  GroupSession,
+  MessageProps,
+  Session,
+  User,
+} from "../logic/internal/commonTypes";
 import SearchBar from "./searchBar";
 import Message from "./message";
-import { sendMessage } from "../logic/active/activeMain";
+import {
+  handleSessionMessage,
+  setCurrentSession,
+} from "../logic/sessions/sessionMain";
 
 export interface ChatLayoutProps {
   user: User;
@@ -23,11 +31,7 @@ export function ChatLayout({
 }: ChatLayoutProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSearching, setIsSearching] = useState(false);
-
-  async function onSendMessage(content: string) {
-    sendMessage(content);
-    setMessages((prev) => prev);
-  }
+  const [session, setSession] = useState<Session | GroupSession | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -36,36 +40,6 @@ export function ChatLayout({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  
-  const handleSendMessage = async (content: string) => {
-    const tempMessage: MessageProps = {
-      id: `temp-${Date.now()}`,
-      content,
-      sender: "user",
-      timestamp: new Date(),
-      status: "sent",
-    };
-
-    // Add temporary message immediately
-    setMessages((prev) => [...prev, tempMessage]);
-
-    try {
-      await onSendMessage(content);
-
-      // Update message status after successful send
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === tempMessage.id
-            ? { ...msg, status: "delivered" as const }
-            : msg,
-        ),
-      );
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      // You could show an error state here
-    }
-  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("fa-IR", {
@@ -97,50 +71,63 @@ export function ChatLayout({
           isSearching={isSearching}
           searchToggle={() => setIsSearching((prev) => !prev)}
         />
-        {isSearching ? <SearchBar /> : <Sessions user={user} />}
+        {isSearching ? (
+          <SearchBar />
+        ) : (
+          <Sessions
+            user={user}
+            setCurrnetSession={(
+              beta: string,
+              sessionIds: { sessionId: number; storageId: string },
+            ) => {
+              setCurrentSession({ beta, sessionIds, setSession, setMessages });
+            }}
+          />
+        )}
       </div>
 
       <div className="chat-main">
         <div className="messages-container">
-          {groupedMessages && Object.entries(groupedMessages).map(([date, dateMessages]) => (
-            <React.Fragment key={date}>
-              <div
-                style={{
-                  textAlign: "center",
-                  margin: "20px 0",
-                  position: "relative",
-                }}
-              >
+          {groupedMessages &&
+            Object.entries(groupedMessages).map(([date, dateMessages]) => (
+              <React.Fragment key={date}>
                 <div
                   style={{
-                    display: "inline-block",
-                    padding: "6px 16px",
-                    backgroundColor: "rgba(80, 80, 80, 0.15)",
-                    borderRadius: "20px",
-                    fontFamily: "Crf-reg",
-                    fontSize: "12px",
-                    color: "#fdfeffff",
-                    border: "1px solid rgba(123, 97, 255, 0)",
-                    backdropFilter: "blur(5px)",
+                    textAlign: "center",
+                    margin: "20px 0",
+                    position: "relative",
                   }}
                 >
-                  {date}
+                  <div
+                    style={{
+                      display: "inline-block",
+                      padding: "6px 16px",
+                      backgroundColor: "rgba(80, 80, 80, 0.15)",
+                      borderRadius: "20px",
+                      fontFamily: "Crf-reg",
+                      fontSize: "12px",
+                      color: "#fdfeffff",
+                      border: "1px solid rgba(123, 97, 255, 0)",
+                      backdropFilter: "blur(5px)",
+                    }}
+                  >
+                    {date}
+                  </div>
                 </div>
-              </div>
 
-              {dateMessages.map((message) => (
-                <Message
-                  key={message.id}
-                  {...message}
-                  senderName={
-                    message.sender === "audience"
-                      ? "audience"
-                      : user.config.name
-                  }
-                />
-              ))}
-            </React.Fragment>
-          ))}
+                {dateMessages.map((message) => (
+                  <Message
+                    key={message.id}
+                    {...message}
+                    senderName={
+                      message.sender === "audience"
+                        ? "audience"
+                        : user.config.name
+                    }
+                  />
+                ))}
+              </React.Fragment>
+            ))}
 
           {
             /* // {true && ( */
@@ -178,7 +165,9 @@ export function ChatLayout({
         </div>
 
         <ChatInput
-          onSendMessage={handleSendMessage}
+          onSendMessage={(content) => {
+            handleSessionMessage(session, content, setMessages);
+          }}
           placeholder="Message"
           // disabled={isLoading}
         />

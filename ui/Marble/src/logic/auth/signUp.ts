@@ -1,8 +1,8 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { UserConfig } from "../internal/commonTtypes";
+import { UserConfig } from "../internal/commonTypes";
 import { generateIdntKey } from "../enc/encHelpers";
 import { addHoldUser } from "../enc/keyChain";
-import { getUserStoragePath } from "../store/storeHelpers";
+import { getUserStoragePath } from "../store/strHelpers";
 
 // the IdentityKey & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too

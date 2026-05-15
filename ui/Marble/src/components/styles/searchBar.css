@@ -28,8 +28,8 @@
 
 .search-button.active {
   background: linear-gradient(135deg, #8d8e8e1e 10%, #29292a1c 90%);
-  border: 2px solid #ea3d71b4;
-  color: #ea3d71b4;
+  border: 2px solid #61efff90;
+  color: #61efff88;
 }
 
 .search-button svg {

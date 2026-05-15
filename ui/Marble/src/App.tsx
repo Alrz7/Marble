@@ -6,20 +6,17 @@ import SignUp from "./components/signUp";
 import "./App.css";
 import LoadingPage from "./components/loadingPage";
 import {
-  GroupSession,
-  Session,
   User,
   auth,
-} from "./logic/internal/commonTtypes";
+} from "./logic/internal/commonTypes";
 import { loadConfig } from "./logic/appMain";
 import { logOut } from "./logic/auth/login";
-import { openConnection, setHandlers } from "./logic/active/activeMain";
-import { MessageProps } from "./logic/internal/commonTtypes";
+import { openConnection, setHandlers } from "./logic/active/actWebsocket";
+import { MessageProps } from "./logic/internal/commonTypes";
 export default function App() {
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [user, setUserData] = useState<User | null>(null);
   const [authPage, setAuthPage] = useState<auth>("login");
-  const [session, setSession] = useState<Session | GroupSession | null>(null);
   const [messages, setMessages] = useState<MessageProps[]>([]);
   //   [
   //   {

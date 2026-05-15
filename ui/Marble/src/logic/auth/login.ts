@@ -1,6 +1,6 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { getHoldUser, addHoldUser, setPrimaryUser, deletePrimaryUser } from "../enc/keyChain";
-import { User, UserConfig } from "../internal/commonTtypes";
+import { User, UserConfig } from "../internal/commonTypes";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
@@ -36,7 +36,7 @@ export async function login(
         email: result.email,
         address: result.address,
         identityKey: existingUser.identityKey,
-        sessions: result.sessions,
+        sessions: {},
         storagePath: existingUser.storagePath
     };
     setPrimaryUser(currentUser.address)

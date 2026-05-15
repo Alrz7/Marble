@@ -1,3 +1,5 @@
+import { MessageProps } from "./commonTypes";
+
 export interface application {
   name: string;
   stage: string;
@@ -22,7 +24,7 @@ export const app: application = {
 };
 
 // -------StoreConfig & Deps---------
-export type strgSession = Record<string, string[]>
+export type strgSession = Record<string, MessageProps[]>
 export type StoreConfig = {
   sessions: strgSession
   //...

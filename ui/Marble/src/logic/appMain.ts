@@ -1,8 +1,13 @@
 import { generateIdntKey } from "./enc/encHelpers.ts";
-import { getHoldUser, getKeychainObject, getKeyFromArmored, initStrholdClient, setKeychainObject } from "./enc/keyChain.ts";
-import { User, MARBLE_STRONGHOLD_KEY } from "./internal/commonTtypes.ts";
-import { initStoreClient } from "./store/storeMain.ts";
-
+import {
+  getHoldUser,
+  getKeychainObject,
+  getKeyFromArmored,
+  initStrholdClient,
+  setKeychainObject,
+} from "./enc/keyChain.ts";
+import { User, MARBLE_STRONGHOLD_KEY } from "./internal/commonTypes.ts";
+import { initStoreClient } from "./store/strMain.ts";
 
 async function getOrCreateVaultKey(): Promise<string> {
   const existing = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
@@ -23,22 +28,31 @@ export async function loadConfig(): Promise<User | null> {
     vaultKey,
     MARBLE_STRONGHOLD_KEY,
   );
-  if (!strongholdClient) throw new Error("Failed to initialize Stronghold client");
+  if (!strongholdClient)
+    throw new Error("Failed to initialize Stronghold client");
 
-  const existingUserData = await getHoldUser(strongholdClient)
-  if (!existingUserData || Object.keys(existingUserData).length == 0 ||
-    !existingUserData.primaryUser) return null
+  const existingUserData = await getHoldUser(strongholdClient);
+  if (
+    !existingUserData ||
+    Object.keys(existingUserData).length == 0 ||
+    !existingUserData.primaryUser
+  )
+    return null;
 
-  const entry = existingUserData.users[existingUserData.primaryUser]
-  if (!entry) return null
+  const entry = existingUserData.users[existingUserData.primaryUser];
+  if (!entry) return null;
 
-  const privateKey = await getKeyFromArmored(entry.identityKey.privateKey, null);
-  if (!privateKey) throw new Error("Failed to decode primary user's private key");
+  const privateKey = await getKeyFromArmored(
+    entry.identityKey.privateKey,
+    null,
+  );
+  if (!privateKey)
+    throw new Error("Failed to decode primary user's private key");
 
-  initStoreClient(entry.storagePath)
+  initStoreClient(entry.storagePath);
+  console.log(entry)
   return {
     config: entry,
     prvIdentKey: privateKey,
   };
-
 }

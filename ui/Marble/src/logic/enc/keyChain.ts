@@ -12,7 +12,7 @@ import {
   deletePassword,
 } from "tauri-plugin-keyring-api";
 import * as openpgp from "openpgp";
-import { UserConfig, MARBLE_STRONGHOLD_KEY, STRONGHOLD_OBJECT_KEYS, KEYCHAIN_USER, UserHold } from "../internal/commonTtypes";
+import { UserConfig, MARBLE_STRONGHOLD_KEY, STRONGHOLD_OBJECT_KEYS, KEYCHAIN_USER, UserHold } from "../internal/commonTypes";
 
 // ---------------------------------------------------------------------------
 // Stronghold Initialisation
@@ -123,7 +123,6 @@ export async function deleteStrgHoldData(
   const store = load.client.getStore();
   await store.remove(objectKey);
 }
-
 
 //-------------------------------------------------------------------
 // StrongHold's USER Methods...

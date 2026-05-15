@@ -76,7 +76,6 @@ func (api *apiConfig) signInAccount(w http.ResponseWriter, r *http.Request) {
 		// "id":       existingUser.Id,
 		"email":    existingUser.Email,
 		"address":  existingUser.PgpProfile.Address,
-		"sessions": existingUser.PgpProfile.Sessions,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
