@@ -8,7 +8,7 @@ import (
 	"charm.land/log/v2"
 	fig "github.com/Alrz7/fig/core"
 )
-
+type UserId = int32
 type Application struct {
 	Version string
 	Logger  *log.Logger

@@ -18,7 +18,7 @@ export type UserConfig = {
   name: string;
   email: string;
   id: number;
-  address: string;
+  display_id: string;
   identityKey: KeyGroup;
   sessions: Record<string, { sessionId: number, storageId: string }>
   storagePath: string

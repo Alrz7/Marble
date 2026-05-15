@@ -38,7 +38,7 @@ export async function createAccount(
     name: name,
     email: email,
     id: result.id,
-    address: result.address,
+    display_id: result.display_id,
     identityKey: IdentityKey,
     sessions: {},
     storagePath: getUserStoragePath()

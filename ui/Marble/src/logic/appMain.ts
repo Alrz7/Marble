@@ -50,7 +50,6 @@ export async function loadConfig(): Promise<User | null> {
     throw new Error("Failed to decode primary user's private key");
 
   initStoreClient(entry.storagePath);
-  console.log(entry)
   return {
     config: entry,
     prvIdentKey: privateKey,

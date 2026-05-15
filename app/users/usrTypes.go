@@ -3,12 +3,14 @@ package users
 import (
 	"database/sql"
 	"marble/encryption/pgp"
+	"marble/internal"
 )
 
 type User struct {
 	UserName   string
 	Email      string
-	Id         int32
+	DisplayId  string
+	Id         internal.UserId
 	PgpProfile pgp.Profile
 }
 

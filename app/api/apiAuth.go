@@ -3,7 +3,7 @@ package api
 import (
 	"marble/app/active"
 	"marble/app/users"
-	"marble/encryption/pgp"
+	"marble/internal"
 	"net/http"
 )
 
@@ -38,10 +38,10 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, err)
 	}
 	response := envelope{
-		"error":   false,
-		"message": "user has been Created Succesfully!",
-		"id":      newUser.Id,
-		"address": newUser.PgpProfile.Address,
+		"error":      false,
+		"message":    "user has been Created Succesfully!",
+		"id":         newUser.Id,
+		"display_id": newUser.DisplayId,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
@@ -51,17 +51,16 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 
 func (api *apiConfig) signInAccount(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
-		Name     string `json:"name"`
-		Id       int32  `json:"id"`
-		Password string `json:"password"`
+		DisplayId string `json:"display_id"`
+		Password  string `json:"password"`
 	}
 	err := api.readJson(w, r, &entry)
 	if err != nil {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	userAddress := pgp.GetPgpAddress(entry.Name, entry.Id)
-	existingUser, err := users.GetUserProfile(userAddress)
+	Mod := users.UserModel{DB: internal.App.Db}
+	existingUser, err := Mod.SearchOneByDisplayId(entry.DisplayId)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
@@ -73,9 +72,10 @@ func (api *apiConfig) signInAccount(w http.ResponseWriter, r *http.Request) {
 	response := envelope{
 		"error":   false,
 		"message": "User has Logged Succesfully!",
-		// "id":       existingUser.Id,
-		"email":    existingUser.Email,
-		"address":  existingUser.PgpProfile.Address,
+		"name": existingUser.UserName,
+		"id":      existingUser.Id,
+		"display_id": existingUser.DisplayId,
+		"email":   existingUser.Email,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {

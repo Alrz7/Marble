@@ -26,7 +26,6 @@ async function createAccount(
     console.log("Error:", result);
     throw new Error("Failed to create account");
   }
-  console.log(result);
   return {
     user_address: result.user_address,
     identity_key: result.identity_key,
@@ -56,7 +55,6 @@ async function createSession(alpha: User, beta: User, message: string) {
     console.log("error:", result);
     return;
   }
-  console.log(result);
 }
 
 async function SendMesssage(alpha: User, beta: User, message: string) {

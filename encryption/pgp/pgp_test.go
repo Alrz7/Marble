@@ -83,8 +83,8 @@ func TestSdfsdf(t *testing.T) {
 
 func TestInsert(t *testing.T) {
 	session := Session{
-		Alpha: "navid-242783429023",
-		Beta:  "john-72903487134091",
+		Alpha: 1212121211,
+		Beta:  1212121211,
 		// AlphaMessages: [][]byte{{}, {}},
 		// BetaMessages:  [][]byte{{}, {}},
 	}

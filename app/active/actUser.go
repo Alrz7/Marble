@@ -2,8 +2,6 @@ package active
 
 import (
 	"marble/app/users"
-	"marble/encryption/pgp"
-
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
@@ -24,7 +22,7 @@ type ActvUser struct {
 GetActiveUser adds the Users to a Online Client Session to
 keep it in use for next Requests & tasks
 */
-func GetActiveUser(userAddress pgp.Profileaddress) (*ActvUser, error) {
+func GetActiveUser(userAddress int32) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
 	newActiveUser.User, err = users.GetUserProfile(userAddress)

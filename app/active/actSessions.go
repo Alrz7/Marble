@@ -7,8 +7,7 @@ import (
 	"marble/internal/loggy"
 )
 
-
-func (AU *ActvUser) CreateSession(beta pgp.Profileaddress, message string) error {
+func (AU *ActvUser) CreateSession(beta internal.UserId, message string) error {
 	// AU.User.SetPgpAddress()
 	// fmt.Println(*(AU.User))
 	Beta, err := users.GetUserProfile(beta)
@@ -24,7 +23,7 @@ func (AU *ActvUser) CreateSession(beta pgp.Profileaddress, message string) error
 	return nil
 }
 
-func (AU *ActvUser) SendSessionMessage(beta pgp.Profileaddress, message string) error {
+func (AU *ActvUser) SendSessionMessage(beta internal.UserId, message string) error {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return loggy.Sayr("error while fetching beta for sending message", err)
@@ -36,7 +35,7 @@ func (AU *ActvUser) SendSessionMessage(beta pgp.Profileaddress, message string) 
 	return AU.User.PgpProfile.SendMessage(&Beta.PgpProfile, session, message)
 }
 
-func (AU *ActvUser) ReadSessionMessage(beta pgp.Profileaddress, from, count int) (*[]string, int, error) {
+func (AU *ActvUser) ReadSessionMessage(beta internal.UserId, from, count int) (*[]string, int, error) {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return nil, -1, loggy.Sayr("error while fetching beta for sending message", err)
@@ -52,12 +51,12 @@ func (AU *ActvUser) ReadSessionMessage(beta pgp.Profileaddress, from, count int)
 	return res, lastIndex, nil
 }
 
-func (AU *ActvUser) DeleteSession(beta pgp.Profileaddress) error {
+func (AU *ActvUser) DeleteSession(beta internal.UserId) error {
 	Beta, err := users.GetUserProfile(beta)
 	if err != nil {
 		return loggy.Sayr("error while fetching beta for sending message", err)
 	}
-	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
+	sessionId, ok := AU.User.PgpProfile.Sessions[internal.UserId(beta)]
 	if !ok {
 		return loggy.Say("there was no Session found among these two audience")
 	}
@@ -68,8 +67,8 @@ func (AU *ActvUser) DeleteSession(beta pgp.Profileaddress) error {
 	if err != nil {
 		return err
 	}
-	delete(AU.User.PgpProfile.Sessions, Beta.PgpProfile.Address)
-	delete(Beta.PgpProfile.Sessions, AU.User.PgpProfile.Address)
+	delete(AU.User.PgpProfile.Sessions, Beta.PgpProfile.Id)
+	delete(Beta.PgpProfile.Sessions, AU.User.PgpProfile.Id)
 	ProfileModle := pgp.ProfileModel{
 		DB: internal.App.Db,
 	}
@@ -82,8 +81,8 @@ func (AU *ActvUser) DeleteSession(beta pgp.Profileaddress) error {
 	return nil
 }
 
-func (AU *ActvUser) GetActiveSession(beta pgp.Profileaddress) (*pgp.Session, error) {
-	sessionId, ok := AU.User.PgpProfile.Sessions[pgp.Profileaddress(beta)]
+func (AU *ActvUser) GetActiveSession(beta internal.UserId) (*pgp.Session, error) {
+	sessionId, ok := AU.User.PgpProfile.Sessions[internal.UserId(beta)]
 	if !ok {
 		return nil, loggy.Say("there was no Session found among these two audience")
 	}

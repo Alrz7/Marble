@@ -12,14 +12,12 @@ import (
 )
 
 type Profile struct {
-	Id             int32
+	Id             internal.UserId
 	AuthKey        string
 	PubIdentityKey string
-	Sessions       map[Profileaddress]int64 `json:"sessions"`
-	Address        Profileaddress
+	Sessions       map[internal.UserId]int64 `json:"sessions"`
 }
 
-type Profileaddress string
 
 // type Message struct{
 // 	Body string
@@ -28,8 +26,8 @@ type Profileaddress string
 
 type Session struct {
 	Id            int64
-	Alpha         Profileaddress
-	Beta          Profileaddress
+	Alpha         internal.UserId
+	Beta          internal.UserId
 	AlphaMessages [][]byte
 	BetaMessages  [][]byte
 }
@@ -41,7 +39,7 @@ type ProfileModel struct {
 	DB *sql.DB
 }
 
-func (U *ProfileModel) Insert(profile *Profile, id int32) error {
+func (U *ProfileModel) Insert(profile *Profile, id internal.UserId) error {
 	sessionsToBytes, err := json.Marshal(profile.Sessions)
 	if err != nil {
 		return loggy.Sayr("an error while marshaling Sessions for Inserting data", err)
@@ -57,7 +55,7 @@ func (U *ProfileModel) Insert(profile *Profile, id int32) error {
 	return nil
 }
 
-func (U *ProfileModel) Get(id int32) (*Profile, error) {
+func (U *ProfileModel) Get(id internal.UserId) (*Profile, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
@@ -104,7 +102,7 @@ func (U *ProfileModel) Update(profile *Profile) error {
 	return nil
 }
 
-func (U *ProfileModel) Delete(id int32) error {
+func (U *ProfileModel) Delete(id internal.UserId) error {
 	query := `DELETE FROM pgp_profile
 				WHERE id = $1`
 	res, err := U.DB.Exec(query, id)

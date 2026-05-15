@@ -10,13 +10,12 @@ export default function Login({
   setAuth: React.Dispatch<React.SetStateAction<internal.auth>>;
   setUserData: React.Dispatch<React.SetStateAction<internal.User | null>>;
 }) {
-  const [name, setName] = useState("");
-  const [id, setId] = useState(0);
+  const [DisplayId, setId] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newUserConfig = await login(name, id, password);
+    const newUserConfig = await login(DisplayId, password);
     if (newUserConfig) {
       const prvKey = await getKeyFromArmored(
         newUserConfig.identityKey.privateKey,
@@ -38,33 +37,13 @@ export default function Login({
         </div>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-group">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">UserName</label>
             <input
               type="text"
               id="name"
-              placeholder="name"
+              placeholder="usename"
               // value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label
-              htmlFor="id"
-              style={
-                {
-                  // color: idText == "Id" ? "#ffffffff" : "#e15d5dff",
-                }
-              }
-            >
-              Id
-            </label>
-            <input
-              type="id"
-              id="id"
-              placeholder="id"
-              // value={""}
-              onChange={(e) => setId(Number(e.target.value))}
+              onChange={(e) => setId(e.target.value)}
               required
             />
           </div>

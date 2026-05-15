@@ -12,13 +12,18 @@ import {
   deletePassword,
 } from "tauri-plugin-keyring-api";
 import * as openpgp from "openpgp";
-import { UserConfig, MARBLE_STRONGHOLD_KEY, STRONGHOLD_OBJECT_KEYS, KEYCHAIN_USER, UserHold } from "../internal/commonTypes";
+import {
+  UserConfig,
+  MARBLE_STRONGHOLD_KEY,
+  STRONGHOLD_OBJECT_KEYS,
+  KEYCHAIN_USER,
+  UserHold,
+} from "../internal/commonTypes";
 
 // ---------------------------------------------------------------------------
 // Stronghold Initialisation
 
-export type Load = { stronghold: Stronghold; client: Client }
-
+export type Load = { stronghold: Stronghold; client: Client };
 
 let cachedLoad: Load | null = null;
 let isInitializing = false;
@@ -49,7 +54,10 @@ export async function initStrholdClient(
     }
 
     const stronghold = await Stronghold.load(vaultPath, vaultKey);
-    const client = await loadOrCreateClient(stronghold, clientName ?? MARBLE_STRONGHOLD_KEY);
+    const client = await loadOrCreateClient(
+      stronghold,
+      clientName ?? MARBLE_STRONGHOLD_KEY,
+    );
 
     cachedLoad = { stronghold, client };
     return cachedLoad;
@@ -70,7 +78,7 @@ async function loadOrCreateClient(
 }
 
 export function resetStronghold() {
-  cachedLoad?.stronghold.unload
+  cachedLoad?.stronghold.unload;
   cachedLoad = null;
 }
 
@@ -80,11 +88,11 @@ export function resetStronghold() {
 export async function setStgHoldData(
   newData: string,
   objectKey: string,
-  load?: Load | null
+  load?: Load | null,
 ) {
   if (!load) {
-    load = await initStrholdClient()
-    if (!load) throw new Error("could't load a storeClient")
+    load = await initStrholdClient();
+    if (!load) throw new Error("could't load a storeClient");
   }
   const store = load.client.getStore();
   const dataBytes = new TextEncoder().encode(newData);
@@ -92,15 +100,13 @@ export async function setStgHoldData(
   await load.stronghold.save();
 }
 
-
-
 export async function getStgHoldData(
   objectKey: string,
-  load?: Load | null
+  load?: Load | null,
 ): Promise<string | null> {
   if (!load) {
-    load = await initStrholdClient()
-    if (!load) throw new Error("could't load a storeClient")
+    load = await initStrholdClient();
+    if (!load) throw new Error("could't load a storeClient");
   }
 
   const store = load.client.getStore();
@@ -112,12 +118,11 @@ export async function getStgHoldData(
 
 export async function deleteStrgHoldData(
   objectKey: string,
-  load?: Load | null
-
+  load?: Load | null,
 ): Promise<void> {
   if (!load) {
-    load = await initStrholdClient()
-    if (!load) throw new Error("could't load a storeClient")
+    load = await initStrholdClient();
+    if (!load) throw new Error("could't load a storeClient");
   }
 
   const store = load.client.getStore();
@@ -129,50 +134,65 @@ export async function deleteStrgHoldData(
 
 export async function addHoldUser(
   newUser: UserConfig,
-  load?: Load | null
+  load?: Load | null,
 ): Promise<void> {
   let existingData = await getHoldUser(load);
   if (!existingData) existingData = { users: {}, primaryUser: null };
 
   // we currently set user as Primary
-  existingData.primaryUser = newUser.address
-  existingData.users[newUser.address] = newUser
-  setStgHoldData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load)
+  existingData.primaryUser = newUser.display_id;
+  existingData.users[newUser.display_id] = newUser;
+  setStgHoldData(
+    JSON.stringify(existingData),
+    STRONGHOLD_OBJECT_KEYS.Users,
+    load,
+  );
 }
 
 export async function getHoldUser(
-  load?: Load | null
+  load?: Load | null,
 ): Promise<UserHold | null> {
-
-  const jsonString = await getStgHoldData(STRONGHOLD_OBJECT_KEYS.Users, load)
-  if (!jsonString) return null
+  const jsonString = await getStgHoldData(STRONGHOLD_OBJECT_KEYS.Users, load);
+  if (!jsonString) return null;
   const parsedObject = JSON.parse(jsonString) as UserHold;
   return parsedObject;
 }
 
 export async function deleteHoldUser(
   userAddress: string,
-  load?: Load | null
+  load?: Load | null,
 ): Promise<void> {
   let existingData = await getHoldUser(load);
   if (existingData) {
-    delete existingData.users[userAddress]
+    delete existingData.users[userAddress];
   }
-  setStgHoldData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load)
+  setStgHoldData(
+    JSON.stringify(existingData),
+    STRONGHOLD_OBJECT_KEYS.Users,
+    load,
+  );
 }
 
 //------------------
 // Primary-User Methods
 //
 
-export async function setPrimaryUser(userAddress: string, load?: Load | null): Promise<void> {
+export async function setPrimaryUser(
+  displayId: string,
+  load?: Load | null,
+): Promise<void> {
   let existingData = await getHoldUser(load);
   if (!existingData) existingData = { users: {}, primaryUser: null };
-  existingData.primaryUser = userAddress
-  setStgHoldData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load)
-
+  existingData.primaryUser = displayId;
+  setStgHoldData(
+    JSON.stringify(existingData),
+    STRONGHOLD_OBJECT_KEYS.Users,
+    load,
+  );
 }
-export async function getPrimaryUser(load?: Load | null): Promise<string | null> {
+export async function getPrimaryUser(
+  load?: Load | null,
+): Promise<string | null> {
   let existingData = await getHoldUser(load);
   if (!existingData) return null;
   return existingData.primaryUser;
@@ -181,18 +201,27 @@ export async function getPrimaryUser(load?: Load | null): Promise<string | null>
 export async function deletePrimaryUser(load?: Load | null): Promise<void> {
   let existingData = await getHoldUser(load);
   if (!existingData) existingData = { users: {}, primaryUser: null };
-  existingData.primaryUser = null
-  setStgHoldData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load)
+  existingData.primaryUser = null;
+  setStgHoldData(
+    JSON.stringify(existingData),
+    STRONGHOLD_OBJECT_KEYS.Users,
+    load,
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Keychain Storage (OS keychain)
 
-export async function setKeychainObject(service: string, password: string): Promise<void> {
+export async function setKeychainObject(
+  service: string,
+  password: string,
+): Promise<void> {
   await setPassword(service, KEYCHAIN_USER, password);
 }
 
-export async function getKeychainObject(service: string): Promise<string | null> {
+export async function getKeychainObject(
+  service: string,
+): Promise<string | null> {
   return await getPassword(service, KEYCHAIN_USER);
 }
 

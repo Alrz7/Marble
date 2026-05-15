@@ -1,53 +1,57 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { getHoldUser, addHoldUser, setPrimaryUser, deletePrimaryUser } from "../enc/keyChain";
+import {
+  getHoldUser,
+  addHoldUser,
+  setPrimaryUser,
+  deletePrimaryUser,
+} from "../enc/keyChain";
 import { User, UserConfig } from "../internal/commonTypes";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
-    name: string,
-    id: number,
-    password: string,
+  DisplayId: string,
+  password: string,
 ): Promise<UserConfig | null> {
-    const userList = await getHoldUser()
-    const existingUser = userList?.users?.[`${name}-${id}`]
-    if (!existingUser) throw new Error(`${name}-${id} is not found in UserList`)
+  const userList = await getHoldUser();
+  const existingUser = userList?.users?.[DisplayId];
+  if (!existingUser) throw new Error(`${DisplayId} is not found in UserList`);
 
-    const response = await fetch("http://localhost:6280/account", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            task: "signin",
-        },
-        body: JSON.stringify({
-            name: name,
-            id: id,
-            password: password,
-        }),
-    });
-    const result = await response.json();
+  const response = await fetch("http://localhost:6280/account", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      task: "signin",
+    },
+    body: JSON.stringify({
+      display_id: DisplayId,
+      password: password,
+    }),
+  });
+  const result = await response.json();
 
-    if (!response.ok) {
-        throw new Error("Failed to decode the http result");
-    }
-    // console.log(result)
-    const currentUser: UserConfig = {
-        name: name,
-        id: id,
-        email: result.email,
-        address: result.address,
-        identityKey: existingUser.identityKey,
-        sessions: {},
-        storagePath: existingUser.storagePath
-    };
-    setPrimaryUser(currentUser.address)
-    addHoldUser(currentUser);
-    return currentUser;
+  if (!response.ok) {
+    throw new Error("Failed to decode the http result");
+  }
+  // console.log(result)
+  const currentUser: UserConfig = {
+    name: result.name,
+    id: result.id,
+    email: result.email,
+    display_id: result.display_id,
+    identityKey: existingUser.identityKey,
+    sessions: {},
+    storagePath: existingUser.storagePath,
+  };
+  setPrimaryUser(currentUser.display_id);
+  addHoldUser(currentUser);
+  return currentUser;
 }
 
-
-export async function logOut(setUserData: React.Dispatch<React.SetStateAction<User | null>>) {
-    await deletePrimaryUser()
-    setTimeout(() => {
-        setUserData(null)
-    }, 500)
+export async function logOut(
+  setUserData: React.Dispatch<React.SetStateAction<User | null>>,
+) {
+  await deletePrimaryUser();
+  setTimeout(() => {
+    setUserData(null);
+  }, 500);
 }

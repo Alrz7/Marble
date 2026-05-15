@@ -61,7 +61,6 @@ export function disconnectWS() {
 }
 
 export function sendRequest(req: Request) {
-    console.log(req)
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(req));
     } else {

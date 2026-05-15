@@ -9,7 +9,7 @@ import (
 // the aouthentication.
 // the active DB is going to be simple and In-memmory UNTIl i implement the main User-Auth
 // and then we will switch on an official DB like Redis.
-var db = map[int32]*ActvUser{}
+var db = map[internal.UserId]*ActvUser{}
 
 func Insert(AU *ActvUser) {
 	db[AU.User.Id] = AU
@@ -17,7 +17,7 @@ func Insert(AU *ActvUser) {
 	// return nil
 }
 
-func Get(id int32) (*ActvUser, error) {
+func Get(id internal.UserId) (*ActvUser, error) {
 	res, ok := db[id]
 	if ok {
 		return res, nil
@@ -30,7 +30,7 @@ func Update(AU *ActvUser) {
 	// return nil
 }
 
-func Delete(id int32) {
+func Delete(id internal.UserId) {
 	delete(db, id)
 	// return nil
 }

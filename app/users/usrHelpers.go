@@ -9,32 +9,32 @@ import (
 	"marble/internal/loggy"
 )
 
-func (U *User) SetPgpAddress() {
-	U.PgpProfile.Address = pgp.GetPgpAddress(U.UserName, U.Id)
-}
+// func (U *User) SetPgpAddress() {
+// 	U.PgpProfile.Id = pgp.GetPgpAddress(U.UserName, U.Id)
+// }
 
 func (U *UserModel) Insert(user *User) error {
 	query := `
 	INSERT INTO users (user_name, email)
 	VALUES ($1, $2)
-	RETURNING 	id`
+	RETURNING 	id, display_id`
 	args := []any{user.UserName, user.Email}
-	err := U.DB.QueryRow(query, args...).Scan(&user.Id)
+	err := U.DB.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
 		return fmt.Errorf("there was an error while Inserting the User-Information to DB: %v", err)
 	}
 	return nil
 }
 
-func (U *UserModel) Get(id int32) (*User, error) {
+func (U *UserModel) Get(id internal.UserId) (*User, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT id, email, user_name
+	query := `SELECT id, email, user_name, display_id
 			FROM users
 			WHERE id = $1`
 	var user User
-	args := []any{&user.Id, &user.Email, &user.UserName}
+	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId}
 	err := U.DB.QueryRow(query, id).Scan(args...)
 	if err != nil {
 		switch {
@@ -51,16 +51,16 @@ func (U *UserModel) Get(id int32) (*User, error) {
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part
-	user.SetPgpAddress()
+	// user.SetPgpAddress()
 	// we can add the Address right here instead of in many other single function
 	return &user, nil
 }
 
 func (U *UserModel) Update(user *User) error {
 	query := `UPDATE users
-			SET user_name = $1, email = $2
-			WHERE id = $3`
-	args := []any{user.UserName, user.Email, user.Id}
+			SET user_name = $2, email = $3, display_id = $4
+			WHERE id = $1`
+	args := []any{user.Id, user.UserName, user.Email, user.DisplayId}
 	_, err := U.DB.Exec(query, args...)
 	if err != nil {
 		switch {
@@ -73,7 +73,7 @@ func (U *UserModel) Update(user *User) error {
 	return nil
 }
 
-func (U *UserModel) Delete(id int32) error {
+func (U *UserModel) Delete(id internal.UserId) error {
 	query := `DELETE FROM users
 				WHERE id = $1`
 	res, err := U.DB.Exec(query, id)
@@ -88,4 +88,34 @@ func (U *UserModel) Delete(id int32) error {
 		return internal.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (U *UserModel) SearchOneByDisplayId(dispayId string) (*User, error) {
+	if dispayId == "" {
+		return nil, internal.ErrRecordNotFound
+	}
+	query := `SELECT display_id, id, email, user_name
+			FROM users
+			WHERE display_id = $1`
+	var user User
+	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
+	err := U.DB.QueryRow(query, dispayId).Scan(args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, internal.ErrRecordNotFound
+		default:
+			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
+		}
+	}
+	pgpModel := pgp.ProfileModel{DB: U.DB}
+	pgp_profile, err := pgpModel.Get(user.Id)
+	if err != nil {
+		return nil, loggy.Sayr("an error while getting the Pgp_profile", err)
+	}
+	user.PgpProfile = *pgp_profile
+	//Fetching and adding the Pgp_session Part
+	// user.SetPgpAddress()
+	// we can add the Address right here instead of in many other single function
+	return &user, nil
 }

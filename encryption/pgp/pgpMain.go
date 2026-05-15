@@ -19,21 +19,21 @@ func (S *Session) Save() error {
 }
 
 func (alpha *Profile) CreateSession(beta *Profile, message string) (int64, error) {
-	err := IsValidPair(alpha, beta)
-	if err != nil {
-		return 0, err
-	}
+	// err := IsValidPair(alpha, beta)
+	// if err != nil {
+	// 	return 0, err
+	// }
 	newSession := Session{
-		Alpha: alpha.Address,
-		Beta:  beta.Address,
+		Alpha: alpha.Id,
+		Beta:  beta.Id,
 	}
 	newSession.AlphaMessages = append(newSession.AlphaMessages, []byte(message))
-	err = newSession.Save()
+	err := newSession.Save()
 	if err != nil {
 		return 0, err
 	}
-	alpha.Sessions[beta.Address] = newSession.Id
-	beta.Sessions[alpha.Address] = newSession.Id
+	alpha.Sessions[beta.Id] = newSession.Id
+	beta.Sessions[alpha.Id] = newSession.Id
 	prfMod := ProfileModel{DB: internal.App.Db}
 	err = prfMod.Update(alpha)
 	if err != nil {
@@ -47,13 +47,13 @@ func (alpha *Profile) CreateSession(beta *Profile, message string) (int64, error
 }
 
 func (alpha *Profile) SendMessage(beta *Profile, session *Session, message string) error {
-	err := IsValidPair(alpha, beta)
-	if err != nil {
-		return err
-	}
-	if alpha.Address == session.Alpha && beta.Address == session.Beta {
+	// err := IsValidPair(alpha, beta)
+	// if err != nil {
+	// 	return err
+	// }
+	if alpha.Id == session.Alpha && beta.Id == session.Beta {
 		session.AlphaMessages = append(session.AlphaMessages, []byte(message))
-	} else if alpha.Address == session.Beta && beta.Address == session.Alpha {
+	} else if alpha.Id == session.Beta && beta.Id == session.Alpha {
 		session.BetaMessages = append(session.BetaMessages, []byte(message))
 	} else {
 		return errors.New("There was a mismatch among audiences while sending message")
@@ -66,9 +66,9 @@ func (alpha *Profile) SendMessage(beta *Profile, session *Session, message strin
 
 func (alpha *Profile) ReadMessage(beta *Profile, session *Session, from, count int) (*[]string, int, error) {
 	var Messages *[][]byte
-	if alpha.Address == session.Alpha && beta.Address == session.Beta {
+	if alpha.Id == session.Alpha && beta.Id == session.Beta {
 		Messages = &session.BetaMessages
-	} else if alpha.Address == session.Beta && beta.Address == session.Alpha {
+	} else if alpha.Id == session.Beta && beta.Id == session.Alpha {
 		Messages = &session.AlphaMessages
 	} else {
 		return nil, -1, errors.New("There was a mismatch among audience while sending message")

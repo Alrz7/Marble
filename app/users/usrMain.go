@@ -27,20 +27,21 @@ func CreateNewUser(username, email, password string, pubIdentKey string) (*User,
 
 	newUser.PgpProfile.PubIdentityKey = pubIdentKey
 
-	newUser.PgpProfile.Sessions = map[pgp.Profileaddress]int64{}
+	newUser.PgpProfile.Sessions = map[internal.UserId]int64{}
 	// err = newUser.Save()
 	err = newUser.fakeSave()
 	if err != nil {
 		return &User{}, err
 	}
-	newUser.SetPgpAddress()
+	// newUser.SetPgpAddress()
 	return &newUser, nil
 
 }
 
 func (U *User) fakeSave() error {
-	U.Id = 14422483
-	U.PgpProfile.Id = 14422483
+	U.Id = 2
+	U.DisplayId = "U_2"
+	U.PgpProfile.Id = 2
 	// U.PgpProfile.Address = pgp.GetPgpAddress(U.UserName, U.Id)
 	return nil
 }
@@ -67,11 +68,11 @@ func (U *User) Save() error {
 GetUserProfile finds the User's profile among the Db for
 Session Tasks or etc.
 */
-func GetUserProfile(address pgp.Profileaddress) (*User, error) {
-	_, id, err := pgp.IsvalidAddress(string(address))
-	if err != nil {
-		return nil, err
-	}
+func GetUserProfile(id internal.UserId) (*User, error) {
+	// _, id, err := pgp.IsvalidAddress(string(address))
+	// if err != nil {
+	// 	return nil, err
+	// }
 	Mod := UserModel{DB: internal.App.Db}
 	user, err := Mod.Get(id)
 	if err != nil {
