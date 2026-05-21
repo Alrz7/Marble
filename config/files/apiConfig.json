@@ -1,1 +1,12 @@
-{"info":{"dir":"./config/files/","name":"apiConfig","format":".json","linked_to_handeler":false,"last_time_modified":"2026-04-15T16:44:49.038946825+03:30"},"data":{"AppConfig":{"version":"1.0.0","port":6280,"env":"development"}}}
+{
+  "info": {
+    "dir": "./config/files/",
+    "name": "apiConfig",
+    "format": ".json",
+    "linked_to_handeler": false,
+    "last_time_modified": "2026-04-15T16:44:49.038946825+03:30"
+  },
+  "data": {
+    "AppConfig": { "version": "1.0.0", "port": 6280, "env": "development" }
+  }
+}

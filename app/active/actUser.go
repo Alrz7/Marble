@@ -2,7 +2,7 @@ package active
 
 import (
 	"marble/app/users"
-	"github.com/ProtonMail/gopenpgp/v3/crypto"
+	"marble/internal"
 )
 
 /*
@@ -14,18 +14,18 @@ the detaled tasks like checking for blocked Users and managing
 Session&signature verifiers will happen here.
 */
 type ActvUser struct {
-	PrvIdentityKey *crypto.Key
-	User           *users.User
+	*users.User
+	//...
 }
 
 /*
 GetActiveUser adds the Users to a Online Client Session to
 keep it in use for next Requests & tasks
 */
-func GetActiveUser(userAddress int32) (*ActvUser, error) {
+func GetActiveUser(userId internal.UserId) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
-	newActiveUser.User, err = users.GetUserProfile(userAddress)
+	newActiveUser.User, err = users.GetUserProfile(userId)
 	if err != nil {
 		return nil, err
 	}

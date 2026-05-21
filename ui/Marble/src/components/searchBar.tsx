@@ -1,7 +1,7 @@
 import Search from "../assets/search.svg?react";
 import CloseSearch from "../assets/closeSearch.svg?react";
 import "./styles/searchBar.css";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 // ------------------- SearchButton -------------------
 interface SearchButtonProps {
@@ -27,21 +27,18 @@ export const SearchButton: React.FC<SearchButtonProps> = ({
 // ------------------- SearchBar -------------------
 
 interface SearchBarProps {
-  onSearch?: (query: string) => void;
+  onSearch: (query: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+function SearchBar({ onSearch }: SearchBarProps) {
   const [query, setQuery] = useState("");
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (query.trim()) {
-        onSearch?.(query.trim());
-      }
-    },
-    [onSearch, query],
-  );
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  }
 
   return (
     <div className="search-container">
@@ -72,6 +69,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       <div className="search-results" />
     </div>
   );
-};
+}
 
 export default SearchBar;

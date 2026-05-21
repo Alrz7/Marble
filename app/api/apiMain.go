@@ -12,15 +12,20 @@ import (
 )
 
 const version = "1.0.0"
+const defaultPort = 6280
 
 func Setup(app *internal.Application) {
 	api := apiConfig{}
 	api.Version = version
 	api.logger = loggy.DefaultLogger
-	flag.IntVar(&api.Port, "port", 6280, "Api server port")
+	err := api.setJwtSecret()
+	if err != nil {
+		api.logger.Errorf("there was an error while setting the Jwt-Secret on Api: %v", err)
+	}
+	flag.IntVar(&api.Port, "port", defaultPort, "Api server port")
 	if api.Port <= 1023 {
-		api.logger.Warn("server Port Should Not be less than-equal 1023 (setting 6280 as default)")
-		api.Port = 6280
+		api.logger.Warn(`server Port Should Not be less than-equal 1023 (setting %v as default)`, defaultPort)
+		api.Port = defaultPort
 	}
 	flag.StringVar(&api.Env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()
@@ -46,9 +51,9 @@ func (api *apiConfig) Run() {
 	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	mux.HandleFunc("/", api.handleHome)
-	mux.HandleFunc("/account/", api.hndlAccount)
+	mux.HandleFunc("/account/", api.handleAccount)
 	// mux.HandleFunc("/account/session", api.hndlSession)
-	mux.HandleFunc("/actv", active.HandleWebSocket)
+	mux.HandleFunc("/actv", api.handleWebSocket)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", api.Port),
@@ -78,4 +83,8 @@ func enableCORS(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (api *apiConfig) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	active.WebSocket(w, r, api.jwtSecret)
 }

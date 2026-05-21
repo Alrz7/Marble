@@ -16,6 +16,7 @@ import {
   handleSessionMessage,
   setCurrentSession,
 } from "../logic/sessions/sessionMain";
+import { onSearchUser } from "../logic/active/actWsHandelers";
 
 export interface ChatLayoutProps {
   user: User;
@@ -31,7 +32,7 @@ export function ChatLayout({
 }: ChatLayoutProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [session, setSession] = useState<Session | GroupSession | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,7 +73,7 @@ export function ChatLayout({
           searchToggle={() => setIsSearching((prev) => !prev)}
         />
         {isSearching ? (
-          <SearchBar />
+          <SearchBar onSearch={onSearchUser} />
         ) : (
           <Sessions
             user={user}

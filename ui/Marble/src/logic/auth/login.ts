@@ -34,10 +34,10 @@ export async function login(
   }
   // console.log(result)
   const currentUser: UserConfig = {
-    name: result.name,
-    id: result.id,
-    email: result.email,
-    display_id: result.display_id,
+    name: existingUser.name,
+    id: existingUser.id,
+    email: existingUser.email,
+    display_id: existingUser.display_id,
     identityKey: existingUser.identityKey,
     sessions: {},
     storagePath: existingUser.storagePath,

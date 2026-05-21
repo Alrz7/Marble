@@ -5,9 +5,7 @@ import { getStoreSession } from "../store/strMain";
 type setCurSessionProps = {
   beta: string;
   sessionIds: { sessionId: number; storageId: string };
-  setSession: React.Dispatch<
-    React.SetStateAction<Session | GroupSession | null>
-  >;
+  setSession: React.Dispatch<React.SetStateAction<Session | null>>;
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>;
 };
 
@@ -26,7 +24,7 @@ export async function setCurrentSession(props: setCurSessionProps) {
 }
 
 export async function handleSessionMessage(
-  session: Session,
+  session: Session | GroupSession | null,
   content: string,
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>,
 ) {
@@ -37,7 +35,6 @@ export async function handleSessionMessage(
     timestamp: new Date(),
     status: "sent",
   };
-
   // Add temporary message immediately
   setMessages((prev) => [...prev, tempMessage]);
 

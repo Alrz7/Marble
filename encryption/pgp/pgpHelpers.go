@@ -26,7 +26,7 @@ func GenAuthKey(password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	lockedKey, err := pgpCryptoRefresh.LockKey(ecKey, []byte(password)) // this guy takes so much time!
+	lockedKey, err := pgpCryptoRefresh.LockKey(ecKey, []byte(password)) // <-- this guy takes so much time!
 	if err != nil {
 		return "", err
 	}

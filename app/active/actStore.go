@@ -2,6 +2,8 @@ package active
 
 import (
 	"marble/internal"
+
+	"github.com/gorilla/websocket"
 )
 
 // there should be a Fast & responsive In-memmory storage for adding the active users
@@ -9,28 +11,28 @@ import (
 // the aouthentication.
 // the active DB is going to be simple and In-memmory UNTIl i implement the main User-Auth
 // and then we will switch on an official DB like Redis.
-var db = map[internal.UserId]*ActvUser{}
+var db = map[*websocket.Conn]*ActvUser{}
 
-func Insert(AU *ActvUser) {
-	db[AU.User.Id] = AU
+func (AU *ActvUser) InsertAs(conn *websocket.Conn) {
+	db[conn] = AU
 	// loggy.DefaultLogger.Info(fmt.Sprintf("a successful login-activation for %v", AU.User.PgpProfile.Address))
 	// return nil
 }
 
-func Get(id internal.UserId) (*ActvUser, error) {
-	res, ok := db[id]
+func GetUserOf(conn *websocket.Conn) (*ActvUser, error) {
+	res, ok := db[conn]
 	if ok {
 		return res, nil
 	}
 	return nil, internal.ErrRecordNotFound
 }
 
-func Update(AU *ActvUser) {
-	db[AU.User.Id] = AU
+func (AU *ActvUser) UpdateUserOf(conn *websocket.Conn) {
+	db[conn] = AU
 	// return nil
 }
 
-func Delete(id internal.UserId) {
-	delete(db, id)
+func DeleteUserOf(conn *websocket.Conn) {
+	delete(db, conn)
 	// return nil
 }

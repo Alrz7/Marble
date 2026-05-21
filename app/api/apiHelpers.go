@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -57,7 +58,7 @@ func (api *apiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) 
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
 			return fmt.Errorf("body contains unknown key %s", fieldName)
-			
+
 		case err.Error() == "http: request body too large":
 			return fmt.Errorf("body must not be larger than %d bytes", maxBytes)
 
@@ -74,5 +75,15 @@ func (api *apiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) 
 		return errors.New("body must only contain a single JSON value")
 	}
 
+	return nil
+}
+
+func (api *apiConfig) setJwtSecret() error {
+	sec := make([]byte, 256)
+	_, err := rand.Read(sec)
+	if err != nil {
+		return err
+	}
+	api.jwtSecret = sec
 	return nil
 }

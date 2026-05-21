@@ -5,17 +5,20 @@ import (
 	"marble/app/users"
 	"marble/internal"
 	"net/http"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Accounts----------------------
 
-func (api *apiConfig) hndlAccount(w http.ResponseWriter, r *http.Request) {
+func (api *apiConfig) handleAccount(w http.ResponseWriter, r *http.Request) {
 	order := r.Header.Get("task")
 	switch order {
 	case "create":
 		api.createAccount(w, r)
 	case "signin":
-		api.signInAccount(w, r)
+		api.signIn(w, r)
 		// case "delete":
 		// not decided yet... (this needs auth works)
 	}
@@ -49,7 +52,7 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *apiConfig) signInAccount(w http.ResponseWriter, r *http.Request) {
+func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
 		DisplayId string `json:"display_id"`
 		Password  string `json:"password"`
@@ -65,17 +68,24 @@ func (api *apiConfig) signInAccount(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, err)
 	}
 	// password validation goes here
-	newActiveUser := active.ActvUser{
-		User: existingUser,
+
+	claims := active.Claims{
+		UserId: existingUser.Id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
-	active.Insert(&newActiveUser)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(api.jwtSecret)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
 	response := envelope{
 		"error":   false,
 		"message": "User has Logged Succesfully!",
-		"name": existingUser.UserName,
-		"id":      existingUser.Id,
-		"display_id": existingUser.DisplayId,
-		"email":   existingUser.Email,
+		"token":   signedToken,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {

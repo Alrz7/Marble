@@ -69,7 +69,7 @@ export function sendRequest(req: Request) {
 }
 
 export function onSendMessage(session_id: number, message: string) {
-    const messagestruct: {
+    const struct: {
         session_id: number,
         message: String
     } = {
@@ -80,7 +80,7 @@ export function onSendMessage(session_id: number, message: string) {
         status: 0,
         channel: "session",
         headers: {},
-        body: JSON.stringify(messagestruct)
+        body: JSON.stringify(struct)
     }
     sendRequest(req)
 }
