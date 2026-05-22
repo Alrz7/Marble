@@ -5,14 +5,12 @@ import Login from "./components/login";
 import SignUp from "./components/signUp";
 import "./App.css";
 import LoadingPage from "./components/loadingPage";
-import {
-  User,
-  auth,
-} from "./logic/internal/commonTypes";
+import { User, auth } from "./logic/internal/commonTypes";
 import { loadConfig } from "./logic/appMain";
 import { logOut } from "./logic/auth/login";
-import { openConnection, setHandlers } from "./logic/active/actWebsocket";
 import { MessageProps } from "./logic/internal/commonTypes";
+import { defAuthStatus } from "./logic/active/actWsHandelers";
+import { setHandlers } from "./logic/active/actWebsocket";
 export default function App() {
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [user, setUserData] = useState<User | null>(null);
@@ -57,7 +55,6 @@ export default function App() {
       const userData = await loadConfig();
       if (userData) {
         setUserData(userData);
-        openConnection();
         setHandlers(handlersRef.current);
       }
       setLoadingPage(false);
@@ -66,9 +63,10 @@ export default function App() {
   }, []);
 
   const handlersRef = useRef({
-    sessions: (body: any) => {
-      // setMessages((prev) => [...prev, body.message]);
-    },
+    // sessions: (request: any) => {
+    //   setMessages((prev) => [...prev, body.message]);
+    // },
+    auth: defAuthStatus,
     // notifications: (body: any) => { ... },
   });
 

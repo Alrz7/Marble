@@ -1,3 +1,4 @@
+import { signIn } from "./auth/login.ts";
 import { generateIdntKey } from "./enc/encHelpers.ts";
 import {
   getHoldUser,
@@ -50,6 +51,7 @@ export async function loadConfig(): Promise<User | null> {
     throw new Error("Failed to decode primary user's private key");
 
   initStoreClient(entry.storagePath);
+  signIn(entry.display_id, "testingg!"); // this is gonna be replaced with autoSignIn() later
   return {
     config: entry,
     prvIdentKey: privateKey,

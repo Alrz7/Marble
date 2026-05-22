@@ -1,10 +1,12 @@
 export type Request = {
-    status: number
-    channel: string
-    headers: Record<string, string>
-    body: any
-}
+  status: number;
+  channel: string;
+  token?: string;
+  headers?: Record<string, string>;
+  message?: string;
+  body?: any;
+};
 
-export type Handler = (requestBody: any) => void
+export type Handler = (request: any) => void;
 
-export type Handelers = Record<string, Handler>
+export type Handelers = Record<string, Handler>;

@@ -5,7 +5,6 @@ import ChatHeader from "./chatHeader";
 import Sessions from "./sessions";
 import "./styles/chatLayout.css";
 import {
-  GroupSession,
   MessageProps,
   Session,
   User,

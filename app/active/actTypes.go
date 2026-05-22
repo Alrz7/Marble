@@ -8,7 +8,7 @@ import (
 )
 
 type RequestChannel = string
-type RequestStatus = uint
+type RequestStatus = int
 type RequestHeaders = map[string]string
 type RequestBody = string
 
@@ -16,8 +16,10 @@ type Request struct {
 	conn    *websocket.Conn
 	user    *ActvUser
 	Status  RequestStatus  `json:"status"`
+	Token   string         `json:"token"`
 	Channel RequestChannel `json:"channel"`
 	Headers RequestHeaders `json:"headers"`
+	Message string         `json:"message"`
 	Body    RequestBody    `json:"body"`
 }
 

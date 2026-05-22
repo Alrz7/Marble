@@ -3,10 +3,8 @@ package active
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"marble/internal/loggy"
 	"net/http"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 )
@@ -28,12 +26,17 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		DeleteUserOf(conn)
 	}()
 
-	DefaultLogger.Info("Client connected")
+	// DefaultLogger.Info("Client connected")
 	conn.SetReadLimit(4096)
 
 	err = authorizeConnection(conn, jwtSecretKey)
 	if err != nil {
-		conn.WriteMessage(websocket.TextMessage, fmt.Appendf([]byte{}, `{"error": %v}`, err))
+		resp := Request{
+			Channel: "auth",
+			Status:  -1,
+			Message: err.Error(),
+		}
+		sendRequest(conn, &resp)
 		return
 	}
 	for {
@@ -46,9 +49,19 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		user, err := GetUserOf(conn)
 		if user == nil {
 			if err != nil {
-				conn.WriteMessage(websocket.TextMessage, fmt.Appendf([]byte{}, `{"error": %v}`, err))
+				resp := Request{
+					Channel: "auth",
+					Status:  -1,
+					Message: err.Error(),
+				}
+				sendRequest(conn, &resp)
 			} else {
-				conn.WriteMessage(websocket.TextMessage, []byte(`{"error": "there was an error while finding the active-User"}`))
+				resp := Request{
+					Channel: "auth",
+					Status:  -1,
+					Message: "there was an error while finding the active-User",
+				}
+				sendRequest(conn, &resp)
 			}
 			break
 		}
@@ -57,7 +70,6 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		req.conn = conn
 		req.user = user
 		if err := json.Unmarshal(message, &req); err != nil {
-			DefaultLogger.Info(req)
 			DefaultLogger.Error("Invalid JSON from client:", err)
 			continue
 		}
@@ -80,31 +92,33 @@ func manageHandeler(Request *Request) {
 }
 
 func authorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			return err
-		}
-		var req struct {
-			Token string `json:"token"`
-		}
-		if err := json.Unmarshal(msg, &req); err != nil || req.Token == "" {
-			return errors.New("authentication required")
-		}
-		claims := &Claims{}
-		token, err := jwt.ParseWithClaims(req.Token, claims, func(t *jwt.Token) (any, error) {
-			return jwtSecretKey, nil
-		})
-		if err != nil || !token.Valid {
-			return errors.New("Invalid token")
-		}
-
-		newActiveUser, err := GetActiveUser(claims.UserId)
-		if err != nil {
-			return err
-		}
-		newActiveUser.InsertAs(conn)
-		conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"auth","status":"ok"}`))
-		continue
+	_, msg, err := conn.ReadMessage()
+	if err != nil {
+		return err
 	}
+	var req Request
+	if err := json.Unmarshal(msg, &req); err != nil || req.Token == "" {
+		return loggy.Sayr("authentication failed", err)
+	}
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(req.Token, claims, func(t *jwt.Token) (any, error) {
+		return jwtSecretKey, nil
+	})
+	if err != nil || !token.Valid {
+		return errors.New("Invalid token")
+	}
+
+	newActiveUser, err := GetActiveUser(claims.UserId)
+	if err != nil {
+		return err
+	}
+	newActiveUser.InsertAs(conn)
+	resp := Request{
+		Channel: "auth",
+		Status:  2,
+		Message: "authorization successfull!",
+	}
+	sendRequest(conn, &resp)
+	return nil
+
 }

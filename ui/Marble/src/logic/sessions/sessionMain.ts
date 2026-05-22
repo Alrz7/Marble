@@ -28,6 +28,7 @@ export async function handleSessionMessage(
   content: string,
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>,
 ) {
+  if (!session) return;
   const tempMessage: MessageProps = {
     id: `temp-${Date.now()}`,
     content,

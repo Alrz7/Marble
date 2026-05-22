@@ -3,6 +3,8 @@ package active
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/gorilla/websocket"
 )
 
 // 					--------- Note -----------
@@ -34,5 +36,12 @@ func HndlSearchUser(req *Request) {
 		DefaultLogger.Error(err)
 	}
 	DefaultLogger.Info(entry.Param)
+}
 
+func sendRequest(conn *websocket.Conn, req *Request) {
+	b, err := json.Marshal(req)
+	if err != nil {
+
+	}
+	conn.WriteMessage(websocket.TextMessage, b)
 }
