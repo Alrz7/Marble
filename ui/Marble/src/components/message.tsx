@@ -23,7 +23,7 @@ const Message: React.FC<MessageProps> = ({
       case "sent":
         return "✓";
       case "delivered":
-        return "✓✓";
+        return "✓";
       case "read":
         return "✓✓";
       default:

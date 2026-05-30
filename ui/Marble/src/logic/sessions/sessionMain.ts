@@ -1,22 +1,19 @@
-import { onSendMessage } from "../active/actWebsocket";
-import { GroupSession, MessageProps, Session } from "../internal/commonTypes";
+import {
+  onSendMessage,
+  onSetCreateSession,
+} from "../active/actWsClientHandelers";
+import { MessageProps, Session } from "../internal/commonTypes";
+import { setCurSessionProps } from "../internal/tsxTypes";
 import { getStoreSession } from "../store/strMain";
-
-type setCurSessionProps = {
-  beta: string;
-  sessionIds: { sessionId: number; storageId: string };
-  setSession: React.Dispatch<React.SetStateAction<Session | null>>;
-  setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>;
-};
 
 export async function setCurrentSession(props: setCurSessionProps) {
   const newSession: Session = {
-    beta: props.beta,
-    sessionId: props.sessionIds.sessionId,
+    beta: props.audience,
+    sessionId: props.audience.sessionId,
   };
   props.setSession(newSession);
   try {
-    const messageList = await getStoreSession(props.sessionIds.storageId);
+    const messageList = await getStoreSession(props.audience.storageId);
     if (messageList) props.setMessages(messageList);
   } catch (err) {
     console.error(err);
@@ -24,7 +21,7 @@ export async function setCurrentSession(props: setCurSessionProps) {
 }
 
 export async function handleSessionMessage(
-  session: Session | GroupSession | null,
+  session: Session | null,
   content: string,
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>,
 ) {
@@ -40,7 +37,11 @@ export async function handleSessionMessage(
   setMessages((prev) => [...prev, tempMessage]);
 
   try {
-    onSendMessage(session.sessionId, content);
+    if (session.sessionId == -1) {
+      onSetCreateSession(session.beta, content);
+    } else {
+      onSendMessage(session, content);
+    }
 
     // Update message status after successful send
     setMessages((prev) =>
@@ -55,11 +56,3 @@ export async function handleSessionMessage(
     // You could show an error state here
   }
 }
-
-// export function sendMessage(){
-
-// }
-
-// export function handleSessions(){
-
-// }

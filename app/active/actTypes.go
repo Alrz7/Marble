@@ -12,6 +12,19 @@ type RequestStatus = int
 type RequestHeaders = map[string]string
 type RequestBody = string
 
+const (
+	StatusPending RequestStatus = iota
+	StatusRequest
+	StatusSuccess
+	StatusError
+	StatusWarning
+	StatusCanceled
+	StatusTimeout
+	StatusRejected
+	StatusApproved
+	StatusRetry
+)
+
 type Request struct {
 	conn    *websocket.Conn
 	user    *ActvUser
@@ -29,14 +42,9 @@ type Claims struct {
 	UserId internal.UserId `json:"userId"`
 	jwt.RegisteredClaims
 }
+// ------------------------------------------
 
-func (req *Request) ResponseWriter(env any) {
-	req.conn.WriteJSON(env)
-}
-
-func (req *Request) ErrorWriter() {
-
-}
-
-// a request can be Implemented To comunicate with a list of Channels
-// and do many things by diferent GoRoutines at the same time.
+type Notif struct {
+		Type    string `json:"type"`
+		Message string `json:"message"`
+	}

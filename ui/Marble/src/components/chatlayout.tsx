@@ -5,9 +5,10 @@ import ChatHeader from "./chatHeader";
 import Sessions from "./sessions";
 import "./styles/chatLayout.css";
 import {
+  Audience,
   MessageProps,
   Session,
-  User,
+  sessionAudience,
 } from "../logic/internal/commonTypes";
 import SearchBar from "./searchBar";
 import Message from "./message";
@@ -15,14 +16,9 @@ import {
   handleSessionMessage,
   setCurrentSession,
 } from "../logic/sessions/sessionMain";
-import { onSearchUser } from "../logic/active/actWsHandelers";
+import { onSearchUser } from "../logic/active/actWsClientHandelers";
+import { ChatLayoutProps } from "../logic/internal/tsxTypes";
 
-export interface ChatLayoutProps {
-  user: User;
-  onBack: () => void | null;
-  messages: MessageProps[] | null;
-  setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>;
-}
 export function ChatLayout({
   user,
   onBack,
@@ -72,15 +68,20 @@ export function ChatLayout({
           searchToggle={() => setIsSearching((prev) => !prev)}
         />
         {isSearching ? (
-          <SearchBar onSearch={onSearchUser} />
+          <SearchBar
+            onSearch={onSearchUser}
+            setNewSession={(beta: Audience) => {
+              setSession({
+                beta: beta,
+                sessionId: -1,
+              });
+            }}
+          />
         ) : (
           <Sessions
             user={user}
-            setCurrnetSession={(
-              beta: string,
-              sessionIds: { sessionId: number; storageId: string },
-            ) => {
-              setCurrentSession({ beta, sessionIds, setSession, setMessages });
+            setCurrnetSession={(audience: sessionAudience) => {
+              setCurrentSession({ audience, setSession, setMessages });
             }}
           />
         )}

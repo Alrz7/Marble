@@ -1,7 +1,12 @@
 import Search from "../assets/search.svg?react";
 import CloseSearch from "../assets/closeSearch.svg?react";
 import "./styles/searchBar.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Request } from "../logic/active/actTypes";
+import { getInitials } from "../logic/internal/helperfuncs";
+import { addHandlers } from "../logic/active/actWebsocket";
+import { Audience } from "../logic/internal/commonTypes";
+import { tpSetNewSession } from "../logic/internal/tsxTypes";
 
 // ------------------- SearchButton -------------------
 interface SearchButtonProps {
@@ -28,10 +33,26 @@ export const SearchButton: React.FC<SearchButtonProps> = ({
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  setNewSession: tpSetNewSession;
 }
 
-function SearchBar({ onSearch }: SearchBarProps) {
+export function SearchBar({ onSearch, setNewSession }: SearchBarProps) {
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Audience[] | null>(null);
+
+  useEffect(() => {
+    addHandlers(handlersRef.current);
+  }, []);
+
+  const handlersRef = useRef({
+    searchUser: HndlSearchResult,
+  });
+
+  function HndlSearchResult(req: Request) {
+    if (!req.body) return;
+    const data: { results: Audience[] } = JSON.parse(req.body);
+    setResults(data.results);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,10 +86,45 @@ function SearchBar({ onSearch }: SearchBarProps) {
         </button>
       </form>
 
-      {/* Empty area for results */}
+      {results?.map((audience, indx) => (
+        <SearchResults
+          audience={audience}
+          key={indx}
+          setNewSession={setNewSession}
+        />
+      ))}
+
       <div className="search-results" />
     </div>
   );
 }
 
 export default SearchBar;
+
+function SearchResults({
+  audience,
+  setNewSession,
+}: {
+  audience: Audience;
+  setNewSession: tpSetNewSession;
+}) {
+  return (
+    <div
+      onClick={() => {
+        setNewSession(audience);
+      }}
+    >
+      <div className="session search-result">
+        <div className="session-profile">
+          <button className="session-avatar">
+            {getInitials(audience.name)}
+          </button>
+          <div className="session-info">
+            <h3>{`${audience.name} @${audience.displayId}`}</h3>
+            <p>recently</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

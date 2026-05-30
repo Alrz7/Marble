@@ -1,15 +1,19 @@
 import { GetAuthToken } from "../internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
-import { isAuthorized } from "./actWsHandelers";
+import {
+  defAuthStatus,
+  HndlSessions,
+  isAuthorized,
+} from "./actWsServerHandelers";
 
 let ws: WebSocket | null = null;
 let handlersRef: { current: Handelers } = {
-  current: {},
+  current: { auth: defAuthStatus, sessions: HndlSessions },
 };
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-export function setHandlers(handlers: Handelers) {
-  handlersRef.current = handlers;
+export function addHandlers(handlers: Handelers) {
+  handlersRef.current = { ...handlersRef.current, ...handlers };
 }
 
 export function openConnection() {
@@ -79,23 +83,6 @@ export function sendRequest(req: Request) {
   } else {
     console.warn("WebSocket not open. Message not sent.");
   }
-}
-
-export function onSendMessage(session_id: number, message: string) {
-  const struct: {
-    session_id: number;
-    message: String;
-  } = {
-    session_id: session_id,
-    message: message,
-  };
-  const req: Request = {
-    status: 0,
-    channel: "session",
-    headers: {},
-    body: JSON.stringify(struct),
-  };
-  sendRequest(req);
 }
 
 function sendToken() {

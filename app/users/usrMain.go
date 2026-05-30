@@ -9,9 +9,6 @@ import (
 
 var logger = loggy.DefaultLogger
 
-/*
-isn't it Obvious??
-*/
 func CreateNewUser(username, email, password string, pubIdentKey string) (*User, error) {
 	// check valid Email
 	newUser := User{
@@ -28,8 +25,8 @@ func CreateNewUser(username, email, password string, pubIdentKey string) (*User,
 	newUser.PgpProfile.PubIdentityKey = pubIdentKey
 
 	newUser.PgpProfile.Sessions = map[internal.UserId]int64{}
-	// err = newUser.Save()
-	err = newUser.fakeSave()
+	err = newUser.Save()
+	// err = newUser.fakeSave()
 	if err != nil {
 		return &User{}, err
 	}

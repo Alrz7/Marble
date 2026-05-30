@@ -1,5 +1,5 @@
 export type Request = {
-  status: number;
+  status: MessageStatus;
   channel: string;
   token?: string;
   headers?: Record<string, string>;
@@ -10,3 +10,16 @@ export type Request = {
 export type Handler = (request: any) => void;
 
 export type Handelers = Record<string, Handler>;
+
+export enum MessageStatus {
+  Pending = 0,
+  Request = 1,
+  Success = 2,
+  Error = 3,
+  Warning = 4,
+  Canceled = 5,
+  Timeout = 6,
+  Rejected = 7,
+  Approved = 8,
+  Retry = 9,
+}

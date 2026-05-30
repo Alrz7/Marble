@@ -1,6 +1,5 @@
 import { PrivateKey } from "openpgp";
 export type auth = "login" | "signup" | "resetpass";
-
 // User Types ---------------------------------
 
 // type userProfile = {
@@ -19,8 +18,19 @@ export type UserConfig = {
   id: number;
   display_id: string;
   identityKey: KeyGroup;
-  sessions: Record<string, { sessionId: number; storageId: string }>;
+  sessions: Record<string, sessionAudience>;
   storagePath: string;
+};
+export type sessionAudience = Audience & {
+  sessionId: number;
+  storageId: string;
+};
+
+export type Audience = {
+  name: string;
+  userId: number;
+  displayId: string;
+  armedPubKey: string;
 };
 
 export type GroupSession = {
@@ -29,7 +39,7 @@ export type GroupSession = {
 
 export type Session = {
   sessionId: number;
-  beta: string;
+  beta: Audience;
 };
 
 export interface MessageProps {
@@ -40,6 +50,10 @@ export interface MessageProps {
   status?: "sent" | "delivered" | "read";
   senderName?: string;
 }
+
+// --- Tsx ----
+
+// ---- enc ----
 
 export type KeyGroup = {
   privateKey: string;

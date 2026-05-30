@@ -1,5 +1,5 @@
 .sessions-container {
-  display:flexbox;
+  display: flexbox;
   position: relative;
   margin-top: 6px;
   margin-bottom: 6px;
@@ -23,7 +23,7 @@
   position: relative;
   height: 65px;
   /* gap: 6px; */
-  margin-top: 3px;
+  top: 6px;
   margin-left: 6px;
   margin-bottom: 3px;
   background: hsla(0, 0%, 20%, 0.533);
@@ -43,6 +43,13 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.161);
+}
+
+.search-result {
+  top: 20px;
+  /* margin-top: 20px; */
+  margin-left: 0px;
+  width: 94%;
 }
 
 .session:hover {

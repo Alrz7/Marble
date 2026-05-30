@@ -9,8 +9,7 @@ import { User, auth } from "./logic/internal/commonTypes";
 import { loadConfig } from "./logic/appMain";
 import { logOut } from "./logic/auth/login";
 import { MessageProps } from "./logic/internal/commonTypes";
-import { defAuthStatus } from "./logic/active/actWsHandelers";
-import { setHandlers } from "./logic/active/actWebsocket";
+import { addHandlers } from "./logic/active/actWebsocket";
 export default function App() {
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [user, setUserData] = useState<User | null>(null);
@@ -55,7 +54,7 @@ export default function App() {
       const userData = await loadConfig();
       if (userData) {
         setUserData(userData);
-        setHandlers(handlersRef.current);
+        addHandlers(handlersRef.current);
       }
       setLoadingPage(false);
     }
@@ -66,8 +65,7 @@ export default function App() {
     // sessions: (request: any) => {
     //   setMessages((prev) => [...prev, body.message]);
     // },
-    auth: defAuthStatus,
-    // notifications: (body: any) => { ... },
+    // notifications: (req: any) => { ... },
   });
 
   const handleBack = () => {

@@ -1,25 +1,19 @@
-import { User } from "../logic/internal/commonTypes";
 import "./styles/sessions.css";
 import { getInitials } from "../logic/internal/helperfuncs";
+import { SessionsProps, tpSetCurrnetSession } from "../logic/internal/tsxTypes";
+import { sessionAudience } from "../logic/internal/commonTypes";
 
-interface entry {
-  user: User;
-  setCurrnetSession: (
-    beta: string,
-    sessionIds: { sessionId: number; storageId: string },
-  ) => void;
-  // setUserData: React.Dispatch<React.SetStateAction<User | null>>;
-}
 
-export default function Sessions({ user, setCurrnetSession }: entry) {
+
+export default function Sessions({ user, setCurrnetSession }: SessionsProps) {
   return (
     <div className="sessions-container">
       {user?.config?.sessions
-        ? Object.entries(user.config.sessions).map(([addr, sessionKey]) => (
+        ? Object.entries(user.config.sessions).map(([userName, audience]) => (
             <Session
-              key={sessionKey.sessionId}
-              addr={addr}
-              sessionKey={sessionKey}
+              key={audience.sessionId}
+              userName={userName}
+              audience={audience}
               setCurrnetSession={setCurrnetSession}
             />
           ))
@@ -29,28 +23,25 @@ export default function Sessions({ user, setCurrnetSession }: entry) {
 }
 
 function Session({
-  addr,
-  sessionKey,
+  userName,
+  audience,
   setCurrnetSession,
 }: {
-  addr: string;
-  sessionKey: { sessionId: number; storageId: string };
-  setCurrnetSession: (
-    beta: string,
-    sessionIds: { sessionId: number; storageId: string },
-  ) => void;
+  userName: string;
+  audience: sessionAudience
+  setCurrnetSession: tpSetCurrnetSession
 }) {
   return (
     <div className="session">
       <div
         className="session-profile"
         onClick={() => {
-          setCurrnetSession(addr, sessionKey);
+          setCurrnetSession(audience);
         }}
       >
-        <button className="session-avatar">{getInitials(addr)}</button>
+        <button className="session-avatar">{getInitials(userName)}</button>
         <div className="session-info">
-          <h3>{addr}</h3>
+          <h3>{userName}</h3>
           <p>recently</p>
         </div>
       </div>

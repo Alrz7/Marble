@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"marble/internal"
 	"net/http"
 	"strings"
 )
-
-type envelope map[string]any
+type envelope = internal.Envelope
 
 func (api *apiConfig) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	b, err := json.Marshal(data)
