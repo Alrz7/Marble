@@ -78,6 +78,7 @@ func HndlSearchUser(req *Request) {
 		DefaultLogger.Error(err)
 	}
 	resp := Request{
+		conn: req.conn,
 		Status:  StatusApproved,
 		Channel: "searchUser",
 		Body:    string(b),

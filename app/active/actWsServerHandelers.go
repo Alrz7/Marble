@@ -37,6 +37,7 @@ func HndlauthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 	}
 	newActiveUser.InsertAs(conn)
 	resp := Request{
+		conn:    conn,
 		Channel: "auth",
 		Status:  StatusApproved,
 		Message: "authorization successfull!",
@@ -50,11 +51,17 @@ func HndlauthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 }
 
 func (req *Request) sendRequest() error {
+	if req.conn == nil {
+		return loggy.Say("there was no Ws-conn inside the request")
+	}
 	b, err := json.Marshal(req)
 	if err != nil {
 		actServerErrorResponse(req.conn, err)
 		return err
 	}
-	req.conn.WriteMessage(websocket.TextMessage, b)
+	err = req.conn.WriteMessage(websocket.TextMessage, b)
+	if err != nil {
+		return err
+	}
 	return nil
 }
