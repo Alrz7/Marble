@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { Copy, Reply, Edit2, Trash2, Check, CheckCheck } from 'lucide-react';
+
+interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: Date;
+  isOwn: boolean;
+  status?: 'sent' | 'delivered' | 'read';
+}
+
+interface MessageBubbleProps {
+  message: Message;
+}
+
+export default function MessageBubble({ message }: MessageBubbleProps) {
+  const [showActions, setShowActions] = useState(false);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+  };
+
+  const handleReply = () => {
+    console.log('Reply to message:', message.id);
+    // Implement reply logic
+  };
+
+  const handleEdit = () => {
+    console.log('Edit message:', message.id);
+    // Implement edit logic
+  };
+
+  const handleDelete = () => {
+    console.log('Delete message:', message.id);
+    // Implement delete logic
+  };
+
+  const getStatusIcon = () => {
+    if (!message.isOwn) return null;
+
+    switch (message.status) {
+      case 'sent':
+        return <Check className="w-4 h-4 text-muted-foreground" />;
+      case 'delivered':
+        return <CheckCheck className="w-4 h-4 text-muted-foreground" />;
+      case 'read':
+        return <CheckCheck className="w-4 h-4 text-primary" />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div
+      className={`flex gap-3 group ${message.isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
+      {/* Avatar */}
+      {!message.isOwn && (
+        <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0">
+          {message.senderName.charAt(0)}
+        </div>
+      )}
+
+      {/* Message Container */}
+      <div className={`flex flex-col gap-1 ${message.isOwn ? 'items-end' : 'items-start'}`}>
+        {/* Sender Name */}
+        {!message.isOwn && (
+          <span className="text-xs font-medium text-muted-foreground pl-3">{message.senderName}</span>
+        )}
+
+        {/* Bubble */}
+        <div
+          className={`rounded-lg px-4 py-2 max-w-xs ${
+            message.isOwn
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-foreground'
+          }`}
+        >
+          <p className="text-sm break-words">{message.content}</p>
+        </div>
+
+        {/* Time and Status */}
+        <div className={`flex items-center gap-2 text-xs text-muted-foreground px-3 ${
+          message.isOwn ? 'flex-row-reverse' : 'flex-row'
+        }`}>
+          <span>{formatTime(message.timestamp)}</span>
+          {getStatusIcon()}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      {showActions && (
+        <div className={`flex gap-1 ${message.isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            title="Copy"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleReply}
+            className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            title="Reply"
+          >
+            <Reply className="w-4 h-4" />
+          </button>
+
+          {message.isOwn && (
+            <>
+              <button
+                onClick={handleEdit}
+                className="p-1.5 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                title="Edit"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

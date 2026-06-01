@@ -1,95 +1,67 @@
-// App.tsx
-import { useEffect, useRef, useState } from "react";
-import ChatLayout from "./components/chatlayout";
-import Login from "./components/login";
-import SignUp from "./components/signUp";
-import "./App.css";
-import LoadingPage from "./components/loadingPage";
-import { User, auth } from "./logic/internal/commonTypes";
-import { loadConfig } from "./logic/appMain";
-import { logOut } from "./logic/auth/login";
-import { MessageProps } from "./logic/internal/commonTypes";
-import { addHandlers } from "./logic/active/actWebsocket";
-export default function App() {
-  const [loadingPage, setLoadingPage] = useState<boolean>(true);
-  const [user, setUserData] = useState<User | null>(null);
-  const [authPage, setAuthPage] = useState<auth>("login");
-  const [messages, setMessages] = useState<MessageProps[]>([]);
-  //   [
-  //   {
-  //     id: "1",
-  //     content: "Hi, how you doing mate?",
-  //     sender: "audience",
-  //     timestamp: new Date("2025-04-10T10:30:00"),
-  //     status: "read",
-  //     senderName: "bob",
-  //   },
-  //   {
-  //     id: "2",
-  //     content: "Wussup!, I'm doing great What about you",
-  //     sender: "user",
-  //     timestamp: new Date("2025-04-10T10:32:30"),
-  //     status: "read",
-  //     senderName: "bob",
-  //   },
-  //   {
-  //     id: "3",
-  //     content: "Have you heart of the new Messager app thats Commin out?",
-  //     sender: "audience",
-  //     timestamp: new Date("2025-04-10T10:34:24"),
-  //     status: "read",
-  //     senderName: "bob",
-  //   },
-  //   {
-  //     id: "4",
-  //     content: "I have!!!, it's going to be the GOAT",
-  //     sender: "user",
-  //     timestamp: new Date("2025-04-10T10:37:06"),
-  //     status: "read",
-  //   },
-  // ]
+import { useState } from 'react';
+import './app.css';
+import LoginPage from './components/auth/LoginPage';
+import SignupPage from './components/auth/SignupPage';
+import LoadingPage from './components/auth/LoadingPage';
+import ChatLayout from './components/chat/ChatLayout';
 
-  useEffect(() => {
-    async function load() {
-      const userData = await loadConfig();
-      if (userData) {
-        setUserData(userData);
-        addHandlers(handlersRef.current);
-      }
-      setLoadingPage(false);
-    }
-    load();
-  }, []);
+type AppState = 'loading' | 'login' | 'signup' | 'chat';
 
-  const handlersRef = useRef({
-    // sessions: (request: any) => {
-    //   setMessages((prev) => [...prev, body.message]);
-    // },
-    // notifications: (req: any) => { ... },
-  });
+function App() {
+  const [appState, setAppState] = useState<AppState>('chat');
 
-  const handleBack = () => {
-    logOut(setUserData);
+  const handleLoginSuccess = () => {
+    setAppState('chat');
   };
 
+  const handleSignupSuccess = () => {
+    setAppState('chat');
+  };
+
+  const handleGoToSignup = () => {
+    setAppState('signup');
+  };
+
+  const handleGoToLogin = () => {
+    setAppState('login');
+  };
+
+  const handleLogout = () => {
+    setAppState('login');
+  };
+
+  // Initialize app state after brief loading
+  if (appState === 'loading') {
+    return (
+      <LoadingPage
+        onLoadComplete={() => setAppState('login')}
+      />
+    );
+  }
+
+  if (appState === 'login') {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        onGoToSignup={handleGoToSignup}
+      />
+    );
+  }
+
+  if (appState === 'signup') {
+    return (
+      <SignupPage
+        onSignupSuccess={handleSignupSuccess}
+        onGoToLogin={handleGoToLogin}
+      />
+    );
+  }
+
   return (
-    <div className="chat-app">
-      {user && !loadingPage ? (
-        <ChatLayout
-          user={user}
-          onBack={handleBack}
-          messages={messages}
-          setMessages={setMessages}
-        />
-      ) : loadingPage ? (
-        <LoadingPage />
-      ) : authPage == "login" ? (
-        <Login setAuth={setAuthPage} setUserData={setUserData} />
-      ) : authPage == "signup" ? (
-        <SignUp setAuth={setAuthPage} setUserData={setUserData} />
-      ) : (
-        ""
-      )}
-    </div>
+    <ChatLayout
+      onLogout={handleLogout}
+    />
   );
 }
+
+export default App;
