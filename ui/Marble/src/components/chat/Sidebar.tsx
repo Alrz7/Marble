@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Search, Settings, LogOut, Plus, Menu } from 'lucide-react';
-import SidebarHeader from './SidebarHeader';
-import SessionsList from './SessionsList';
-import SearchPanel from './SearchPanel';
-import SettingsPage from './SettingsPage';
+import { useState } from "react";
+import { Search, Settings, LogOut, Plus, Menu } from "lucide-react";
+import SidebarHeader from "./SidebarHeader";
+import SessionsList from "./SessionsList";
+import SearchPanel from "./SearchPanel";
+import SettingsPage from "./SettingsPage";
 
 interface SidebarProps {
   onLogout: () => void;
 }
 
 export default function Sidebar({ onLogout }: SidebarProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -70,9 +70,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       </div>
 
       {/* Settings Modal */}
-      {showSettings && (
-        <SettingsPage onClose={() => setShowSettings(false)} />
-      )}
+      {showSettings && <SettingsPage onClose={() => setShowSettings(false)} />}
     </>
   );
 }

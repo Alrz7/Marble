@@ -1,14 +1,14 @@
-import { signIn } from "./auth/login.ts";
-import { generateIdntKey } from "./enc/encHelpers.ts";
+import { signIn } from "../auth/login.ts";
+import { generateIdntKey } from "../enc/encHelpers.ts";
 import {
   getHoldUser,
   getKeychainObject,
   getKeyFromArmored,
   initStrholdClient,
   setKeychainObject,
-} from "./enc/keyChain.ts";
-import { User, MARBLE_STRONGHOLD_KEY } from "./internal/commonTypes.ts";
-import { initStoreClient } from "./store/strMain.ts";
+} from "../enc/keyChain.ts";
+import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTypes.ts";
+import { initStoreClient } from "../store/strMain.ts";
 
 async function getOrCreateVaultKey(): Promise<string> {
   const existing = await getKeychainObject(MARBLE_STRONGHOLD_KEY);

@@ -1,5 +1,4 @@
 import { PrivateKey } from "openpgp";
-export type auth = "login" | "signup" | "resetpass";
 // User Types ---------------------------------
 
 // type userProfile = {

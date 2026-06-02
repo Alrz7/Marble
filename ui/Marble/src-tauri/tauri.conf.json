@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "marble",
-        "width": 1000,
-        "height": 800,
+        "width": 900,
+        "height": 700,
         "dragDropEnabled": false
       }
     ],

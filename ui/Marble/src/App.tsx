@@ -1,67 +1,55 @@
-import { useState } from 'react';
-import './app.css';
-import LoginPage from './components/auth/LoginPage';
-import SignupPage from './components/auth/SignupPage';
-import LoadingPage from './components/auth/LoadingPage';
-import ChatLayout from './components/chat/ChatLayout';
-
-type AppState = 'loading' | 'login' | 'signup' | 'chat';
+import { useEffect, useRef } from "react";
+import "./app.css";
+import LoginPage from "./components/auth/LoginPage";
+import SignupPage from "./components/auth/SignupPage";
+import LoadingPage from "./components/auth/LoadingPage";
+import ChatLayout from "./components/chat/ChatLayout";
+import { loadConfig } from "./logic/user/userLoadUp";
+import { addHandlers } from "./logic/active/actWebsocket";
+import { logOut } from "./logic/auth/login";
+import { AppUser } from "./logic/states/userMainStates";
+import { AppState } from "./logic/states/appCommonStates";
 
 function App() {
-  const [appState, setAppState] = useState<AppState>('chat');
-
-  const handleLoginSuccess = () => {
-    setAppState('chat');
-  };
-
-  const handleSignupSuccess = () => {
-    setAppState('chat');
-  };
-
-  const handleGoToSignup = () => {
-    setAppState('signup');
-  };
-
-  const handleGoToLogin = () => {
-    setAppState('login');
-  };
-
+  const { appState, setAppState } = AppState();
+  const { currentUser, setUserData } = AppUser();
   const handleLogout = () => {
-    setAppState('login');
+    logOut(setUserData);
+    setAppState("login");
   };
+
+  useEffect(() => {
+    async function hndlAutoLogin() {
+      const userData = await loadConfig();
+      if (userData) {
+        setUserData(userData);
+        addHandlers(handlersRef.current);
+      }
+    }
+    hndlAutoLogin();
+  }, []);
+
+  const handlersRef = useRef({
+    // notifications: (req: any) => { ... },
+  });
 
   // Initialize app state after brief loading
-  if (appState === 'loading') {
-    return (
-      <LoadingPage
-        onLoadComplete={() => setAppState('login')}
-      />
-    );
+  if (currentUser) {
+    return <ChatLayout onLogout={handleLogout} />;
+  } else {
+    switch (appState) {
+      case "loading":
+        return <LoadingPage onLoadComplete={() => setAppState("login")} />;
+      case "login":
+        return (
+          <LoginPage setAppState={setAppState} setUserData={setUserData} />
+        );
+      case "signup":
+        return (
+          <SignupPage setAppState={setAppState} setUserData={setUserData} />
+        );
+    }
   }
-
-  if (appState === 'login') {
-    return (
-      <LoginPage
-        onLoginSuccess={handleLoginSuccess}
-        onGoToSignup={handleGoToSignup}
-      />
-    );
-  }
-
-  if (appState === 'signup') {
-    return (
-      <SignupPage
-        onSignupSuccess={handleSignupSuccess}
-        onGoToLogin={handleGoToLogin}
-      />
-    );
-  }
-
-  return (
-    <ChatLayout
-      onLogout={handleLogout}
-    />
-  );
 }
 
 export default App;

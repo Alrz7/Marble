@@ -1,14 +1,20 @@
-import { useState } from 'react';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { useState } from "react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { AppState, User } from "../../logic/internal/commonTypes";
+import { login } from "../../logic/auth/login";
+import { getKeyFromArmored } from "../../logic/enc/keyChain";
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
-  onGoToSignup: () => void;
+  setAppState: (state: AppState) => void;
+  setUserData: (user: User) => void;
 }
 
-export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPageProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function LoginPage({
+  setAppState,
+  setUserData,
+}: LoginPageProps) {
+  const [id, setId] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,15 +24,18 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
     setIsLoading(true);
 
     try {
-      // Call your login logic here
-      // await loginUser(email, password);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      onLoginSuccess();
+      const newUserConfig = await login(id, password);
+      if (newUserConfig) {
+        const prvKey = await getKeyFromArmored(
+          newUserConfig.identityKey.privateKey,
+          null,
+        );
+        if (prvKey) {
+          setUserData({ config: newUserConfig, prvIdentKey: prvKey });
+        }
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
     } finally {
       setIsLoading(false);
     }
@@ -37,29 +46,32 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
       <div className="w-full max-w-md px-6">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-3">
+          <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-3">
             Marble
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Secure, private messaging
-          </p>
+          {/* <p className="text-muted-foreground text-sm">
+            Simple, but Spicey
+          </p> */}
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Input */}
+          {/* It will be replaced with Email Input */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-              Email Address
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-foreground mb-2"
+            >
+              Id
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
               <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="id"
+                type="id"
+                placeholder="your Id"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 className="marble-input w-full pl-10"
                 required
               />
@@ -68,14 +80,17 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
 
           {/* Password Input */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-foreground mb-2"
+            >
               Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -87,7 +102,11 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -101,7 +120,10 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
               onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 rounded border-border bg-input cursor-pointer"
             />
-            <label htmlFor="remember" className="ml-2 text-sm text-muted-foreground cursor-pointer">
+            <label
+              htmlFor="remember"
+              className="ml-2 text-sm text-muted-foreground cursor-pointer"
+            >
               Remember me
             </label>
           </div>
@@ -112,7 +134,7 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
             disabled={isLoading}
             className="w-full marble-button-primary mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
@@ -125,9 +147,11 @@ export default function LoginPage({ onLoginSuccess, onGoToSignup }: LoginPagePro
 
         {/* Signup Link */}
         <p className="text-center text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <button
-            onClick={onGoToSignup}
+            onClick={() => {
+              setAppState("signup");
+            }}
             className="text-primary hover:text-accent font-medium transition-colors"
           >
             Create one

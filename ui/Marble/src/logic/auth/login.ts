@@ -34,9 +34,7 @@ export async function login(
   return currentUser;
 }
 
-export async function logOut(
-  setUserData: React.Dispatch<React.SetStateAction<User | null>>,
-) {
+export async function logOut(setUserData: (NewUser: User | null) => void) {
   await deletePrimaryUser();
   setTimeout(() => {
     setUserData(null);
@@ -80,5 +78,3 @@ export async function signIn(
     throw new Error("Failed to decode the http result");
   }
 }
-
-
