@@ -90,7 +90,7 @@ func (U *UserModel) Delete(id internal.UserId) error {
 	return nil
 }
 
-func (U *UserModel) SearchOneByDisplayId(dispayId string) (*User, error) {
+func (U *UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	if dispayId == "" {
 		return nil, internal.ErrRecordNotFound
 	}
@@ -108,6 +108,7 @@ func (U *UserModel) SearchOneByDisplayId(dispayId string) (*User, error) {
 			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
 		}
 	}
+
 	pgpModel := pgp.ProfileModel{DB: U.DB}
 	pgp_profile, err := pgpModel.Get(user.Id)
 	if err != nil {

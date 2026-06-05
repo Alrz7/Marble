@@ -1,14 +1,10 @@
 import { GetAuthToken } from "../internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
-import {
-  defAuthStatus,
-  HndlSessions,
-  isAuthorized,
-} from "./actWsServerHandelers";
 
+// ----* handler *----
 let ws: WebSocket | null = null;
 let handlersRef: { current: Handelers } = {
-  current: { auth: defAuthStatus, sessions: HndlSessions },
+  current: {},
 };
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -16,6 +12,14 @@ export function addHandlers(handlers: Handelers) {
   handlersRef.current = { ...handlersRef.current, ...handlers };
 }
 
+// ----* Authorization *----
+export let isAuthorized = false;
+export function editAuthStatus(newstate: boolean){
+  isAuthorized = newstate
+}
+
+
+//---
 export function openConnection() {
   if (
     ws &&

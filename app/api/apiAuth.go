@@ -63,9 +63,10 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Mod := users.UserModel{DB: internal.App.Db}
-	existingUser, err := Mod.SearchOneByDisplayId(entry.DisplayId)
+	existingUser, err := Mod.GetByDisplayId(entry.DisplayId)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
+		return
 	}
 	// password validation goes here
 

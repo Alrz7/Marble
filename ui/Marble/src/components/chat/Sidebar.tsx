@@ -4,15 +4,27 @@ import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
+import { AppState } from "../../logic/states/appCommonStates";
+import { AppUser } from "../../logic/states/userMainStates";
+import { logOut } from "../../logic/auth/login";
+import { onSearchUser } from "../../logic/active/actWsClientHandelers";
 
-interface SidebarProps {
-  onLogout: () => void;
-}
-
-export default function Sidebar({ onLogout }: SidebarProps) {
+export default function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const { setAppState } = AppState();
+  const { setUserData } = AppUser();
+
+  const RequestForSearch = (query: string) => {
+    setSearchQuery(query);
+    onSearchUser(query);
+  };
+
+  const handleLogout = () => {
+    logOut(setUserData);
+    setAppState("login");
+  };
 
   return (
     <>
@@ -28,7 +40,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
+              RequestForSearch(e.target.value);
               setShowSearchResults(e.target.value.length > 0);
             }}
             className="marble-input w-full pl-9 text-sm"
@@ -61,7 +73,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
         </button>
 
         <button
-          onClick={onLogout}
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors text-destructive text-sm"
         >
           <LogOut className="w-4 h-4" />

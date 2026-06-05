@@ -1,32 +1,40 @@
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle } from "lucide-react";
+import { searchResult } from "../../logic/states/appCommonStates";
+import { Audience } from "../../logic/internal/commonTypes";
+import { Request } from "../../logic/active/actTypes";
+import { useEffect, useRef } from "react";
+import { addHandlers } from "../../logic/active/actWebsocket";
 
 interface SearchPanelProps {
   query: string;
 }
 
-// Mock search results - replace with your actual search logic
-const getSearchResults = (query: string) => {
-  const allUsers = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Alex Johnson' },
-    { id: '4', name: 'Sarah Williams' },
-    { id: '5', name: 'Mike Brown' },
-  ];
-
-  return allUsers.filter(
-    (user) => user.name.toLowerCase().includes(query.toLowerCase())
-  );
-};
-
 export default function SearchPanel({ query }: SearchPanelProps) {
-  const results = getSearchResults(query);
+  const { Users, setUsers } = searchResult();
 
-  if (results.length === 0) {
+  useEffect(() => {
+    addHandlers(HandlersRef.current);
+  }, []);
+
+  const HandlersRef = useRef({
+    searchUser: HndlSearchResult,
+  });
+
+  function HndlSearchResult(req: Request) {
+    if (!req.body) return;
+    const data: { results: Audience[] } = JSON.parse(req.body);
+    if (data.results) {
+      setUsers(data.results);
+    }
+  }
+
+  if (Users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12 text-center">
         <MessageCircle className="w-12 h-12 text-muted-foreground/30 mb-4" />
-        <p className="text-muted-foreground text-sm">No users found matching &quot;{query}&quot;</p>
+        <p className="text-muted-foreground text-sm">
+          No users found matching &quot;{query}&quot;
+        </p>
       </div>
     );
   }
@@ -34,12 +42,12 @@ export default function SearchPanel({ query }: SearchPanelProps) {
   return (
     <div className="space-y-1 p-2">
       <p className="text-xs text-muted-foreground px-3 py-2">
-        Found {results.length} {results.length === 1 ? 'user' : 'users'}
+        Found {Users.length} {Users.length === 1 ? "user" : "users"}
       </p>
 
-      {results.map((user) => (
+      {Users.map((user) => (
         <button
-          key={user.id}
+          key={user.userId}
           className="w-full px-3 py-3 rounded-lg hover:bg-secondary transition-colors flex items-center gap-3"
         >
           {/* Avatar */}

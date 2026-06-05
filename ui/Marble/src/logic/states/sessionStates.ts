@@ -1,19 +1,15 @@
 import { create } from "zustand";
-import { MessageProps } from "../internal/commonTypes";
+import { Session } from "../internal/commonTypes";
 
-interface SessionState {
-  messages: MessageProps[];
-  currentSession: string | null;
-  addMessage: (msg: MessageProps) => void;
-  setCurrentSession: (id: string) => void;
+interface SessionsState {
+  sessionlist: Session[];
+  setSessionList: (list: Session[]) => void;
+  addSessions: (origin: Session[], sessions: Session[]) => void;
 }
 
-export const useChatStore = create<SessionState>((set) => ({
-  messages: [],
-  currentSession: null,
-  addMessage: (msg) =>
-    set((state) => ({
-      messages: [...state.messages, msg],
-    })),
-  setCurrentSession: (id) => set({ currentSession: id }),
+export const sessionsState = create<SessionsState>((set) => ({
+  sessionlist: [],
+  setSessionList: (list: Session[]) => set({ sessionlist: list }),
+  addSessions: (origin: Session[], sessions: Session[]) =>
+    set({ sessionlist: [...origin, ...sessions] }),
 }));

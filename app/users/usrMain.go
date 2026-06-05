@@ -66,10 +66,6 @@ GetUserProfile finds the User's profile among the Db for
 Session Tasks or etc.
 */
 func GetUserProfile(id internal.UserId) (*User, error) {
-	// _, id, err := pgp.IsvalidAddress(string(address))
-	// if err != nil {
-	// 	return nil, err
-	// }
 	Mod := UserModel{DB: internal.App.Db}
 	user, err := Mod.Get(id)
 	if err != nil {

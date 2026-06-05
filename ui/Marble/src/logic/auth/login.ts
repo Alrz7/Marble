@@ -26,7 +26,7 @@ export async function login(
     email: existingUser.email,
     display_id: existingUser.display_id,
     identityKey: existingUser.identityKey,
-    sessions: {},
+    sessions: existingUser.sessions,
     storagePath: existingUser.storagePath,
   };
   setPrimaryUser(currentUser.display_id);

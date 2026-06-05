@@ -11,35 +11,42 @@ export type User = {
   prvIdentKey: PrivateKey;
   // profile: userProfile
 };
+
+export type UserId = number 
+export type SessionId = number 
+export type DisplayId = string;
+
 export type UserConfig = {
   name: string;
   email: string;
   id: number;
-  display_id: string;
+  display_id: DisplayId;
   identityKey: KeyGroup;
-  sessions: Record<string, sessionAudience>;
+  sessions: Record<UserId, Session>;
   storagePath: string;
-};
-export type sessionAudience = Audience & {
-  sessionId: number;
-  storageId: string;
 };
 
 export type Audience = {
   name: string;
-  userId: number;
-  displayId: string;
+  userId: UserId;
+  displayId: DisplayId;
   armedPubKey: string;
-};
-
-export type GroupSession = {
+  isOnline: boolean;
+  ProfileAvatar: string;
   sessionId: number;
+  storageId: string;
 };
 
 export type Session = {
   sessionId: number;
   beta: Audience;
 };
+
+
+export type GroupSession = {
+  sessionId: number;
+};
+
 
 export interface MessageProps {
   id: string;
@@ -50,10 +57,7 @@ export interface MessageProps {
   senderName?: string;
 }
 
-// --- Tsx ----
-
 // ---- enc ----
-
 export type KeyGroup = {
   privateKey: string;
   publicKey: string;

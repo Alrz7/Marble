@@ -11,23 +11,13 @@ type envelope = internal.Envelope
 
 func HndlSessions(req *Request) {
 	switch req.Headers["task"] {
-	case "sendSessionMessage":
-		HndlSendSesseionMessage(req)
-	case "createSession":
+	// case "sendSessionMessage":
+	// 	HndlSendSesseionMessage(req)
+	case "create":
 		HndlCreateSession(req)
+	case "sync":
+		HndlSyncSessions(req)
 	}
-}
-
-func HndlSendSesseionMessage(req *Request) {
-	entry := struct {
-		SessionId uint64 `json:"session_id"`
-		Message   string `json:"message"`
-	}{}
-	err := json.Unmarshal([]byte(req.Body), &entry)
-	if err != nil {
-		DefaultLogger.Error(err)
-	}
-	DefaultLogger.Info(fmt.Sprintf(`new Message from <%v> : %v`, req.user.UserName, entry.Message))
 }
 
 func HndlCreateSession(req *Request) {
@@ -37,13 +27,35 @@ func HndlCreateSession(req *Request) {
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
-		DefaultLogger.Error(err)
+		actBadRequestResponse(req.conn, err)
 	}
 	err = req.user.CreateSession(internal.UserId(entry.UserId), entry.Content)
 	if err != nil {
-		DefaultLogger.Error(err)
+		actServerErrorResponse(req.conn, err)
 	}
 }
+
+/*
+Handles `onSyncSession` requests.
+*/
+func HndlSyncSessions(req *Request) {
+	entry := struct {
+		ClientExistingSessions existingAudiences `json:"existingSesions"`
+	}{}
+	err := json.Unmarshal([]byte(req.Body), &entry)
+	if err != nil {
+		actBadRequestResponse(req.conn, err)
+	}
+	RemainingUsers, err := returnUnsyncedSessions(req.user.PgpProfile.Sessions, entry.ClientExistingSessions)
+	if err != nil {
+		actServerErrorResponse(req.conn, err)
+	}
+	body := envelope{"sessions": RemainingUsers}
+	headers := RequestHeaders{"task": "add"}
+	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
+}
+
+// ----- Search -----
 
 func HndlSearchUser(req *Request) {
 	//<---NOTE--->
@@ -58,30 +70,27 @@ func HndlSearchUser(req *Request) {
 	Mod := users.UserModel{
 		DB: internal.App.Db,
 	}
-	beta, err := Mod.SearchOneByDisplayId(entry.Param)
+	beta, err := Mod.GetByDisplayId(entry.Param)
 	if err != nil {
 		// DefaultLogger.Error(err)
 		return
 	}
-	type foundUser struct {
-		Name        string          `json:"name"`
-		UserId      internal.UserId `json:"userId"`
-		DisplayId   string          `json:"displayId"`
-		ArmedPubKey string          `json:"armedPubKey"`
-	}
-	results := envelope{"results": []foundUser{{Name: beta.UserName,
+	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
 		UserId: beta.Id, DisplayId: beta.DisplayId,
 		ArmedPubKey: beta.PgpProfile.PubIdentityKey}}}
 
-	b, err := json.Marshal(results)
+	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
+}
+
+// --------- Message -----------
+func HndlSendSesseionMessage(req *Request) {
+	entry := struct {
+		SessionId uint64 `json:"session_id"`
+		Message   string `json:"message"`
+	}{}
+	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
 		DefaultLogger.Error(err)
 	}
-	resp := Request{
-		conn: req.conn,
-		Status:  StatusApproved,
-		Channel: "searchUser",
-		Body:    string(b),
-	}
-	resp.sendRequest()
+	DefaultLogger.Info(fmt.Sprintf(`new Message from <%v> : %v`, req.user.UserName, entry.Message))
 }

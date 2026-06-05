@@ -2,11 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import ChatArea from "./ChatArea";
 
-interface ChatLayoutProps {
-  onLogout: () => void;
-}
 
-export default function ChatLayout({ onLogout }: ChatLayoutProps) {
+export default function ChatLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,7 +51,7 @@ export default function ChatLayout({ onLogout }: ChatLayoutProps) {
         style={{ width: `${sidebarWidth}px` }}
         className="flex flex-col bg-background border-r border-border"
       >
-        <Sidebar onLogout={onLogout} />
+        <Sidebar/>
       </div>
 
       {/* Resizer */}

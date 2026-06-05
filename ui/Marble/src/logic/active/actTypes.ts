@@ -7,7 +7,7 @@ export type Request = {
   body?: any;
 };
 
-export type Handler = (request: any) => void;
+export type Handler = (request: Request) => void;
 
 export type Handelers = Record<string, Handler>;
 

@@ -5,18 +5,15 @@ import SignupPage from "./components/auth/SignupPage";
 import LoadingPage from "./components/auth/LoadingPage";
 import ChatLayout from "./components/chat/ChatLayout";
 import { loadConfig } from "./logic/user/userLoadUp";
-import { addHandlers } from "./logic/active/actWebsocket";
-import { logOut } from "./logic/auth/login";
+import { addHandlers, editAuthStatus } from "./logic/active/actWebsocket";
 import { AppUser } from "./logic/states/userMainStates";
-import { AppState } from "./logic/states/appCommonStates";
+import { AppState, Authorized } from "./logic/states/appCommonStates";
+import { MessageStatus } from "./logic/active/actTypes";
 
 function App() {
   const { appState, setAppState } = AppState();
   const { currentUser, setUserData } = AppUser();
-  const handleLogout = () => {
-    logOut(setUserData);
-    setAppState("login");
-  };
+  const { setState } = Authorized();
 
   useEffect(() => {
     async function hndlAutoLogin() {
@@ -29,13 +26,24 @@ function App() {
     hndlAutoLogin();
   }, []);
 
+  async function defAuthStatus(request: any) {
+    if (request.status == MessageStatus.Approved) {
+      editAuthStatus(true);
+      setState(true);
+      console.log(request.message);
+    } else {
+      console.log(request.message);
+    }
+  }
+
   const handlersRef = useRef({
+    auth: defAuthStatus,
     // notifications: (req: any) => { ... },
   });
 
   // Initialize app state after brief loading
   if (currentUser) {
-    return <ChatLayout onLogout={handleLogout} />;
+    return <ChatLayout />;
   } else {
     switch (appState) {
       case "loading":

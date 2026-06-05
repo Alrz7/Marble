@@ -13,6 +13,13 @@ import (
 type UserId = int32
 type Envelope map[string]any
 
+type Audience struct {
+	Name        string `json:"name"`
+	UserId      UserId `json:"userId"`
+	DisplayId   string `json:"displayId"`
+	ArmedPubKey string `json:"armedPubKey"`
+}
+
 const (
 	// auth err
 	ActAuthenticationError = "AuthenticationError"

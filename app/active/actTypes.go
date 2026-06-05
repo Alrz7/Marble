@@ -42,9 +42,16 @@ type Claims struct {
 	UserId internal.UserId `json:"userId"`
 	jwt.RegisteredClaims
 }
+
+type existingAudiences map[internal.UserId]int64
+type Session struct{
+	SessionID int64 `json:"sessionId"`
+	Beta internal.Audience `json:"beta"`
+}
+
 // ------------------------------------------
 
 type Notif struct {
-		Type    string `json:"type"`
-		Message string `json:"message"`
-	}
+	Type    string `json:"type"`
+	Message string `json:"message"`
+}
