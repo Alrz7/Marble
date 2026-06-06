@@ -61,8 +61,9 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 
 func manageHandeler(Request *Request) {
 	Handelers := map[RequestChannel]Handeler{
-		"sessions": HndlSessions,
-		"searchUser":     HndlSearchUser,
+		"sessions":   HndlSessions,
+		"messages":   HndlMessages,
+		"searchUser": HndlSearchUser,
 	}
 	Handeler, ok := Handelers[Request.Channel]
 	if !ok {

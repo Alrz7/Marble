@@ -35,7 +35,7 @@ export async function generateIdntKey(
  */
 export async function encryptMessage(
   armPublicKey: string,
-  message: any,
+  message: string,
   privateKey?: openpgp.PrivateKey,
 ): Promise<string> {
   try {

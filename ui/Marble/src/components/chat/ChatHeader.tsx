@@ -1,6 +1,8 @@
 import { Phone, Video, Info, Circle } from 'lucide-react';
+import { sessionsState } from '../../logic/states/sessionStates';
 
 export default function ChatHeader() {
+  const {currentSession} = sessionsState()
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-background">
       {/* User Info */}
@@ -12,8 +14,8 @@ export default function ChatHeader() {
           <Circle className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 text-green-500 rounded-full border-2 border-background" />
         </div>
         <div>
-          <h2 className="font-semibold text-foreground">John Doe</h2>
-          <p className="text-xs text-muted-foreground">Online</p>
+          <h2 className="font-semibold text-foreground">{currentSession?.beta.name}</h2>
+          <p className="text-xs text-muted-foreground">{currentSession?.beta.isOnline}</p>
         </div>
       </div>
 

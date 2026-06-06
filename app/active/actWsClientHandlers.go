@@ -1,0 +1,65 @@
+package active
+
+import (
+	"encoding/json"
+	"marble/app/users"
+	"marble/internal"
+	"marble/internal/loggy"
+)
+
+type envelope = internal.Envelope
+
+func HndlSessions(req *Request) {
+	tesk, ok := req.Headers["task"]
+	if !ok {
+		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
+	}
+	switch tesk {
+	case "create":
+		HndlCreateSession(req)
+	case "sync":
+		HndlSyncSessions(req)
+	}
+}
+
+// ----- Search -----
+
+func HndlSearchUser(req *Request) {
+	//<---NOTE--->
+	// search in active storage for quick search first and if we didn't  find the user we search over the main DB
+	entry := struct {
+		Param string `json:"param"`
+	}{}
+	err := json.Unmarshal([]byte(req.Body), &entry)
+	if err != nil {
+		DefaultLogger.Error(err)
+	}
+	Mod := users.UserModel{
+		DB: internal.App.Db,
+	}
+	beta, err := Mod.GetByDisplayId(entry.Param)
+	if err != nil {
+		// DefaultLogger.Error(err)
+		return
+	}
+	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
+		UserId: beta.Id, DisplayId: beta.DisplayId,
+		ArmedPubKey: beta.PgpProfile.PubIdentityKey}}}
+
+	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
+}
+
+// --------- Message -----------
+
+func HndlMessages(req *Request) {
+	tesk, ok := req.Headers["task"]
+	if !ok {
+		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
+	}
+	switch tesk {
+	case "send":
+		HndlSendMesage(req)
+	case "sync":
+		// HndlSyncMesages(req)
+	}
+}

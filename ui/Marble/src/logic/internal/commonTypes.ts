@@ -12,8 +12,8 @@ export type User = {
   // profile: userProfile
 };
 
-export type UserId = number 
-export type SessionId = number 
+export type UserId = number;
+export type SessionId = number;
 export type DisplayId = string;
 
 export type UserConfig = {
@@ -33,28 +33,26 @@ export type Audience = {
   armedPubKey: string;
   isOnline: boolean;
   ProfileAvatar: string;
-  sessionId: number;
-  storageId: string;
 };
 
 export type Session = {
   sessionId: number;
+  storageId: number;
+  onCreateStage?: boolean;
   beta: Audience;
 };
-
 
 export type GroupSession = {
   sessionId: number;
 };
 
-
 export interface MessageProps {
-  id: string;
+  id: number;
   content: string;
-  sender: "user" | "audience";
+  senderId: UserId;
+  senderName: string;
   timestamp: Date;
   status?: "sent" | "delivered" | "read";
-  senderName?: string;
 }
 
 // ---- enc ----

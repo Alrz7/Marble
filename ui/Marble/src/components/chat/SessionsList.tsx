@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Circle } from "lucide-react";
 import { sessionsState } from "../../logic/states/sessionStates";
 import { Request } from "../../logic/active/actTypes";
-import { hndlAddSession } from "../../logic/active/sessionHandlers";
 import { addHandlers } from "../../logic/active/actWebsocket";
-import { onSyncSession } from "../../logic/active/actWsClientHandelers";
+import {
+  onSyncSession,
+  hndlAddSession,
+} from "../../logic/active/actSessionHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
 import { Authorized } from "../../logic/states/appCommonStates";
 
@@ -13,7 +15,7 @@ export default function SessionsList() {
     null,
   );
   const { currentUser } = AppUser();
-  const { sessionlist, addSessions } = sessionsState();
+  const { sessionlist, addSessions, setCurrentSession } = sessionsState();
   const { isComplete } = Authorized();
 
   useEffect(() => {
@@ -43,7 +45,10 @@ export default function SessionsList() {
       {sessionlist.map((session) => (
         <button
           key={session.sessionId}
-          onClick={() => setSelectedSessionId(session.sessionId)}
+          onClick={() => {
+            setCurrentSession(session);
+            setSelectedSessionId(session.sessionId);
+          }}
           className={`w-full px-3 py-3 rounded-lg transition-colors flex items-start gap-3 ${
             selectedSessionId === session.sessionId
               ? "bg-primary/20 border border-primary/50"

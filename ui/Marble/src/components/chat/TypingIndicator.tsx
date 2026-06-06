@@ -1,12 +1,12 @@
 interface TypingIndicatorProps {
-  senderName: string;
+  senderName: string | undefined;
 }
 
 export default function TypingIndicator({ senderName }: TypingIndicatorProps) {
   return (
     <div className="flex gap-3">
       <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0">
-        {senderName.charAt(0)}
+        {senderName?.charAt(0)}
       </div>
 
       <div className="flex items-end gap-1 bg-secondary rounded-lg px-4 py-2">

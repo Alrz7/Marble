@@ -32,8 +32,11 @@
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "noImplicitOverride": true
-    
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "src/logic/active/actSessionHandlers.ts",
+    "src/logic/active/actWsClientHandelers.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

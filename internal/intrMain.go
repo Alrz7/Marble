@@ -11,6 +11,7 @@ import (
 )
 
 type UserId = int32
+type SessionId = int64
 type Envelope map[string]any
 
 type Audience struct {

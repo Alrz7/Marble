@@ -45,7 +45,7 @@ type Claims struct {
 
 type existingAudiences map[internal.UserId]int64
 type Session struct{
-	SessionID int64 `json:"sessionId"`
+	SessionID internal.SessionId `json:"sessionId"`
 	Beta internal.Audience `json:"beta"`
 }
 

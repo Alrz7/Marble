@@ -1,45 +1,73 @@
-import { useState, useRef } from 'react';
-import { Send, Paperclip, Smile } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Send, Paperclip, Smile } from "lucide-react";
+import { Messages, sessionsState } from "../../logic/states/sessionStates";
+import { MessageProps } from "../../logic/internal/commonTypes";
+import { AppUser } from "../../logic/states/userMainStates";
+import { onCreateNewSession, onSendMessage } from "../../logic/active/actSessionHandlers";
 
-interface ChatInputProps {
-  onSendMessage: (content: string) => void;
-}
-
-export default function ChatInput({ onSendMessage }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+export default function ChatInput() {
+  const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { currentUser } = AppUser();
+  const { currentSession } = sessionsState();
+  const { Messagelist, addMessage } = Messages();
 
-  const handleSend = () => {
+  /**
+   *
+   * @param // initiate newMessage -> look for curent session -> onStage ? onCreateNewSession : send PrepareNewMessage
+   * @returns
+   */
+  const PrepareNewMessage = (content: string) => {
+    if (!currentUser?.config || !currentSession) return;
+    const newMessage: MessageProps = {
+      id: Messagelist.length + 1,
+      content,
+      senderId: currentUser?.config.id,
+      senderName: currentUser?.config.name,
+      timestamp: new Date(),
+      status: "sent",
+    };
+
+    if (currentSession?.onCreateStage) {
+      onCreateNewSession(currentSession.beta, newMessage);
+    }else{
+      onSendMessage(currentSession, newMessage)
+    }
+
+    addMessage(Messagelist, newMessage);
+  };
+
+  const onSend = () => {
     if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
+      PrepareNewMessage(message);
+      setMessage("");
       if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = "auto";
       }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      onSend();
     }
   };
 
   const handleInput = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   };
 
   const handleAttach = () => {
-    console.log('Attach file');
+    console.log("Attach file");
     // Implement file attachment logic
   };
 
   const handleEmoji = () => {
-    console.log('Open emoji picker');
+    console.log("Open emoji picker");
     // Implement emoji picker logic
   };
 
@@ -80,7 +108,7 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
 
         {/* Send Button */}
         <button
-          onClick={handleSend}
+          onClick={onSend}
           disabled={!message.trim()}
           className="p-2.5 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-primary-foreground flex-shrink-0"
           title="Send message"
