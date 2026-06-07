@@ -3,7 +3,10 @@ import { Send, Paperclip, Smile } from "lucide-react";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
 import { MessageProps } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
-import { onCreateNewSession, onSendMessage } from "../../logic/active/actSessionHandlers";
+import {
+  onCreateNewSession,
+  onSendMessage,
+} from "../../logic/active/actSessionHandlers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
@@ -19,8 +22,9 @@ export default function ChatInput() {
    */
   const PrepareNewMessage = (content: string) => {
     if (!currentUser?.config || !currentSession) return;
+    let lastId = Messagelist.at(-1)?.id;
     const newMessage: MessageProps = {
-      id: Messagelist.length + 1,
+      id: lastId ? lastId++ : 0,
       content,
       senderId: currentUser?.config.id,
       senderName: currentUser?.config.name,
@@ -30,8 +34,8 @@ export default function ChatInput() {
 
     if (currentSession?.onCreateStage) {
       onCreateNewSession(currentSession.beta, newMessage);
-    }else{
-      onSendMessage(currentSession, newMessage)
+    } else {
+      onSendMessage(currentSession, newMessage);
     }
 
     addMessage(Messagelist, newMessage);

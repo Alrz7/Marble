@@ -14,10 +14,9 @@ export function addHandlers(handlers: Handelers) {
 
 // ----* Authorization *----
 export let isAuthorized = false;
-export function editAuthStatus(newstate: boolean){
-  isAuthorized = newstate
+export function editAuthStatus(newstate: boolean) {
+  isAuthorized = newstate;
 }
-
 
 //---
 export function openConnection() {
@@ -35,11 +34,14 @@ export function openConnection() {
   ws.onmessage = (event) => {
     try {
       const request: Request = JSON.parse(event.data);
-      const handeler = handlersRef.current[request.channel];
+      let handeler = handlersRef.current[request.channel];
       if (handeler) {
         handeler(request);
+        if (request.notif && request.channel !== "notif") {
+          handeler = handlersRef.current["notif"];
+          if (handeler) handeler(request);
+        }
       } else {
-        console.log(handlersRef.current);
         console.warn(`No handler for channel: ${request.channel}`);
       }
     } catch (err) {

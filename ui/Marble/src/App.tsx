@@ -9,7 +9,6 @@ import { addHandlers, editAuthStatus } from "./logic/active/actWebsocket";
 import { AppUser } from "./logic/states/userMainStates";
 import { AppState, Authorized } from "./logic/states/appCommonStates";
 import { MessageStatus } from "./logic/active/actTypes";
-
 function App() {
   const { appState, setAppState } = AppState();
   const { currentUser, setUserData } = AppUser();

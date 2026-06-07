@@ -32,7 +32,7 @@ type Request struct {
 	Token   string         `json:"token"`
 	Channel RequestChannel `json:"channel"`
 	Headers RequestHeaders `json:"headers"`
-	Message string         `json:"message"`
+	Notif   *Notification   `json:"notif"`
 	Body    RequestBody    `json:"body"`
 }
 
@@ -44,14 +44,15 @@ type Claims struct {
 }
 
 type existingAudiences map[internal.UserId]int64
-type Session struct{
+type Session struct {
 	SessionID internal.SessionId `json:"sessionId"`
-	Beta internal.Audience `json:"beta"`
+	Beta      internal.Audience  `json:"beta"`
 }
 
 // ------------------------------------------
 
-type Notif struct {
+type Notification struct {
 	Type    string `json:"type"`
+	Key     string `json:"key"`
 	Message string `json:"message"`
 }

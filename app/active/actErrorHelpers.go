@@ -1,7 +1,6 @@
 package active
 
 import (
-	"encoding/json"
 	"fmt"
 	"marble/internal"
 
@@ -13,21 +12,23 @@ func logError(err error) {
 }
 
 func actErrorResponse(conn *websocket.Conn, errorType string, message string) {
-	notif := &Notif{
-		Type:    errorType,
+	notif := &Notification{
+		Type:    "error",
+		Key:     errorType,
 		Message: message,
-	}
-	b, err := json.Marshal(notif)
-	if err != nil {
-		actServerErrorResponse(conn, err)
 	}
 	resp := Request{
 		conn:    conn,
 		Status:  StatusError,
 		Channel: "notif",
-		Body:    string(b),
+		Notif:   notif,
+		Headers: RequestHeaders{},
 	}
-	resp.sendRequest()
+	err := resp.sendRequest()
+	if err != nil {
+		DefaultLogger.Error(err)
+		// actServerErrorResponse(conn, err)
+	}
 }
 
 func actServerErrorResponse(conn *websocket.Conn, err error) {

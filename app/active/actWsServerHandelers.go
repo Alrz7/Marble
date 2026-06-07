@@ -40,7 +40,11 @@ func HndlauthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 		conn:    conn,
 		Channel: "auth",
 		Status:  StatusApproved,
-		Message: "authorization successfull!",
+		Notif: &Notification{
+			Type:    "success",
+			Key:     "userAuthorized",
+			Message: "authorization successfull!",
+		},
 	}
 	err = resp.sendRequest()
 	if err != nil {

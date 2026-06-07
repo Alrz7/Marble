@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Audience } from "../internal/commonTypes";
+import { Audience, Notification } from "../internal/commonTypes";
 
 type pages = "loading" | "login" | "signup";
 interface AppState {
@@ -31,4 +31,32 @@ export const searchResult = create<SearchResult>((set) => ({
   setUsers: (users: Audience[]) => set({ Users: users }),
   addtoUsers: (origin: Audience[], newUsers: Audience[]) =>
     set({ Users: [...origin, ...newUsers] }),
+}));
+
+// ---- Notifications ----
+
+interface NotifState {
+  notifQueue: Notification[];
+  currentNotif: Notification | null;
+  setNotification: (notifList: Notification[]) => void;
+  setCurrentNotif: (notif: Notification | null) => void;
+  addNotification: (
+    origin: Notification[],
+    notif: Notification,
+  ) => Notification[];
+  popNotification: (notifQueue: Notification[]) => void;
+}
+
+export const notifState = create<NotifState>((set) => ({
+  notifQueue: [],
+  currentNotif: null,
+  setNotification: (notifList: Notification[]) =>
+    set({ notifQueue: notifList }),
+  setCurrentNotif: (notif: Notification | null) => set({ currentNotif: notif }),
+  addNotification: (origin: Notification[], notif: Notification) => {
+    set({ notifQueue: [...origin, notif] });
+    return [...origin, notif];
+  },
+  popNotification: (notifQueue: Notification[]) =>
+    set({ notifQueue: notifQueue.slice(1) }),
 }));

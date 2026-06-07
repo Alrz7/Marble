@@ -67,6 +67,14 @@ export type UserHold = {
   primaryUser: string | null;
 };
 
+// --- Notification ---
+
+export type Notification = {
+  type: "info" | "error" | "success" | "warning";
+  key: string;
+  message: string;
+};
+
 // Constants-----------------------------------
 
 export const MARBLE_STRONGHOLD_KEY = "marble_stronghold";

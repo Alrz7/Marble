@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import ChatArea from "./ChatArea";
-
+import Notification from "../Notification";
 
 export default function ChatLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(280);
@@ -51,7 +51,7 @@ export default function ChatLayout() {
         style={{ width: `${sidebarWidth}px` }}
         className="flex flex-col bg-background border-r border-border"
       >
-        <Sidebar/>
+        <Sidebar />
       </div>
 
       {/* Resizer */}
@@ -66,6 +66,7 @@ export default function ChatLayout() {
       <div className="flex-1 flex flex-col bg-background overflow-hidden">
         <ChatArea />
       </div>
+      <Notification />
     </div>
   );
 }
