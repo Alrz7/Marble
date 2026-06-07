@@ -1,14 +1,9 @@
 import { signIn } from "../auth/login.ts";
-import { generateIdntKey } from "../enc/encHelpers.ts";
-import {
-  getHoldUser,
-  getKeychainObject,
-  getKeyFromArmored,
-  initStrholdClient,
-  setKeychainObject,
-} from "../enc/keyChain.ts";
+import { generateIdntKey, getKeyFromArmored } from "../enc/encMain.ts";
+import { getUser, initClient } from "../enc/strongHold.ts";
+import { getKeychainObject, setKeychainObject } from "../enc/keyChain.ts";
 import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTypes.ts";
-import { initStoreClient } from "../store/strMain.ts";
+import { initStoreClient } from "../store/storeMain.ts";
 
 async function getOrCreateVaultKey(): Promise<string> {
   const existing = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
@@ -25,14 +20,11 @@ async function getOrCreateVaultKey(): Promise<string> {
 export async function loadConfig(): Promise<User | null> {
   const vaultKey = await getOrCreateVaultKey();
 
-  const strongholdClient = await initStrholdClient(
-    vaultKey,
-    MARBLE_STRONGHOLD_KEY,
-  );
+  const strongholdClient = await initClient(vaultKey, MARBLE_STRONGHOLD_KEY);
   if (!strongholdClient)
     throw new Error("Failed to initialize Stronghold client");
 
-  const existingUserData = await getHoldUser(strongholdClient);
+  const existingUserData = await getUser(strongholdClient);
   if (
     !existingUserData ||
     Object.keys(existingUserData).length == 0 ||

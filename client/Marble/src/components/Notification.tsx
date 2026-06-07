@@ -22,7 +22,6 @@ export default function Notification() {
 
   function HndlNotifs(req: Request) {
     if (!req.notif) return;
-    console.log(req.notif)
     addNotification(notifQueue, req.notif);
   }
 

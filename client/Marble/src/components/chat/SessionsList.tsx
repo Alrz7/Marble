@@ -8,7 +8,7 @@ import {
   hndlAddSession,
 } from "../../logic/active/actSessionHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
-import { Authorized, notifState } from "../../logic/states/appCommonStates";
+import { Authorized } from "../../logic/states/appCommonStates";
 
 export default function SessionsList() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(

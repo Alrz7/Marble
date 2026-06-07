@@ -1,10 +1,10 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import {
-  getHoldUser,
-  addHoldUser,
+  getUser,
+  addUser,
   setPrimaryUser,
   deletePrimaryUser,
-} from "../enc/keyChain";
+} from "../enc/strongHold";
 import { User, UserConfig } from "../internal/commonTypes";
 import { setAuthToken } from "../internal/IntrAuth";
 import { openConnection } from "../active/actWebsocket";
@@ -14,7 +14,7 @@ export async function login(
   DisplayId: string,
   password: string,
 ): Promise<UserConfig | null> {
-  const userList = await getHoldUser();
+  const userList = await getUser();
   const existingUser = userList?.users?.[DisplayId];
   if (!existingUser) throw new Error(`${DisplayId} is not found in UserList`);
 
@@ -30,7 +30,7 @@ export async function login(
     storagePath: existingUser.storagePath,
   };
   setPrimaryUser(currentUser.display_id);
-  addHoldUser(currentUser);
+  addUser(currentUser);
   return currentUser;
 }
 

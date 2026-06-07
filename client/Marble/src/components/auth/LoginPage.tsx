@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { AppState, User } from "../../logic/internal/commonTypes";
 import { login } from "../../logic/auth/login";
-import { getKeyFromArmored } from "../../logic/enc/keyChain";
+import { getKeyFromArmored } from "../../logic/enc/encMain";
 
 interface LoginPageProps {
   setAppState: (state: AppState) => void;

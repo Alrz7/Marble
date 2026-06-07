@@ -29,9 +29,6 @@ function App() {
     if (request.status == MessageStatus.Approved) {
       editAuthStatus(true);
       setState(true);
-      console.log(request.message);
-    } else {
-      console.log(request.message);
     }
   }
 

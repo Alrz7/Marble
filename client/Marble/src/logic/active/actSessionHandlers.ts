@@ -1,4 +1,4 @@
-import { encryptMessage } from "../enc/encHelpers";
+import { encryptMessage } from "../enc/encMain";
 import {
   Audience,
   MessageProps,

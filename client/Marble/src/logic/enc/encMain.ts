@@ -1,6 +1,7 @@
 import * as openpgp from "openpgp";
-// import { app } from "../internal/config";
 import { config } from "openpgp";
+
+//---- Config ----
 config.aeadProtect = true;
 config.v6Keys = true;
 config.preferredSymmetricAlgorithm = openpgp.enums.symmetric.aes256;
@@ -47,32 +48,58 @@ export async function encryptMessage(
         date: new Date(Date.now()),
       }),
       encryptionKeys: publicKey,
-      format: "binary"
-    }
+      format: "binary",
+    };
 
     if (privateKey) {
-      encOptions.signingKeys = privateKey
+      encOptions.signingKeys = privateKey;
     }
 
     const encrypted = await openpgp.encrypt(encOptions);
-    return btoa(String.fromCharCode(...new Uint8Array(encrypted)))
+    return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
   } catch (err) {
-    throw new Error(`there was an error while encrypting the message ${err}`)
+    throw new Error(`there was an error while encrypting the message ${err}`);
   }
 }
 
-export async function decryptMessage(privateKey: openpgp.PrivateKey, encryptedBinaryMessage: string, armPublicKey?: string) {
+export async function decryptMessage(
+  privateKey: openpgp.PrivateKey,
+  encryptedBinaryMessage: string,
+  armPublicKey?: string,
+) {
   try {
     const decOptions: openpgp.DecryptOptions = {
-      message: await openpgp.readMessage({ binaryMessage: encryptedBinaryMessage }),
+      message: await openpgp.readMessage({
+        binaryMessage: encryptedBinaryMessage,
+      }),
       decryptionKeys: privateKey,
-    }
+    };
 
     if (armPublicKey) {
-      decOptions.verificationKeys = await openpgp.readKey({ armoredKey: armPublicKey })
+      decOptions.verificationKeys = await openpgp.readKey({
+        armoredKey: armPublicKey,
+      });
     }
     return await openpgp.decrypt(decOptions);
   } catch (err) {
-    throw new Error(`there was an error while decryptig a message ${err}`)
+    throw new Error(`there was an error while decryptig a message ${err}`);
+  }
+}
+
+export async function getKeyFromArmored(
+  armoredKey: string,
+  password: string | null,
+): Promise<openpgp.PrivateKey | null> {
+  try {
+    let privateKey = await openpgp.readPrivateKey({ armoredKey });
+    if (password) {
+      privateKey = await openpgp.decryptKey({
+        privateKey,
+        passphrase: password,
+      });
+    }
+    return privateKey;
+  } catch {
+    return null;
   }
 }
