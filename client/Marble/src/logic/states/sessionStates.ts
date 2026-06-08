@@ -5,7 +5,7 @@ interface SessionsState {
   sessionlist: Session[];
   currentSession: Session | null;
   setSessionList: (list: Session[]) => void;
-  addSessions: (origin: Session[], sessions: Session[]) => void;
+  addSession: (origin: Session[], sessions: Session) => void;
   setCurrentSession: (newsession: Session | null) => void;
 }
 
@@ -13,15 +13,15 @@ export const sessionsState = create<SessionsState>((set) => ({
   sessionlist: [],
   currentSession: null,
   setSessionList: (list: Session[]) => set({ sessionlist: list }),
-  addSessions: (origin: Session[], sessions: Session[]) =>
-    set({ sessionlist: [...origin, ...sessions] }),
+  addSession: (origin: Session[], sessions: Session) =>
+    set({ sessionlist: [...origin, sessions] }),
   setCurrentSession: (newsession: Session | null) =>
     set({ currentSession: newsession }),
 }));
 
 interface MessageStates {
   Messagelist: MessageProps[];
-  setMessages: (users: MessageProps[]) => void;
+  setMessages: (messages: MessageProps[]) => void;
   addMessage: (origin: MessageProps[], newMessage: MessageProps) => void;
 }
 export const Messages = create<MessageStates>((set) => ({

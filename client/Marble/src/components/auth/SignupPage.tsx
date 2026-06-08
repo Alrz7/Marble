@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Mail, User, Check } from "lucide-react";
-import { AppState, User as userConf } from "../../logic/internal/commonTypes";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { User as userConf } from "../../logic/internal/commonTypes";
 import { createAccount } from "../../logic/auth/signUp";
 import { getKeyFromArmored } from "../../logic/enc/encMain";
+import { PAGES } from "../../logic/states/appCommonStates";
 
 interface SignupPageProps {
-  setAppState: (state: AppState) => void;
+  setAppState: (state: PAGES) => void;
   setUserData: (user: userConf) => void;
 }
 

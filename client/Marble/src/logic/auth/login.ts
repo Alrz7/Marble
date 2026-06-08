@@ -1,10 +1,10 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import {
   getUser,
-  addUser,
+  setUser,
   setPrimaryUser,
   deletePrimaryUser,
-} from "../enc/strongHold";
+} from "../localStore/strUser";
 import { User, UserConfig } from "../internal/commonTypes";
 import { setAuthToken } from "../internal/IntrAuth";
 import { openConnection } from "../active/actWebsocket";
@@ -26,11 +26,12 @@ export async function login(
     email: existingUser.email,
     display_id: existingUser.display_id,
     identityKey: existingUser.identityKey,
+    storeKey: existingUser.storeKey,
     sessions: existingUser.sessions,
     storagePath: existingUser.storagePath,
   };
   setPrimaryUser(currentUser.display_id);
-  addUser(currentUser);
+  setUser(currentUser);
   return currentUser;
 }
 

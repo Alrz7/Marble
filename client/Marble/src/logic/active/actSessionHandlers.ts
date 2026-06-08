@@ -1,20 +1,37 @@
-import { encryptMessage } from "../enc/encMain";
+import {
+  decryptMessage,
+  encryptMessage,
+  getKeyFromArmored,
+} from "../enc/encMain";
 import {
   Audience,
+  KeyGroup,
   MessageProps,
   Session,
   SessionId,
   UserConfig,
   UserId,
 } from "../internal/commonTypes";
+import { getSessionStorageId } from "../localStore/storeHelpers";
+import { editUser } from "../localStore/strUser";
+import {
+  addStoreSession,
+  getStoreSessions,
+} from "../localStore/tmpMessageStore";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 
 // ---- sessions ----
 
-export async function onCreateNewSession(audience: Audience, message: MessageProps) {
-  const MessageToJsonString: string = JSON.stringify(message)
-  const encMessage = await encryptMessage(audience.armedPubKey, MessageToJsonString);
+export async function onCreateNewSession(
+  audience: Audience,
+  message: MessageProps,
+) {
+  const MessageToJsonString: string = JSON.stringify(message);
+  const encMessage = await encryptMessage(
+    audience.armedPubKey,
+    MessageToJsonString,
+  );
   if (!encMessage) return;
 
   const struct: {
@@ -61,27 +78,43 @@ export async function onSyncSession(user: UserConfig) {
 }
 
 export function hndlAddSession(
+  currentUserConfig: UserConfig,
   req: Request,
   sessionList: Session[],
-  addSession: (origin: Session[], sessions: Session[]) => void,
+  addSession: (origin: Session[], sessions: Session) => void,
 ) {
   try {
     const data: { sessions: Session[] } = JSON.parse(req.body);
-    addSession(sessionList, data.sessions);
+    let ac: number = 0;
+    for (let session of data.sessions) {
+      if (!currentUserConfig.sessions[session.sessionId]) {
+        session.storageId = getSessionStorageId();
+        currentUserConfig.sessions[session.sessionId] = session;
+        addSession(sessionList, session);
+        ac++;
+      }
+    }
+    if (ac > 0) editUser(currentUserConfig);
   } catch (err) {
     console.error(err);
   }
 }
 
-
 // -----* messages *-----
-export async function onSendMessage(session: Session, content: MessageProps) {
-  const MessageToJsonString: string = JSON.stringify(content)
-  const encMessage = await encryptMessage(session.beta.armedPubKey, MessageToJsonString);
+export async function onSendMessage(
+  currentUser: UserConfig,
+  session: Session,
+  content: MessageProps,
+) {
+  const MessageToJsonString: string = JSON.stringify(content);
+  const encMessage = await encryptMessage(
+    session.beta.armedPubKey,
+    MessageToJsonString,
+  );
   if (!encMessage) return;
 
   const struct: {
-    audienceId: UserId
+    audienceId: UserId;
     sessionId: SessionId;
     message: String;
   } = {
@@ -96,4 +129,34 @@ export async function onSendMessage(session: Session, content: MessageProps) {
     body: JSON.stringify(struct),
   };
   sendRequest(req);
+
+  saveNewMessage(currentUser.storeKey, session.storageId, content);
+}
+
+export async function saveNewMessage(
+  storeKey: KeyGroup,
+  storageId: string,
+  content: MessageProps,
+) {
+  const MessageToJsonString: string = JSON.stringify(content);
+  const encMessage = await encryptMessage(
+    storeKey.publicKey,
+    MessageToJsonString,
+  );
+  addStoreSession(storageId, encMessage);
+}
+
+export async function loadSavedMessages(storeKey: KeyGroup, storageId: string) {
+  const data = await getStoreSessions();
+  if (!data) return;
+  const encMessages = data[storageId] ?? [];
+  const MessageList: MessageProps[] = [];
+  for (let encMessage of encMessages) {
+    const prvStoreKey = await getKeyFromArmored(storeKey.privateKey, null);
+    const decryptedMessage = prvStoreKey
+      ? await decryptMessage(prvStoreKey, encMessage)
+      : null;
+    if (decryptedMessage) MessageList.push(decryptedMessage);
+  }
+  return MessageList;
 }

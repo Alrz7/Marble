@@ -22,6 +22,7 @@ export type UserConfig = {
   id: number;
   display_id: DisplayId;
   identityKey: KeyGroup;
+  storeKey: KeyGroup;
   sessions: Record<UserId, Session>;
   storagePath: string;
 };
@@ -37,7 +38,7 @@ export type Audience = {
 
 export type Session = {
   sessionId: number;
-  storageId: number;
+  storageId: string;
   onCreateStage?: boolean;
   beta: Audience;
 };

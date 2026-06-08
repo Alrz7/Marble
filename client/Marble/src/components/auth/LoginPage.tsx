@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { AppState, User } from "../../logic/internal/commonTypes";
+import { User } from "../../logic/internal/commonTypes";
 import { login } from "../../logic/auth/login";
 import { getKeyFromArmored } from "../../logic/enc/encMain";
+import { PAGES } from "../../logic/states/appCommonStates";
 
 interface LoginPageProps {
-  setAppState: (state: AppState) => void;
+  setAppState: (state: PAGES) => void;
   setUserData: (user: User) => void;
 }
 

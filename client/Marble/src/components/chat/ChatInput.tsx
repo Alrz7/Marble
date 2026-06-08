@@ -35,7 +35,7 @@ export default function ChatInput() {
     if (currentSession?.onCreateStage) {
       onCreateNewSession(currentSession.beta, newMessage);
     } else {
-      onSendMessage(currentSession, newMessage);
+      onSendMessage(currentUser.config, currentSession, newMessage);
     }
 
     addMessage(Messagelist, newMessage);
@@ -66,12 +66,10 @@ export default function ChatInput() {
   };
 
   const handleAttach = () => {
-    console.log("Attach file");
     // Implement file attachment logic
   };
 
   const handleEmoji = () => {
-    console.log("Open emoji picker");
     // Implement emoji picker logic
   };
 

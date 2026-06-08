@@ -1,8 +1,8 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { UserConfig } from "../internal/commonTypes";
 import { generateIdntKey } from "../enc/encMain";
-import { addUser } from "../enc/strongHold";
-import { getUserStoragePath } from "../store/storeHelpers";
+import { setUser } from "../localStore/strUser";
+import { getUserStoragePath } from "../localStore/storeHelpers";
 
 // the IdentityKey & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too
@@ -13,7 +13,7 @@ export async function createAccount(
   password: string,
 ): Promise<UserConfig | null> {
   const IdentityKey = await generateIdntKey(name, email);
-
+  const StoreKey = await generateIdntKey(name, email);
   const response = await fetch("http://localhost:6280/account", {
     method: "POST",
     headers: {
@@ -40,9 +40,10 @@ export async function createAccount(
     id: result.id,
     display_id: result.display_id,
     identityKey: IdentityKey,
+    storeKey: StoreKey,
     sessions: {},
     storagePath: getUserStoragePath(),
   };
-  addUser(newUser);
+  setUser(newUser);
   return newUser;
 }

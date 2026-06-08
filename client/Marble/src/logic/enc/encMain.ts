@@ -1,5 +1,6 @@
 import * as openpgp from "openpgp";
 import { config } from "openpgp";
+import { MessageProps } from "../internal/commonTypes";
 
 //---- Config ----
 config.aeadProtect = true;
@@ -48,15 +49,16 @@ export async function encryptMessage(
         date: new Date(Date.now()),
       }),
       encryptionKeys: publicKey,
-      format: "binary",
+      format: "armored",
     };
 
     if (privateKey) {
       encOptions.signingKeys = privateKey;
     }
 
-    const encrypted = await openpgp.encrypt(encOptions);
-    return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+    return (await openpgp.encrypt(encOptions)) as string; // encrypted
+    // return btoa(String.fromCharCode(...new Uint8Array(encrypted))); // last aproach,
+    //  need more researh and development to choode best one
   } catch (err) {
     throw new Error(`there was an error while encrypting the message ${err}`);
   }
@@ -64,13 +66,15 @@ export async function encryptMessage(
 
 export async function decryptMessage(
   privateKey: openpgp.PrivateKey,
-  encryptedBinaryMessage: string,
+  encryptMessage: string,
   armPublicKey?: string,
 ) {
   try {
+    // const binaryString = atob(encryptedBinaryMessage);
+    // const uint8Array = new Uint8Array(binaryString.length);
     const decOptions: openpgp.DecryptOptions = {
       message: await openpgp.readMessage({
-        binaryMessage: encryptedBinaryMessage,
+        armoredMessage: encryptMessage,
       }),
       decryptionKeys: privateKey,
     };
@@ -80,7 +84,8 @@ export async function decryptMessage(
         armoredKey: armPublicKey,
       });
     }
-    return await openpgp.decrypt(decOptions);
+    const { data: decryptedJsonString } = await openpgp.decrypt(decOptions);
+    return JSON.parse(decryptedJsonString) as MessageProps;
   } catch (err) {
     throw new Error(`there was an error while decryptig a message ${err}`);
   }

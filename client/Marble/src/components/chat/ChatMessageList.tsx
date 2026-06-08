@@ -2,11 +2,27 @@ import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
+import { loadSavedMessages } from "../../logic/active/actSessionHandlers";
+import { AppUser } from "../../logic/states/userMainStates";
 
 export default function ChatMessageList() {
-  const {currentSession} = sessionsState()
-  const { Messagelist } = Messages();
-  
+  const { currentSession } = sessionsState();
+  const { Messagelist, setMessages } = Messages();
+  const { currentUser } = AppUser();
+
+  async function loadMessages() {
+    if (!currentUser || !currentUser.config || !currentSession) return;
+    const messages =
+      (await loadSavedMessages(
+        currentUser.config.storeKey,
+        currentSession.storageId,
+      )) ?? [];
+    setMessages(messages);
+  }
+
+  useEffect(() => {
+    loadMessages();
+  }, [currentSession]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

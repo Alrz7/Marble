@@ -55,7 +55,7 @@ export function openConnection() {
     );
   };
   ws.onclose = () => {
-    console.log("WebSocket closed. Reconnecting...");
+    console.warn("WebSocket closed. Reconnecting...");
     ws = null;
     ReconnectWS();
   };

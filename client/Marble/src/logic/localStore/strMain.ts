@@ -6,18 +6,15 @@
 import { Stronghold, Client } from "@tauri-apps/plugin-stronghold";
 import { appDataDir } from "@tauri-apps/api/path";
 import {
-  UserConfig,
   MARBLE_STRONGHOLD_KEY,
-  STRONGHOLD_OBJECT_KEYS,
-  UserHold,
 } from "../internal/commonTypes";
-import { getKeychainObject } from "./keyChain";
+import { getKeychainObject } from "../enc/keyChain";
 
 // Stronghold Initialisation
 export type Load = { stronghold: Stronghold; client: Client };
 
-let cachedLoad: Load | null = null;
-let isInitializing = false;
+export let cachedLoad: Load | null = null;
+export let isInitializing = false;
 
 export async function initClient(
   vaultKey?: string,
@@ -36,7 +33,7 @@ export async function initClient(
   isInitializing = true;
 
   try {
-    const vaultPath = `${await appDataDir()}/vault.hold`;
+    const vaultPath = `${await appDataDir()}/localStorage/config.hold`;
 
     if (!vaultKey) {
       const storedKey = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
@@ -120,64 +117,3 @@ export async function deleteData(
   await store.remove(objectKey);
 }
 
-//-------------------------------------------------------------------
-// StrongHold's USER Methods...
-
-export async function addUser(
-  newUser: UserConfig,
-  load?: Load | null,
-): Promise<void> {
-  let existingData = await getUser(load);
-  if (!existingData) existingData = { users: {}, primaryUser: null };
-
-  // we currently set user as Primary
-  existingData.primaryUser = newUser.display_id;
-  existingData.users[newUser.display_id] = newUser;
-  setData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load);
-}
-
-export async function getUser(load?: Load | null): Promise<UserHold | null> {
-  const jsonString = await getData(STRONGHOLD_OBJECT_KEYS.Users, load);
-  if (!jsonString) return null;
-  const parsedObject = JSON.parse(jsonString) as UserHold;
-  return parsedObject;
-}
-
-export async function deleteUser(
-  userAddress: string,
-  load?: Load | null,
-): Promise<void> {
-  let existingData = await getUser(load);
-  if (existingData) {
-    delete existingData.users[userAddress];
-  }
-  setData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load);
-}
-
-//------------------
-// Primary-User Methods
-//
-
-export async function setPrimaryUser(
-  displayId: string,
-  load?: Load | null,
-): Promise<void> {
-  let existingData = await getUser(load);
-  if (!existingData) existingData = { users: {}, primaryUser: null };
-  existingData.primaryUser = displayId;
-  setData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load);
-}
-export async function getPrimaryUser(
-  load?: Load | null,
-): Promise<string | null> {
-  let existingData = await getUser(load);
-  if (!existingData) return null;
-  return existingData.primaryUser;
-}
-
-export async function deletePrimaryUser(load?: Load | null): Promise<void> {
-  let existingData = await getUser(load);
-  if (!existingData) existingData = { users: {}, primaryUser: null };
-  existingData.primaryUser = null;
-  setData(JSON.stringify(existingData), STRONGHOLD_OBJECT_KEYS.Users, load);
-}

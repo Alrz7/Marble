@@ -1,10 +1,9 @@
-import { MessageProps } from "./commonTypes";
 
 export interface application {
   name: string;
   stage: string;
   openpgp: cfgOpenpgp;
-};
+}
 
 // --- enc ---
 export type cfgOpenpgp = {
@@ -24,8 +23,8 @@ export const app: application = {
 };
 
 // -------StoreConfig & Deps---------
-export type strgSession = Record<string, MessageProps[]>
+export type strgSession = Record<string, string[]>;
 export type StoreConfig = {
-  sessions: strgSession
+  sessions: strgSession;
   //...
-}
+};

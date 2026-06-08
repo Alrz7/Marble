@@ -1,9 +1,10 @@
 import { signIn } from "../auth/login.ts";
 import { generateIdntKey, getKeyFromArmored } from "../enc/encMain.ts";
-import { getUser, initClient } from "../enc/strongHold.ts";
+import { initClient } from "../localStore/strMain.ts";
 import { getKeychainObject, setKeychainObject } from "../enc/keyChain.ts";
 import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTypes.ts";
-import { initStoreClient } from "../store/storeMain.ts";
+import { getUser } from "../localStore/strUser.ts";
+import { initStoreClient } from "../localStore/tmpMessageStore.ts";
 
 async function getOrCreateVaultKey(): Promise<string> {
   const existing = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
@@ -41,7 +42,6 @@ export async function loadConfig(): Promise<User | null> {
   );
   if (!privateKey)
     throw new Error("Failed to decode primary user's private key");
-
   initStoreClient(entry.storagePath);
   signIn(entry.display_id, "testingg!"); // this is gonna be replaced with autoSignIn() later
   return {

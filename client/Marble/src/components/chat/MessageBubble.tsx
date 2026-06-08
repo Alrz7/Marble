@@ -12,25 +12,21 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   const { currentUser } = AppUser();
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message.content);
   };
 
   const handleReply = () => {
-    console.log("Reply to message:", message.id);
     // Implement reply logic
   };
 
   const handleEdit = () => {
-    console.log("Edit message:", message.id);
     // Implement edit logic
   };
 
   const handleDelete = () => {
-    console.log("Delete message:", message.id);
     // Implement delete logic
   };
 
@@ -88,10 +84,12 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {/* Time and Status */}
         <div
           className={`flex items-center gap-2 text-xs text-muted-foreground px-3 ${
-            message.senderId == currentUser?.config.id ? "flex-row-reverse" : "flex-row"
+            message.senderId == currentUser?.config.id
+              ? "flex-row-reverse"
+              : "flex-row"
           }`}
         >
-          <span>{formatTime(message.timestamp)}</span>
+          {/* <span>{formatTime(message.timestamp)}</span> **this should be checked** */} 
           {getStatusIcon()}
         </div>
       </div>

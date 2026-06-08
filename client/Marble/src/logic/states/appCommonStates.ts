@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import { Audience, Notification } from "../internal/commonTypes";
 
-type pages = "loading" | "login" | "signup";
+export type PAGES = "loading" | "login" | "signup";
 interface AppState {
-  appState: pages;
-  setAppState: (newState: pages) => void;
+  appState: PAGES;
+  setAppState: (newState: PAGES) => void;
 }
 
 export const AppState = create<AppState>((set) => ({
   appState: "loading",
-  setAppState: (newState: pages) => set({ appState: newState }),
+  setAppState: (newState: PAGES) => set({ appState: newState }),
 }));
 
 // ---- auth ----

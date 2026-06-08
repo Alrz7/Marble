@@ -15,13 +15,18 @@ export default function SessionsList() {
     null,
   );
   const { currentUser } = AppUser();
-  const { sessionlist, addSessions, setCurrentSession } = sessionsState();
+  const { sessionlist, setSessionList, addSession, setCurrentSession } =
+    sessionsState();
   const { isComplete } = Authorized();
 
   useEffect(() => {
+    if (currentUser?.config) {
+      setSessionList(Object.values(currentUser.config.sessions));
+    }
+  }, []);
+  useEffect(() => {
     addHandlers(handlersRef.current);
-
-    if (isComplete && currentUser?.config) onSyncSession(currentUser?.config);
+    if (isComplete && currentUser?.config) onSyncSession(currentUser.config);
   }, [isComplete]);
 
   const handlersRef = useRef({
@@ -35,7 +40,11 @@ export default function SessionsList() {
     }
     switch (req.headers.task) {
       case "add":
-        hndlAddSession(req, sessionlist, addSessions);
+        if (!currentUser?.config) {
+          console.error("user is not define!");
+          return;
+        }
+        hndlAddSession(currentUser.config, req, sessionlist, addSession);
         break;
     }
   }
