@@ -6,13 +6,23 @@
   "permissions": [
     {
       "identifier": "http:default",
-      "allow": [{ "url": "http://localhost:6280/account" }],
-      "deny": [{ "url": "https://private.tauri.app" }]
+      "allow": [
+        {
+          "url": "http://localhost:6280/account"
+        }
+      ],
+      "deny": [
+        {
+          "url": "https://private.tauri.app"
+        }
+      ]
     },
     "core:default",
     "store:default",
     "opener:default",
     "keyring:default",
-    "stronghold:default"
+    "stronghold:default",
+    "sql:default",
+    "sql:allow-execute"
   ]
 }

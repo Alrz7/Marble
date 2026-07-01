@@ -4,7 +4,7 @@ import {
   setUser,
   setPrimaryUser,
   deletePrimaryUser,
-} from "../localStore/strUser";
+} from "../hold/hldUser";
 import { User, UserConfig } from "../internal/commonTypes";
 import { setAuthToken } from "../internal/IntrAuth";
 import { openConnection } from "../active/actWebsocket";
@@ -26,6 +26,7 @@ export async function login(
     email: existingUser.email,
     display_id: existingUser.display_id,
     identityKey: existingUser.identityKey,
+    storageId: existingUser.storageId,
     storeKey: existingUser.storeKey,
     sessions: existingUser.sessions,
     storagePath: existingUser.storagePath,

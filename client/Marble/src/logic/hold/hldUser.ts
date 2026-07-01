@@ -3,7 +3,7 @@ import {
   STRONGHOLD_OBJECT_KEYS,
   UserHold,
 } from "../internal/commonTypes";
-import { getData, Load, setData } from "./strMain";
+import { getData, Load, setData } from "./hldMain";
 
 // StrongHold's USER CRUD Methods...
 export async function setUser(

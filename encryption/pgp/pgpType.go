@@ -18,7 +18,6 @@ type Profile struct {
 	Sessions       map[internal.UserId]int64 `json:"sessions"`
 }
 
-
 // type Message struct{
 // 	Body string
 // 	Signature []byte

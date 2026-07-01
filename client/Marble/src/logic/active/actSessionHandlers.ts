@@ -1,3 +1,4 @@
+import { GetMessages, InsertMessage, InsertSession } from "../db/dbCruds";
 import {
   decryptMessage,
   encryptMessage,
@@ -9,15 +10,12 @@ import {
   MessageProps,
   Session,
   SessionId,
+  StorageId,
   UserConfig,
   UserId,
 } from "../internal/commonTypes";
-import { getSessionStorageId } from "../localStore/storeHelpers";
-import { editUser } from "../localStore/strUser";
-import {
-  addStoreSession,
-  getStoreSessions,
-} from "../localStore/tmpMessageStore";
+import { GenRandStorageId } from "../internal/helperfuncs";
+import { editUser } from "../hold/hldUser";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 
@@ -88,13 +86,17 @@ export function hndlAddSession(
     let ac: number = 0;
     for (let session of data.sessions) {
       if (!currentUserConfig.sessions[session.sessionId]) {
-        session.storageId = getSessionStorageId();
+        session.storageId = GenRandStorageId();
+        session.beta.storageId = GenRandStorageId();
         currentUserConfig.sessions[session.sessionId] = session;
+        InsertSession(session);
         addSession(sessionList, session);
         ac++;
       }
     }
-    if (ac > 0) editUser(currentUserConfig);
+    if (ac > 0) {
+      editUser(currentUserConfig);
+    }
   } catch (err) {
     console.error(err);
   }
@@ -130,12 +132,13 @@ export async function onSendMessage(
   };
   sendRequest(req);
 
-  saveNewMessage(currentUser.storeKey, session.storageId, content);
+  saveNewMessage(session, currentUser.storeKey, currentUser.storageId, content);
 }
 
 export async function saveNewMessage(
+  session: Session,
   storeKey: KeyGroup,
-  storageId: string,
+  userStorageId: StorageId,
   content: MessageProps,
 ) {
   const MessageToJsonString: string = JSON.stringify(content);
@@ -143,18 +146,18 @@ export async function saveNewMessage(
     storeKey.publicKey,
     MessageToJsonString,
   );
-  addStoreSession(storageId, encMessage);
+  // addStoreSession(session, encMessage);
+  InsertMessage(session, encMessage, userStorageId);
 }
 
-export async function loadSavedMessages(storeKey: KeyGroup, storageId: string) {
-  const data = await getStoreSessions();
-  if (!data) return;
-  const encMessages = data[storageId] ?? [];
+export async function loadSavedMessages(storeKey: KeyGroup, session: Session) {
+  const existing = await GetMessages(session);
+  if (!existing) return;
   const MessageList: MessageProps[] = [];
-  for (let encMessage of encMessages) {
+  for (let encMessage of existing) {
     const prvStoreKey = await getKeyFromArmored(storeKey.privateKey, null);
     const decryptedMessage = prvStoreKey
-      ? await decryptMessage(prvStoreKey, encMessage)
+      ? await decryptMessage(prvStoreKey, encMessage.content)
       : null;
     if (decryptedMessage) MessageList.push(decryptedMessage);
   }

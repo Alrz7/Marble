@@ -36,7 +36,7 @@ message to initiate the new session
   function setNewSessionOnStage(user: Audience) {
     const preReservedSession: Session = {
       sessionId: -1,
-      storageId: -1,
+      storageId: "undifined",
       onCreateStage: true,
       beta: user,
     };

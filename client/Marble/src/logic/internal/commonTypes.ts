@@ -15,12 +15,14 @@ export type User = {
 export type UserId = number;
 export type SessionId = number;
 export type DisplayId = string;
+export type StorageId = string
 
 export type UserConfig = {
   name: string;
   email: string;
   id: number;
   display_id: DisplayId;
+  storageId: StorageId;
   identityKey: KeyGroup;
   storeKey: KeyGroup;
   sessions: Record<UserId, Session>;
@@ -30,6 +32,7 @@ export type UserConfig = {
 export type Audience = {
   name: string;
   userId: UserId;
+  storageId: StorageId;
   displayId: DisplayId;
   armedPubKey: string;
   isOnline: boolean;
@@ -38,7 +41,7 @@ export type Audience = {
 
 export type Session = {
   sessionId: number;
-  storageId: string;
+  storageId: StorageId;
   onCreateStage?: boolean;
   beta: Audience;
 };

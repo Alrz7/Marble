@@ -15,7 +15,7 @@ export default function ChatMessageList() {
     const messages =
       (await loadSavedMessages(
         currentUser.config.storeKey,
-        currentSession.storageId,
+        currentSession
       )) ?? [];
     setMessages(messages);
   }

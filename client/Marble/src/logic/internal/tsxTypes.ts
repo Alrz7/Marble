@@ -3,7 +3,6 @@ import {
   Audience,
   MessageProps,
   Session,
-  sessionAudience,
   User,
 } from "./commonTypes";
 
@@ -11,7 +10,7 @@ import {
 export type tpSetMessage = React.Dispatch<React.SetStateAction<MessageProps[]>>;
 export type tpSetNewSession = (beta: Audience) => void;
 export type tpSetCurrnetSession = (
-  beta: sessionAudience,
+  beta: Audience,
 ) => void;
 
 // ---- tsx Props ----
@@ -23,7 +22,7 @@ export interface ChatLayoutProps {
 }
 
 export type setCurSessionProps = {
-  audience: sessionAudience;
+  audience: Audience;
   setSession: React.Dispatch<React.SetStateAction<Session | null>>;
   setMessages: React.Dispatch<React.SetStateAction<MessageProps[]>>;
 };

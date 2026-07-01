@@ -2,11 +2,17 @@ module marble
 
 go 1.25.8
 
-require github.com/ProtonMail/gopenpgp/v3 v3.4.0
+require (
+	github.com/Alrz7/fig v1.1.3
+	github.com/ProtonMail/gopenpgp/v3 v3.4.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/gorilla/websocket v1.5.3
+	github.com/lib/pq v1.12.3
+)
 
 require (
 	charm.land/lipgloss/v2 v2.0.1 // indirect
-	charm.land/log/v2 v2.0.0 // indirect
+	charm.land/log/v2 v2.0.0
 	github.com/charmbracelet/colorprofile v0.4.2 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20251205161215-1948445e3318 // indirect
 	github.com/charmbracelet/x/ansi v0.11.6 // indirect
@@ -28,8 +34,6 @@ require (
 require (
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
 	github.com/cloudflare/circl v1.6.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 )

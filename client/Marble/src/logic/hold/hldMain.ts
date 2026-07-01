@@ -33,7 +33,7 @@ export async function initClient(
   isInitializing = true;
 
   try {
-    const vaultPath = `${await appDataDir()}/localStorage/config.hold`;
+    const vaultPath = `${await appDataDir()}/local/hold/config.hold`;
 
     if (!vaultKey) {
       const storedKey = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
