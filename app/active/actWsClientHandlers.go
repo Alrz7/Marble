@@ -2,7 +2,7 @@ package active
 
 import (
 	"encoding/json"
-	"marble/app/users"
+	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
 )
@@ -18,7 +18,7 @@ func HndlSessions(req *Request) {
 	case "create":
 		HndlCreateSession(req)
 	case "sync":
-		HndlSyncSessions(req)
+		// HndlSyncSessions(req)
 	}
 }
 
@@ -34,17 +34,17 @@ func HndlSearchUser(req *Request) {
 	if err != nil {
 		DefaultLogger.Error(err)
 	}
-	Mod := users.UserModel{
-		DB: internal.App.Db,
-	}
-	beta, err := Mod.GetByDisplayId(entry.Param)
+	// Mod := users.UserModel{
+	// 	DB: internal.App.Db,
+	// }
+	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
 	if err != nil {
 		// DefaultLogger.Error(err)
 		return
 	}
-	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
+	results := envelope{"results": []Audience{{Name: beta.UserName,
 		UserId: beta.Id, DisplayId: beta.DisplayId,
-		ArmedPubKey: beta.PgpProfile.PubIdentityKey}}}
+		ArmedPubKey: beta.PgpProfile.PublicKey}}}
 
 	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
 }

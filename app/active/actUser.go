@@ -2,6 +2,7 @@ package active
 
 import (
 	"marble/app/users"
+	"marble/db"
 	"marble/internal"
 )
 
@@ -25,7 +26,7 @@ keep it in use for next Requests & tasks
 func GetActiveUser(userId internal.UserId) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
-	newActiveUser.User, err = users.GetUserProfile(userId)
+	newActiveUser.User, err = db.AppModels.UserModel.GetUserProfile(userId)
 	if err != nil {
 		return nil, err
 	}

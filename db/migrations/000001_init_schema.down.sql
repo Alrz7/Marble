@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS message;
+
+DROP TABLE IF EXISTS session;
+
+DROP TABLE IF EXISTS pgp_profile;
+
+DROP TABLE IF EXISTS users;
+
+DROP SEQUENCE IF EXISTS display_id_seq;

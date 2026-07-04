@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"marble/app/active"
 	"marble/config"
-	"marble/internal"
 	"marble/internal/loggy"
 	"net/http"
 	"time"
@@ -14,7 +13,7 @@ import (
 const version = "1.0.0"
 const defaultPort = 6280
 
-func Setup(app *internal.Application) {
+func Setup() {
 	api := apiConfig{}
 	api.Version = version
 	api.logger = loggy.DefaultLogger

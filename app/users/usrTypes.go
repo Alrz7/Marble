@@ -15,5 +15,5 @@ type User struct {
 }
 
 type UserModel struct {
-	DB *sql.DB
+	Db *sql.DB
 }

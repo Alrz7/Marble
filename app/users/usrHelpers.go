@@ -13,29 +13,29 @@ import (
 // 	U.PgpProfile.Id = pgp.GetPgpAddress(U.UserName, U.Id)
 // }
 
-func (U *UserModel) Insert(user *User) error {
+func (m UserModel) Insert(user *User) error {
 	query := `
-	INSERT INTO users (user_name, email)
+	INSERT INTO users (name, email)
 	VALUES ($1, $2)
 	RETURNING 	id, display_id`
 	args := []any{user.UserName, user.Email}
-	err := U.DB.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
+	err := m.Db.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
 		return fmt.Errorf("there was an error while Inserting the User-Information to DB: %v", err)
 	}
 	return nil
 }
 
-func (U *UserModel) Get(id internal.UserId) (*User, error) {
+func (m UserModel) Get(id internal.UserId) (*User, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT id, email, user_name, display_id
+	query := `SELECT id, email, name, display_id
 			FROM users
 			WHERE id = $1`
 	var user User
 	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId}
-	err := U.DB.QueryRow(query, id).Scan(args...)
+	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -44,7 +44,7 @@ func (U *UserModel) Get(id internal.UserId) (*User, error) {
 			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
 		}
 	}
-	pgpModel := pgp.ProfileModel{DB: U.DB}
+	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(id)
 	if err != nil {
 		return nil, loggy.Sayr("an error while getting the Pgp_profile", err)
@@ -56,12 +56,12 @@ func (U *UserModel) Get(id internal.UserId) (*User, error) {
 	return &user, nil
 }
 
-func (U *UserModel) Update(user *User) error {
+func (m UserModel) Update(user *User) error {
 	query := `UPDATE users
-			SET user_name = $2, email = $3, display_id = $4
+			SET name = $2, email = $3, display_id = $4
 			WHERE id = $1`
 	args := []any{user.Id, user.UserName, user.Email, user.DisplayId}
-	_, err := U.DB.Exec(query, args...)
+	_, err := m.Db.Exec(query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -73,10 +73,10 @@ func (U *UserModel) Update(user *User) error {
 	return nil
 }
 
-func (U *UserModel) Delete(id internal.UserId) error {
+func (m UserModel) Delete(id internal.UserId) error {
 	query := `DELETE FROM users
 				WHERE id = $1`
-	res, err := U.DB.Exec(query, id)
+	res, err := m.Db.Exec(query, id)
 	if err != nil {
 		return loggy.Sayr("an error while trying to delete the User data", err)
 	}
@@ -90,16 +90,16 @@ func (U *UserModel) Delete(id internal.UserId) error {
 	return nil
 }
 
-func (U *UserModel) GetByDisplayId(dispayId string) (*User, error) {
+func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	if dispayId == "" {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT display_id, id, email, user_name
+	query := `SELECT display_id, id, email, name
 			FROM users
 			WHERE display_id = $1`
 	var user User
 	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
-	err := U.DB.QueryRow(query, dispayId).Scan(args...)
+	err := m.Db.QueryRow(query, dispayId).Scan(args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -109,7 +109,7 @@ func (U *UserModel) GetByDisplayId(dispayId string) (*User, error) {
 		}
 	}
 
-	pgpModel := pgp.ProfileModel{DB: U.DB}
+	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(user.Id)
 	if err != nil {
 		return nil, loggy.Sayr("an error while getting the Pgp_profile", err)

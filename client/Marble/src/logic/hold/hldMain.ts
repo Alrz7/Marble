@@ -99,8 +99,9 @@ export async function getData(
 
   const store = load.client.getStore();
   const data = await store.get(objectKey);
+  
   if (!data) return null;
-
+  console.log(new TextDecoder().decode(new Uint8Array(data)))
   return new TextDecoder().decode(new Uint8Array(data));
 }
 

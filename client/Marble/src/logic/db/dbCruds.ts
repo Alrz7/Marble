@@ -31,7 +31,7 @@ export async function InsertMessage(
      RETURNING id, last_sequence`,
     [session.storageId],
   );
-
+  
   if (!updateRes || updateRes.length === 0) {
     throw new Error("session Not Found");
   }

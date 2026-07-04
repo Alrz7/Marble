@@ -2,8 +2,6 @@ package active
 
 import (
 	"encoding/json"
-	"marble/app/users"
-	"marble/internal"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,27 +24,26 @@ func sendHandlerResponse(conn *websocket.Conn, status RequestStatus, channel str
 	}
 }
 
-func returnUnsyncedSessions(serverside, clientSide existingAudiences) ([]Session, error) {
-	for audienceId, _ := range clientSide {
-		delete(serverside, audienceId)
-	}
-	res := []Session{}
-	if len(serverside) == 0 {
-		return res, nil
-	}
-
-	for audienceId, sessionId := range serverside {
-		user, err := users.GetUserProfile(audienceId)
-		if err != nil && err != internal.ErrRecordNotFound {
-			return res, err
-		}
-		audience := internal.Audience{
-			Name:        user.UserName,
-			UserId:      user.Id,
-			DisplayId:   user.DisplayId,
-			ArmedPubKey: user.PgpProfile.PubIdentityKey,
-		}
-		res = append(res, Session{SessionID: sessionId, Beta: audience})
-	}
-	return res, nil
-}
+// func returnUnsyncedSessions(serverside, clientSide existingAudiences) ([]session.Session, error) {
+// 	for audienceId, _ := range clientSide {
+// 		delete(serverside, audienceId)
+// 	}
+// 	res := []session.Session{}
+// 	if len(serverside) == 0 {
+// 		return res, nil
+// 	}
+// 	for audienceId, sessionId := range serverside {
+// 		user, err := db.AppModels.UserModel.GetUserProfile(audienceId)
+// 		if err != nil && err != internal.ErrRecordNotFound {
+// 			return res, err
+// 		}
+// 		audience := Audience{
+// 			Name:        user.UserName,
+// 			UserId:      user.Id,
+// 			DisplayId:   user.DisplayId,
+// 			ArmedPubKey: user.PgpProfile.PublicKey,
+// 		}
+// 		res = append(res, session.Session{Id: sessionId, Beta: audience})
+// 	}
+// 	return res, nil
+// }

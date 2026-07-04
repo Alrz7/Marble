@@ -2,16 +2,17 @@ package active
 
 import (
 	"encoding/json"
-	"marble/app/users"
-	"marble/encryption/pgp"
+	"errors"
+	"marble/app/session"
+	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
 )
 
 func HndlCreateSession(req *Request) error {
 	entry := struct {
-		AudienceId  int    `json:"audienceId"`
-		Content string `json:"content"`
+		AudienceId int    `json:"audienceId"`
+		Content    string `json:"content"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
@@ -19,12 +20,12 @@ func HndlCreateSession(req *Request) error {
 		return err
 	}
 
-	Beta, err := users.GetUserProfile(internal.UserId(entry.AudienceId))
+	Beta, err := db.AppModels.UserModel.GetUserProfile(internal.UserId(entry.AudienceId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	_, err = req.user.PgpProfile.CreateSession(&Beta.PgpProfile, entry.Content)
+	err = req.user.CreateSession(Beta.Id, entry.Content)
 	if err != nil {
 		actServerErrorResponse(req.conn, err)
 		return err
@@ -33,42 +34,45 @@ func HndlCreateSession(req *Request) error {
 	return nil
 }
 
+func (u *ActvUser) CreateSession(betaId internal.UserId, content string) error {
+	session, err := db.AppModels.SessionModel.CreateSession(u.Id, betaId)
+	if err != nil {
+		return err
+	}
+	err = u.SendMessage(session, content)
+	return err
+}
+
 /*
 Handles `onSyncSession` requests.
 */
-func HndlSyncSessions(req *Request) {
-	entry := struct {
-		ClientExistingSessions existingAudiences `json:"existingSessions"`
-	}{}
-	err := json.Unmarshal([]byte(req.Body), &entry)
-	if err != nil {
-		actBadRequestResponse(req.conn, err)
-	}
-	RemainingUsers, err := returnUnsyncedSessions(req.user.PgpProfile.Sessions, entry.ClientExistingSessions)
-	if err != nil {
-		actServerErrorResponse(req.conn, err)
-	}
-	body := envelope{"sessions": RemainingUsers}
-	headers := RequestHeaders{"task": "add"}
-	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
-}
+// func HndlSyncSessions(req *Request) {
+// 	entry := struct {
+// 		ClientExistingSessions existingAudiences `json:"existingSessions"`
+// 	}{}
+// 	err := json.Unmarshal([]byte(req.Body), &entry)
+// 	if err != nil {
+// 		actBadRequestResponse(req.conn, err)
+// 	}
+// 	RemainingUsers, err := returnUnsyncedSessions(req.user.PgpProfile.Sessions, entry.ClientExistingSessions)
+// 	if err != nil {
+// 		actServerErrorResponse(req.conn, err)
+// 	}
+// 	body := envelope{"sessions": RemainingUsers}
+// 	headers := RequestHeaders{"task": "add"}
+// 	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
+// }
 
 // --- Messages ---
 func HndlSendMesage(req *Request) error {
 	entry := struct {
-		AudienceId  internal.UserId `json:"audienceId"`
-		SessionId uint64          `json:"sessionId"`
-		Message   string          `json:"message"`
+		AudienceId internal.UserId `json:"audienceId"`
+		SessionId  uint64          `json:"sessionId"`
+		Message    string          `json:"message"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
 		actBadRequestResponse(req.conn, err)
-		return err
-	}
-
-	Beta, err := users.GetUserProfile(entry.AudienceId)
-	if err != nil {
-		actNotFoundResponse(req.conn, err)
 		return err
 	}
 	session, err := req.user.GetActiveSession(internal.SessionId(entry.SessionId))
@@ -76,7 +80,30 @@ func HndlSendMesage(req *Request) error {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	return req.user.PgpProfile.SendMessage(&Beta.PgpProfile, session, entry.Message)
+	return req.user.SendMessage(session, entry.Message)
+}
+
+func (u *ActvUser) SendMessage(S *session.Session, message string) error {
+	var newMessage = session.Message{
+		SessionId: S.Id,
+		Content:   message,
+		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
+	}
+	if u.Id == S.Alpha || u.Id == S.Beta {
+		newMessage.SenderId = u.Id
+		newSeq, err := db.AppModels.SessionModel.IncreaseSessionSequence(S.Id)
+		if err != nil {
+			return err
+		}
+		newMessage.Seq = newSeq
+		err = db.AppModels.MessageModel.SendMessage(&newMessage)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("There was a mismatch among audiences while sending message")
+	}
+	return nil
 }
 
 // func (AU *ActvUser) ReadSessionMessage(beta internal.UserId, from, count int) (*[]string, int, error) {
@@ -125,11 +152,9 @@ func HndlSendMesage(req *Request) error {
 // 	return nil
 // }
 
-func (AU *ActvUser) GetActiveSession(sessionId internal.SessionId) (*pgp.Session, error) {
-	model := pgp.SessionModel{
-		DB: internal.App.Db,
-	}
-	session, err := model.Get(sessionId)
+func (AU *ActvUser) GetActiveSession(sessionId internal.SessionId) (*session.Session, error) {
+
+	session, err := db.AppModels.SessionModel.Get(sessionId)
 	if err != nil {
 		return nil, loggy.Sayr("error while fetching session", err)
 	}

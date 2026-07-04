@@ -22,39 +22,25 @@ func CreateNewUser(username, email, password string, pubIdentKey string) (*User,
 	newUser.PgpProfile.AuthKey = authorizationKey // this is good aproach But it costs alot of memory
 	// and speed so im going to replace this with the standard auth methods.
 
-	newUser.PgpProfile.PubIdentityKey = pubIdentKey
+	newUser.PgpProfile.PublicKey = pubIdentKey
 
-	newUser.PgpProfile.Sessions = map[internal.UserId]int64{}
-	err = newUser.Save()
-	// err = newUser.fakeSave()
-	if err != nil {
-		return &User{}, err
-	}
-	// newUser.SetPgpAddress()
 	return &newUser, nil
 
 }
 
 func (U *User) fakeSave() error {
 	U.Id = 2
-	U.DisplayId = "U_2"
-	U.PgpProfile.Id = 2
-	// U.PgpProfile.Address = pgp.GetPgpAddress(U.UserName, U.Id)
+	U.DisplayId = "u2"
+	U.PgpProfile.UserId = 2
 	return nil
 }
 
-func (U *User) Save() error {
-	UsrModel := UserModel{
-		DB: internal.App.Db,
-	}
-	PrfModel := pgp.ProfileModel{
-		DB: internal.App.Db,
-	}
-	err := UsrModel.Insert(U)
+func (U *User) Save(UModel UserModel, PModel pgp.ProfileModel) error {
+	err := UModel.Insert(U)
 	if err != nil {
 		return err
 	}
-	err = PrfModel.Insert(&U.PgpProfile, U.Id)
+	err = PModel.Insert(&U.PgpProfile, U.Id)
 	if err != nil {
 		return err
 	}
@@ -65,9 +51,9 @@ func (U *User) Save() error {
 GetUserProfile finds the User's profile among the Db for
 Session Tasks or etc.
 */
-func GetUserProfile(id internal.UserId) (*User, error) {
-	Mod := UserModel{DB: internal.App.Db}
-	user, err := Mod.Get(id)
+func (m UserModel) GetUserProfile(id internal.UserId) (*User, error) {
+	// Mod := UserModel{DB: internal.App.Db}
+	user, err := m.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, internal.ErrRecordNotFound):

@@ -3,7 +3,7 @@ package api
 import (
 	"marble/app/active"
 	"marble/app/users"
-	"marble/internal"
+	"marble/db"
 	"net/http"
 	"time"
 
@@ -40,6 +40,12 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
+	err = newUser.Save(db.AppModels.UserModel, db.AppModels.ProfileModel)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+	}
+	// err = newUser.fakeSave()
+
 	response := envelope{
 		"error":      false,
 		"message":    "user has been Created Succesfully!",
@@ -62,8 +68,7 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	Mod := users.UserModel{DB: internal.App.Db}
-	existingUser, err := Mod.GetByDisplayId(entry.DisplayId)
+	existingUser, err := db.AppModels.UserModel.GetByDisplayId(entry.DisplayId)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 		return

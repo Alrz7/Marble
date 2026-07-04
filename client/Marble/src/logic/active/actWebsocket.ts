@@ -35,6 +35,7 @@ export function openConnection() {
     try {
       const request: Request = JSON.parse(event.data);
       let handeler = handlersRef.current[request.channel];
+      // console.log("Request:", request); // connectio Log
       if (handeler) {
         handeler(request);
         if (request.notif && request.channel !== "notif") {

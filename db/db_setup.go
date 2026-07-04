@@ -10,37 +10,29 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type config struct {
+type dbConfig struct {
 	dsn          string
 	MaxOpenConns int
 	MaxIdleCOnns int
 	MaxIdleTime  string
 }
 
-var Cfg = config{}
+var DefaulfConfig = dbConfig{}
 
-func (cfg *config) Setup() (*sql.DB, error) {
-	flag.StringVar(&cfg.dsn, "db-dsn", os.Getenv("MARBLE_DB_DSN"), "PostgreSQL DSN")
-	flag.IntVar(&cfg.MaxIdleCOnns, "db-max-open-conns", 25, "PostgreSQL max open connections")
-	flag.IntVar(&cfg.MaxIdleCOnns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
-	flag.StringVar(&cfg.MaxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+func (c *dbConfig) connect() (*sql.DB, error) {
+	flag.StringVar(&c.dsn, "db-dsn", os.Getenv("MARBLE_DB_DSN"), "PostgreSQL DSN")
+	flag.IntVar(&c.MaxIdleCOnns, "db-max-open-conns", 25, "PostgreSQL max open connections")
+	flag.IntVar(&c.MaxIdleCOnns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
+	flag.StringVar(&c.MaxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	DB, err := cfg.OpenDB()
+	db, err := sql.Open("postgres", c.dsn)
 	if err != nil {
 		return nil, err
 	}
-	return DB, nil
-}
-
-func (cfg *config) OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.dsn)
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxOpenConns(Cfg.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.MaxIdleCOnns)
-	duration, err := time.ParseDuration(cfg.MaxIdleTime)
+	db.SetMaxOpenConns(c.MaxOpenConns)
+	db.SetMaxIdleConns(c.MaxIdleCOnns)
+	duration, err := time.ParseDuration(c.MaxIdleTime)
 	if err != nil {
 		return nil, err
 	}
@@ -55,4 +47,5 @@ func (cfg *config) OpenDB() (*sql.DB, error) {
 	}
 
 	return db, nil
+
 }

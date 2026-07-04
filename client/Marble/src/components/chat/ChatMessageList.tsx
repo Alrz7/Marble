@@ -11,12 +11,16 @@ export default function ChatMessageList() {
   const { currentUser } = AppUser();
 
   async function loadMessages() {
-    if (!currentUser || !currentUser.config || !currentSession) return;
+    if (
+      !currentUser ||
+      !currentUser.config ||
+      !currentSession ||
+      currentSession.sessionId == -1
+    )
+      return;
     const messages =
-      (await loadSavedMessages(
-        currentUser.config.storeKey,
-        currentSession
-      )) ?? [];
+      (await loadSavedMessages(currentUser.config.storeKey, currentSession)) ??
+      [];
     setMessages(messages);
   }
 
