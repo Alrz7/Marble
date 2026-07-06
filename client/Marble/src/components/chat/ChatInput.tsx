@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
-import { MessageProps } from "../../logic/internal/commonTypes";
+import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
 import {
   onCreateNewSession,
@@ -23,17 +23,18 @@ export default function ChatInput() {
   const PrepareNewMessage = (content: string) => {
     if (!currentUser?.config || !currentSession) return;
     let lastId = Messagelist.at(-1)?.id;
-    const newMessage: MessageProps = {
+    const newMessage: Message = {
       id: lastId ? lastId++ : 0,
+      seq: -1,
+      sessionId: currentSession.id,
       content,
       senderId: currentUser?.config.id,
-      senderName: currentUser?.config.name,
       timestamp: new Date(),
       status: "sent",
     };
 
     if (currentSession?.onCreateStage) {
-      onCreateNewSession(currentSession.beta, newMessage);
+      onCreateNewSession(currentSession.audience, newMessage);
     } else {
       onSendMessage(currentUser.config, currentSession, newMessage);
     }

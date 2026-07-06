@@ -14,8 +14,8 @@ export default function ChatHeader() {
           <Circle className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 text-green-500 rounded-full border-2 border-background" />
         </div>
         <div>
-          <h2 className="font-semibold text-foreground">{currentSession?.beta.name}</h2>
-          <p className="text-xs text-muted-foreground">{currentSession?.beta.isOnline}</p>
+          <h2 className="font-semibold text-foreground">{currentSession?.audience.name}</h2>
+          <p className="text-xs text-muted-foreground">{currentSession?.audience.isOnline}</p>
         </div>
       </div>
 

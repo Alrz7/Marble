@@ -1,20 +1,23 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { UserConfig } from "../internal/commonTypes";
-import { generateIdntKey } from "../enc/encMain";
-import { setUser } from "../hold/hldUser";
-import { GenRandStorageId, getUserStoragePath } from "../internal/helperfuncs";
+import { pgpProfile, User, UserConfig } from "../internal/commonTypes";
+import { generateIdntKey, getKeyFromArmored } from "../enc/encOpenpgp";
+import { InsertUser, SetActiveUserId } from "../db/dbCruds";
+import { generateMasterKey } from "../enc/encMaster";
+import { GetOrCreateKeyChainKey } from "../enc/encMain";
 
-// the IdentityKey & strongHoldKey Key-Groups are going to be saved in the StrongHold
+// the openpgpKeyGroup & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too
 
 export async function createAccount(
   name: string,
   email: string,
   password: string,
-): Promise<UserConfig | null> {
-  const IdentityKey = await generateIdntKey(name, email);
-  const StoreKey = await generateIdntKey(name, email);
-  const storage_id = GenRandStorageId();
+): Promise<User | null> {
+  const Kek = await GetOrCreateKeyChainKey();
+  if (!Kek) throw new Error(" there Was an Error while trying to get the KEK");
+
+  const openpgpKeyGroup = await generateIdntKey(name, email);
+  const userMasterKey: CryptoKey = await generateMasterKey();
   const response = await fetch("http://localhost:6280/account", {
     method: "POST",
     headers: {
@@ -25,7 +28,7 @@ export async function createAccount(
       name: name,
       email: email,
       password: password,
-      pubIdentKey: IdentityKey.publicKey,
+      pubIdentKey: openpgpKeyGroup.publicKey,
     }),
   });
 
@@ -35,17 +38,28 @@ export async function createAccount(
     throw new Error("Failed to decode the http result");
   }
 
-  const newUser: UserConfig = {
+  const newConfig: UserConfig = {
+    id: -1,
+    userId: result.id,
+    displayId: result.display_id,
     name: name,
     email: email,
-    id: result.id,
-    display_id: result.display_id,
-    storageId: storage_id,
-    identityKey: IdentityKey,
-    storeKey: StoreKey,
-    sessions: {},
-    storagePath: getUserStoragePath(),
+    profile_avatar: "NMG",
   };
-  setUser(newUser);
+  const pgpProfile: pgpProfile = {
+    PrivateKey: openpgpKeyGroup.privateKey,
+    PublicKey: openpgpKeyGroup.publicKey,
+    RevocationCertificate: openpgpKeyGroup.revocationCertificate,
+    ActivePrvKey: await getKeyFromArmored(openpgpKeyGroup.privateKey, null),
+  };
+
+  const newUser: User = {
+    MasterKey: userMasterKey,
+    config: newConfig,
+    Pgp: pgpProfile,
+  };
+
+  newUser.config.id = await InsertUser(newUser, Kek);
+  await SetActiveUserId(newUser.config.id);
   return newUser;
 }

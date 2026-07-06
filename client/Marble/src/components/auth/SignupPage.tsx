@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { User as userConf } from "../../logic/internal/commonTypes";
+import { User as AppUser } from "../../logic/internal/commonTypes";
 import { createAccount } from "../../logic/auth/signUp";
-import { getKeyFromArmored } from "../../logic/enc/encMain";
 import { PAGES } from "../../logic/states/appCommonStates";
 
 interface SignupPageProps {
   setAppState: (state: PAGES) => void;
-  setUserData: (user: userConf) => void;
+  setUserData: (user: AppUser) => void;
 }
 
 export default function SignupPage({
@@ -39,15 +38,9 @@ export default function SignupPage({
     setIsLoading(true);
 
     try {
-      const userConfig = await createAccount(username, email, password);
-      if (userConfig) {
-        const prvKey = await getKeyFromArmored(
-          userConfig.identityKey.privateKey,
-          null,
-        );
-        if (prvKey) {
-          setUserData({ config: userConfig, prvIdentKey: prvKey });
-        }
+      const user = await createAccount(username, email, password);
+      if (user) {
+        setUserData(user);
       }
     } catch (error) {
       console.error("Signup failed:", error);

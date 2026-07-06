@@ -1,51 +1,17 @@
 import { signIn } from "../auth/login.ts";
-import { generateIdntKey, getKeyFromArmored } from "../enc/encMain.ts";
-import { initClient } from "../hold/hldMain.ts";
-import { getKeychainObject, setKeychainObject } from "../enc/keyChain.ts";
-import { User, MARBLE_STRONGHOLD_KEY } from "../internal/commonTypes.ts";
-import { getUser } from "../hold/hldUser.ts";
+import { User } from "../internal/commonTypes.ts";
 import { InitAndMigrate } from "../db/dbMain.ts";
-
-async function getOrCreateVaultKey(): Promise<string> {
-  const existing = await getKeychainObject(MARBLE_STRONGHOLD_KEY);
-  if (existing) return existing;
-
-  const { privateKey } = await generateIdntKey(
-    "chainKey",
-    "marbledev@gmail.com",
-  );
-  await setKeychainObject(MARBLE_STRONGHOLD_KEY, privateKey);
-  return privateKey;
-}
+import { getActiveUserId, GetUser } from "../db/dbCruds.ts";
+import { GetOrCreateKeyChainKey } from "../enc/encMain.ts";
 
 export async function loadConfig(): Promise<User | null> {
-  const vaultKey = await getOrCreateVaultKey();
+  const kek = await GetOrCreateKeyChainKey();
+  if (!kek) throw new Error("kechainKey was not Valid");
 
-  const strongholdClient = await initClient(vaultKey, MARBLE_STRONGHOLD_KEY);
-  if (!strongholdClient)
-    throw new Error("Failed to initialize Stronghold client");
-
-  const existingUserData = await getUser(strongholdClient);
-  if (
-    !existingUserData ||
-    Object.keys(existingUserData).length == 0 ||
-    !existingUserData.primaryUser
-  )
-    return null;
-
-  const entry = existingUserData.users[existingUserData.primaryUser];
-  if (!entry) return null;
-
-  const privateKey = await getKeyFromArmored(
-    entry.identityKey.privateKey,
-    null,
-  );
-  if (!privateKey)
-    throw new Error("Failed to decode primary user's private key");
   InitAndMigrate();
-  signIn(entry.display_id, "testingg!"); // this is gonna be replaced with autoSignIn() later
-  return {
-    config: entry,
-    prvIdentKey: privateKey,
-  };
+  const actvUserId = await getActiveUserId();
+  const currentUser = await GetUser(kek, actvUserId, null);
+  if (!currentUser) return null;
+  signIn(currentUser.config.displayId, "testingg!"); // this is gonna be replaced with autoSignIn() later
+  return currentUser;
 }

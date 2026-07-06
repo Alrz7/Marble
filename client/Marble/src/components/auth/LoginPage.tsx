@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { User } from "../../logic/internal/commonTypes";
 import { login } from "../../logic/auth/login";
-import { getKeyFromArmored } from "../../logic/enc/encMain";
 import { PAGES } from "../../logic/states/appCommonStates";
 
 interface LoginPageProps {
@@ -25,15 +24,9 @@ export default function LoginPage({
     setIsLoading(true);
 
     try {
-      const newUserConfig = await login(id, password);
-      if (newUserConfig) {
-        const prvKey = await getKeyFromArmored(
-          newUserConfig.identityKey.privateKey,
-          null,
-        );
-        if (prvKey) {
-          setUserData({ config: newUserConfig, prvIdentKey: prvKey });
-        }
+      const currentUser = await login(id, password);
+      if (currentUser) {
+        setUserData(currentUser);
       }
     } catch (error) {
       console.error("Login failed:", error);

@@ -15,7 +15,7 @@ export default function ChatMessageList() {
       !currentUser ||
       !currentUser.config ||
       !currentSession ||
-      currentSession.sessionId == -1
+      currentSession.id == -1
     )
       return;
     const messages =

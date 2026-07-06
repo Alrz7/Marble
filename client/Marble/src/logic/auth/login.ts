@@ -1,46 +1,35 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import {
-  getUser,
-  setUser,
-  setPrimaryUser,
-  deletePrimaryUser,
-} from "../hold/hldUser";
-import { User, UserConfig } from "../internal/commonTypes";
+import { DefEncoder, User, UserConfig } from "../internal/commonTypes";
 import { setAuthToken } from "../internal/IntrAuth";
 import { openConnection } from "../active/actWebsocket";
+import { GetUser, SetActiveUserId } from "../db/dbCruds";
+import { SignWithHmac } from "../enc/encHelpers";
+import { GetOrCreateKeyChainKey } from "../enc/encMain";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
   DisplayId: string,
   password: string,
-): Promise<UserConfig | null> {
-  const userList = await getUser();
-  const existingUser = userList?.users?.[DisplayId];
+): Promise<User | null> {
+  const kek = await GetOrCreateKeyChainKey();
+  if (!kek) throw new Error("kechainKey was not Valid");
+
+  const signedDIsplayId = await SignWithHmac(
+    DefEncoder.encode(DisplayId).buffer,
+  );
+  const existingUser = await GetUser(kek, null, signedDIsplayId);
+
   if (!existingUser) throw new Error(`${DisplayId} is not found in UserList`);
 
   signIn(DisplayId, password); // this is gonna be replaced with userSignIn() later
 
-  const currentUser: UserConfig = {
-    name: existingUser.name,
-    id: existingUser.id,
-    email: existingUser.email,
-    display_id: existingUser.display_id,
-    identityKey: existingUser.identityKey,
-    storageId: existingUser.storageId,
-    storeKey: existingUser.storeKey,
-    sessions: existingUser.sessions,
-    storagePath: existingUser.storagePath,
-  };
-  setPrimaryUser(currentUser.display_id);
-  setUser(currentUser);
-  return currentUser;
+  SetActiveUserId(existingUser.config.id);
+  return existingUser;
 }
 
 export async function logOut(setUserData: (NewUser: User | null) => void) {
-  await deletePrimaryUser();
-  setTimeout(() => {
-    setUserData(null);
-  }, 500);
+  SetActiveUserId(-1);
+  setUserData(null);
 }
 
 export async function signIn(

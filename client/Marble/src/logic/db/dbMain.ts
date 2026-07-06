@@ -11,8 +11,11 @@ export let beenInited: boolean = false;
 let Initting: boolean = false;
 
 export async function InitAndMigrate() {
-  while (Initting) {
-    await new Promise((resolve) => setTimeout(resolve, 50));
+  if (Initting) {
+    while (Initting) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return;
   }
   Initting = true;
   const res = await db.select<{ user_version: number }[]>(

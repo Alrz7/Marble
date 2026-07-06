@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { MessageProps, Session } from "../internal/commonTypes";
+import { Message, Session } from "../internal/commonTypes";
 
 interface SessionsState {
   sessionlist: Session[];
@@ -20,13 +20,13 @@ export const sessionsState = create<SessionsState>((set) => ({
 }));
 
 interface MessageStates {
-  Messagelist: MessageProps[];
-  setMessages: (messages: MessageProps[]) => void;
-  addMessage: (origin: MessageProps[], newMessage: MessageProps) => void;
+  Messagelist: Message[];
+  setMessages: (messages: Message[]) => void;
+  addMessage: (origin: Message[], newMessage: Message) => void;
 }
 export const Messages = create<MessageStates>((set) => ({
   Messagelist: [],
-  setMessages: (messages: MessageProps[]) => set({ Messagelist: messages }),
-  addMessage: (origin: MessageProps[], newMessage: MessageProps) =>
+  setMessages: (messages: Message[]) => set({ Messagelist: messages }),
+  addMessage: (origin: Message[], newMessage: Message) =>
     set({ Messagelist: [...origin, newMessage] }),
 }));

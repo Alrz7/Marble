@@ -20,7 +20,7 @@ CREATE TABLE session (
     beta_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     last_sequence INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (alpha_id, beta_id) 
+
 );
 
 CREATE TABLE message (
@@ -31,5 +31,5 @@ CREATE TABLE message (
     content TEXT NOT NULL,
     profile VARCHAR(15) NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (session_id, seq)
+    UNIQUE (seq)
 );

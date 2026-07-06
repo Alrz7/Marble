@@ -1,4 +1,6 @@
-import { PrivateKey } from "openpgp";
+import { ExpandIcon } from "lucide-react";
+import * as openpgp from "openpgp";
+
 // User Types ---------------------------------
 
 // type userProfile = {
@@ -8,68 +10,63 @@ import { PrivateKey } from "openpgp";
 
 export type User = {
   config: UserConfig;
-  prvIdentKey: PrivateKey;
-  // profile: userProfile
+  MasterKey: CryptoKey;
+  Pgp: pgpProfile;
 };
 
 export type UserId = number;
 export type SessionId = number;
 export type DisplayId = string;
-export type StorageId = string
+export type StorageId = string;
 
 export type UserConfig = {
+  id: number;
+  userId: UserId;
+  displayId: DisplayId;
   name: string;
   email: string;
-  id: number;
-  display_id: DisplayId;
-  storageId: StorageId;
-  identityKey: KeyGroup;
-  storeKey: KeyGroup;
-  sessions: Record<UserId, Session>;
-  storagePath: string;
+  profile_avatar: string;
+};
+
+export type pgpProfile = {
+  PrivateKey: string;
+  PublicKey: string;
+  RevocationCertificate: string;
+  ActivePrvKey: openpgp.PrivateKey | null;
 };
 
 export type Audience = {
-  name: string;
+  id: number;
   userId: UserId;
-  storageId: StorageId;
   displayId: DisplayId;
+  ownerId: UserId;
+  name: string;
   armedPubKey: string;
   isOnline: boolean;
   ProfileAvatar: string;
 };
 
 export type Session = {
-  sessionId: number;
-  storageId: StorageId;
+  id: number;
+  ownerId: UserId;
+  audience: Audience;
   onCreateStage?: boolean;
-  beta: Audience;
 };
 
 export type GroupSession = {
   sessionId: number;
 };
 
-export interface MessageProps {
+export type MessageStatus = "sent" | "delivered" | "read";
+export interface Message {
   id: number;
+  seq: number;
+  sessionId: SessionId;
   content: string;
   senderId: UserId;
-  senderName: string;
   timestamp: Date;
-  status?: "sent" | "delivered" | "read";
+  status: MessageStatus;
 }
-
-// ---- enc ----
-export type KeyGroup = {
-  privateKey: string;
-  publicKey: string;
-  revocationCertificate: string;
-};
-
-export type UserHold = {
-  users: Record<string, UserConfig>;
-  primaryUser: string | null;
-};
 
 // --- Notification ---
 
@@ -82,7 +79,8 @@ export type Notification = {
 // Constants-----------------------------------
 
 export const MARBLE_STRONGHOLD_KEY = "marble_stronghold";
-export const STRONGHOLD_OBJECT_KEYS = {
-  Users: "users",
-};
+export const MAIN_KEY = "main_key";
 export const KEYCHAIN_USER = "Marble";
+
+export const DefEncoder = new TextEncoder();
+export const DefDecoder = new TextDecoder();

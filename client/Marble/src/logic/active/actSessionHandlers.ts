@@ -3,11 +3,10 @@ import {
   decryptMessage,
   encryptMessage,
   getKeyFromArmored,
-} from "../enc/encMain";
+} from "../enc/encOpenpgp";
 import {
   Audience,
-  KeyGroup,
-  MessageProps,
+  Message,
   Session,
   SessionId,
   StorageId,
@@ -15,7 +14,6 @@ import {
   UserId,
 } from "../internal/commonTypes";
 import { GenRandStorageId } from "../internal/helperfuncs";
-import { editUser } from "../hold/hldUser";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 
@@ -23,7 +21,7 @@ import { sendRequest } from "./actWebsocket";
 
 export async function onCreateNewSession(
   audience: Audience,
-  message: MessageProps,
+  message: Message,
 ) {
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
@@ -106,7 +104,7 @@ export function hndlAddSession(
 export async function onSendMessage(
   currentUser: UserConfig,
   session: Session,
-  content: MessageProps,
+  content: Message,
 ) {
   const MessageToJsonString: string = JSON.stringify(content);
   const encMessage = await encryptMessage(
@@ -139,7 +137,7 @@ export async function saveNewMessage(
   session: Session,
   storeKey: KeyGroup,
   userStorageId: StorageId,
-  content: MessageProps,
+  content: Message,
 ) {
   const MessageToJsonString: string = JSON.stringify(content);
   const encMessage = await encryptMessage(
@@ -153,7 +151,7 @@ export async function saveNewMessage(
 export async function loadSavedMessages(storeKey: KeyGroup, session: Session) {
   const existing = await GetMessages(session);
   if (!existing) return;
-  const MessageList: MessageProps[] = [];
+  const MessageList: Message[] = [];
   for (let encMessage of existing) {
     const prvStoreKey = await getKeyFromArmored(storeKey.privateKey, null);
     const decryptedMessage = prvStoreKey
