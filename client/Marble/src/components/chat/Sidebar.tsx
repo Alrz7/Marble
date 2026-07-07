@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Settings, LogOut, Plus, Menu } from "lucide-react";
+import { Search, Settings, LogOut } from "lucide-react";
 import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";

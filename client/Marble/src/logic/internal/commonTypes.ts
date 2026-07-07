@@ -1,4 +1,3 @@
-import { ExpandIcon } from "lucide-react";
 import * as openpgp from "openpgp";
 
 // User Types ---------------------------------
@@ -48,6 +47,7 @@ export type Audience = {
 
 export type Session = {
   id: number;
+  sessionId: SessionId;
   ownerId: UserId;
   audience: Audience;
   onCreateStage?: boolean;
@@ -78,7 +78,6 @@ export type Notification = {
 
 // Constants-----------------------------------
 
-export const MARBLE_STRONGHOLD_KEY = "marble_stronghold";
 export const MAIN_KEY = "main_key";
 export const KEYCHAIN_USER = "Marble";
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Copy, Reply, Edit2, Trash2, Check, CheckCheck } from "lucide-react";
-import { MessageProps } from "../../logic/internal/commonTypes";
+import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
 
 interface MessageBubbleProps {
-  message: MessageProps;
+  message: Message;
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
@@ -55,7 +55,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       {/* Avatar */}
       {(!currentUser || !(message.senderId == currentUser.config.id)) && (
         <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0">
-          {message.senderName?.charAt(0)}
+          {message.senderId}
         </div>
       )}
 
@@ -66,7 +66,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {/* Sender Name */}
         {(!currentUser || !(message.senderId == currentUser.config.id)) && (
           <span className="text-xs font-medium text-muted-foreground pl-3">
-            {message.senderName}
+            {message.senderId}
           </span>
         )}
 

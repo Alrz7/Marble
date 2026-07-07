@@ -1,4 +1,5 @@
 import { DefDecoder, DefEncoder } from "../internal/commonTypes";
+import { blobFromDb } from "../internal/helperfuncs";
 
 export async function generateMasterKey(): Promise<CryptoKey> {
   return await window.crypto.subtle.generateKey(
@@ -17,7 +18,14 @@ export async function KeyToString(cryptoKey: CryptoKey): Promise<string> {
     cryptoKey,
   );
   const rawMasterKeyBytes = new Uint8Array(rawMasterKeyBuffer);
-  return DefDecoder.decode(rawMasterKeyBytes);
+
+  let binary = "";
+  for (let i = 0; i < rawMasterKeyBytes.length; i++) {
+    const rbi = rawMasterKeyBytes[i];
+    if (!rbi) throw new Error("Error while converting key to string");
+    binary += String.fromCharCode(rbi);
+  }
+  return btoa(binary);
 }
 
 export async function encryptData<T>(
@@ -46,26 +54,32 @@ export async function encryptData<T>(
   return combined;
 }
 
+export async function decryptDataFromDb<T>(
+  dbValue: unknown,
+  key: CryptoKey,
+): Promise<T> {
+  return decryptData<T>(blobFromDb(dbValue), key);
+}
+
 export async function decryptData<T>(
   encryptedData: Uint8Array,
   key: CryptoKey,
 ): Promise<T> {
-  const iv = encryptedData.slice(0, 12);
+  try {
+    const iv = encryptedData.slice(0, 12);
+    const cipherBytes = encryptedData.slice(12);
 
-  const cipherBytes = encryptedData.slice(12);
+    const decryptedBuffer = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      cipherBytes,
+    );
 
-  const decryptedBuffer = await window.crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    key,
-    cipherBytes,
-  );
-
-  const jsonString = DefDecoder.decode(decryptedBuffer);
-
-  return JSON.parse(jsonString) as T;
+    const jsonString = DefDecoder.decode(decryptedBuffer);
+    return JSON.parse(jsonString) as T;
+  } catch {
+    throw new Error("there was an error while decrypting");
+  }
 }
 
 export async function encryptMasterKeyWithKEK(
@@ -121,6 +135,10 @@ export async function GetKeyFromRawData(raw: ArrayBuffer): Promise<CryptoKey> {
 }
 
 export async function GetKeyFromString(key: string): Promise<CryptoKey> {
-  const array8 = DefEncoder.encode(key);
-  return GetKeyFromRawData(array8.buffer);
+  const binary = atob(key);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return GetKeyFromRawData(bytes.buffer);
 }

@@ -1,7 +1,7 @@
 import { signIn } from "../auth/login.ts";
 import { User } from "../internal/commonTypes.ts";
 import { InitAndMigrate } from "../db/dbMain.ts";
-import { getActiveUserId, GetUser } from "../db/dbCruds.ts";
+import { getActiveUserId, GetUser } from "../db/dbUsers.ts";
 import { GetOrCreateKeyChainKey } from "../enc/encMain.ts";
 
 export async function loadConfig(): Promise<User | null> {

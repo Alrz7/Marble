@@ -19,7 +19,7 @@ export default function ChatMessageList() {
     )
       return;
     const messages =
-      (await loadSavedMessages(currentUser.config.storeKey, currentSession)) ??
+      (await loadSavedMessages(currentUser.MasterKey, currentSession)) ??
       [];
     setMessages(messages);
   }
@@ -58,7 +58,7 @@ export default function ChatMessageList() {
       )}
 
       {/* {isTyping && <TypingIndicator senderName="John " />} */}
-      {false && <TypingIndicator senderName={currentSession?.beta.name} />}
+      {false && <TypingIndicator senderName={currentSession?.audience.name} />}
 
       <div ref={messagesEndRef} />
     </div>

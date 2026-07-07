@@ -18,10 +18,8 @@
       ]
     },
     "core:default",
-    "store:default",
     "opener:default",
     "keyring:default",
-    "stronghold:default",
     "sql:default",
     "sql:allow-execute"
   ]

@@ -16,11 +16,15 @@ function App() {
 
   useEffect(() => {
     async function hndlAutoLogin() {
+      try{
       const userData = await loadConfig();
       if (userData) {
         setUserData(userData);
         addHandlers(handlersRef.current);
       }
+    }catch(err){
+      console.error("error while Auto Login: ",err)
+    }
     }
     hndlAutoLogin();
   }, []);

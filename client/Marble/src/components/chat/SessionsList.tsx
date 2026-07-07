@@ -9,6 +9,7 @@ import {
 } from "../../logic/active/actSessionHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
 import { Authorized } from "../../logic/states/appCommonStates";
+import { GetSessions } from "../../logic/db/dbSessions";
 
 export default function SessionsList() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(
@@ -20,13 +21,21 @@ export default function SessionsList() {
   const { isComplete } = Authorized();
 
   useEffect(() => {
-    if (currentUser?.config) {
-      setSessionList(Object.values(currentUser.config.sessions));
+    async function getSessions() {
+      if (currentUser?.config) {
+        const sessions = await GetSessions(
+          currentUser.config.id,
+          currentUser.MasterKey,
+        );
+        setSessionList(sessions);
+      }
     }
+    getSessions();
   }, []);
+
   useEffect(() => {
     addHandlers(handlersRef.current);
-    if (isComplete && currentUser?.config) onSyncSession(currentUser.config);
+    if (isComplete && currentUser?.config) onSyncSession(sessionlist);
   }, [isComplete]);
 
   const handlersRef = useRef({
@@ -44,7 +53,7 @@ export default function SessionsList() {
           console.error("user is not define!");
           return;
         }
-        hndlAddSession(currentUser.config, req, sessionlist, addSession);
+        hndlAddSession(req, currentUser.MasterKey, sessionlist, addSession);
         break;
     }
   }
@@ -67,9 +76,9 @@ export default function SessionsList() {
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground">
-              {session.beta.name.charAt(0)}
+              {session.audience.name.charAt(0)}
             </div>
-            {session.beta.isOnline && (
+            {session.audience.isOnline && (
               <Circle className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 text-green-500 rounded-full border-2 border-background" />
             )}
           </div>
@@ -78,7 +87,7 @@ export default function SessionsList() {
           <div className="flex-1 min-w-0 text-left">
             <div className="flex justify-between items-baseline gap-2">
               <h3 className="font-medium text-foreground text-sm truncate">
-                {session.beta.name}
+                {session.audience.name}
               </h3>
               <span className="text-xs text-muted-foreground flex-shrink-0">
                 {/* {session.timestamp} */}timestamp

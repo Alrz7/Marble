@@ -1,7 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { pgpProfile, User, UserConfig } from "../internal/commonTypes";
 import { generateIdntKey, getKeyFromArmored } from "../enc/encOpenpgp";
-import { InsertUser, SetActiveUserId } from "../db/dbCruds";
+import { InsertUser, SetActiveUserId } from "../db/dbUsers";
 import { generateMasterKey } from "../enc/encMaster";
 import { GetOrCreateKeyChainKey } from "../enc/encMain";
 

@@ -5,6 +5,7 @@ import { Request } from "../../logic/active/actTypes";
 import { useEffect, useRef } from "react";
 import { addHandlers } from "../../logic/active/actWebsocket";
 import { sessionsState } from "../../logic/states/sessionStates";
+import { AppUser } from "../../logic/states/userMainStates";
 
 interface SearchPanelProps {
   query: string;
@@ -13,6 +14,7 @@ interface SearchPanelProps {
 export default function SearchPanel({ query }: SearchPanelProps) {
   const { Users, setUsers } = searchResult();
   const { setCurrentSession } = sessionsState();
+  const { currentUser } = AppUser();
 
   useEffect(() => {
     addHandlers(HandlersRef.current);
@@ -33,12 +35,14 @@ export default function SearchPanel({ query }: SearchPanelProps) {
 creates a preReserved Session with CreateStage=on to use HandleCreate while sending the Starting
 message to initiate the new session
  */
-  function setNewSessionOnStage(user: Audience) {
+  function setNewSessionOnStage(audience: Audience) {
+    if (!currentUser) return
     const preReservedSession: Session = {
+      id: -1,
+      ownerId: currentUser?.config.id,
       sessionId: -1,
-      storageId: "undifined",
       onCreateStage: true,
-      beta: user,
+      audience: audience,
     };
     setCurrentSession(preReservedSession);
   }

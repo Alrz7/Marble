@@ -1,6 +1,5 @@
-import { MAIN_KEY, MARBLE_STRONGHOLD_KEY } from "../internal/commonTypes";
+import { MAIN_KEY } from "../internal/commonTypes";
 import {
-  deleteKeychainObject,
   getKeychainObject,
   setKeychainObject,
 } from "./keyChain";
@@ -20,15 +19,18 @@ export async function GetOrCreateKeyChainKey(): Promise<CryptoKey | null> {
   }
   loadingKey = true;
 
-  const existing = await getKeychainObject(MAIN_KEY);
-  deleteKeychainObject(MARBLE_STRONGHOLD_KEY); // twmperory      one time only       !!!!!!!
-  if (existing) {
-    KEYCHAIN_KEY = await GetKeyFromString(existing);
-    return KEYCHAIN_KEY;
-  }
+  try {
+    const existing = await getKeychainObject(MAIN_KEY);
+    if (existing) {
+      KEYCHAIN_KEY = await GetKeyFromString(existing);
+      return KEYCHAIN_KEY;
+    }
 
-  KEYCHAIN_KEY = await generateMasterKey();
-  const keychainKeybase64 = await KeyToString(KEYCHAIN_KEY);
-  await setKeychainObject(MARBLE_STRONGHOLD_KEY, keychainKeybase64);
-  return KEYCHAIN_KEY;
+    KEYCHAIN_KEY = await generateMasterKey();
+    const keychainKeybase64 = await KeyToString(KEYCHAIN_KEY);
+    await setKeychainObject(MAIN_KEY, keychainKeybase64);
+    return KEYCHAIN_KEY;
+  } finally {
+    loadingKey = false;
+  }
 }

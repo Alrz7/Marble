@@ -27,3 +27,30 @@ export function getUserStoragePath(): string {
 export function GenRandStorageId(): StorageId {
   return getRandomString(16);
 }
+
+export function blobFromDb(value: unknown): Uint8Array {
+  if (value instanceof Uint8Array) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return Uint8Array.from(value as number[]);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+
+    if (trimmed.startsWith("[")) {
+      const parsed = JSON.parse(trimmed) as number[];
+      return Uint8Array.from(parsed);
+    }
+
+    const parts = trimmed.split(",").map((p) => Number(p.trim()));
+    if (parts.some((n) => Number.isNaN(n))) {
+      throw new TypeError("blobFromDb: could not parse string blob");
+    }
+    return Uint8Array.from(parts);
+  }
+
+  throw new TypeError(`blobFromDb: unsupported blob type: ${typeof value}`);
+}

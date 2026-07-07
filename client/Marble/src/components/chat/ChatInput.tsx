@@ -36,7 +36,7 @@ export default function ChatInput() {
     if (currentSession?.onCreateStage) {
       onCreateNewSession(currentSession.audience, newMessage);
     } else {
-      onSendMessage(currentUser.config, currentSession, newMessage);
+      onSendMessage(currentSession, currentUser.MasterKey, newMessage);
     }
 
     addMessage(Messagelist, newMessage);
