@@ -1,18 +1,24 @@
 import { GetAuthToken } from "../internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
+import { Authorized } from "../states/appCommonStates";
+import { MessageStatus } from "./actTypes";
+import {
+  HndlNotifs,
+  HndlSearchResult,
+  HndlSessions,
+} from "../active/actWsServerHandlers";
 
-// ----* handler *----
+// ----* handlers *----
 let ws: WebSocket | null = null;
-let handlersRef: { current: Handelers } = {
-  current: {},
+let handlers: Handelers = {
+  auth: defAuthStatus,
+  sessions: HndlSessions,
+  searchUser: HndlSearchResult,
+  notif: HndlNotifs,
 };
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-export function addHandlers(handlers: Handelers) {
-  handlersRef.current = { ...handlersRef.current, ...handlers };
-}
-
-// ----* Authorization *----
+// ----* Active Authorization *----
 export let isAuthorized = false;
 export function editAuthStatus(newstate: boolean) {
   isAuthorized = newstate;
@@ -32,21 +38,28 @@ export function openConnection() {
   };
 
   ws.onmessage = (event) => {
+    let request: Request;
     try {
-      const request: Request = JSON.parse(event.data);
-      let handeler = handlersRef.current[request.channel];
-      // console.log("Request:", request); // connectio Log
+      request = JSON.parse(event.data);
+    } catch (err) {
+      console.error("JSON parse error:", err);
+      return;
+    }
+
+    try {
+      let handeler = handlers[request.channel];
       if (handeler) {
         handeler(request);
+
         if (request.notif && request.channel !== "notif") {
-          handeler = handlersRef.current["notif"];
+          handeler = handlers["notif"];
           if (handeler) handeler(request);
         }
       } else {
         console.warn(`No handler for channel: ${request.channel}`);
       }
     } catch (err) {
-      console.error("Failed to parse WebSocket message:", err);
+      console.error("Handler error:", err);
     }
   };
 
@@ -101,5 +114,13 @@ function sendToken() {
       token: token,
     };
     sendRequest(req);
+  }
+}
+
+export async function defAuthStatus(request: any) {
+  const { setState } = Authorized.getState();
+  if (request.status == MessageStatus.Approved) {
+    editAuthStatus(true);
+    setState(true);
   }
 }

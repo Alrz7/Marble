@@ -1,11 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Circle } from "lucide-react";
 import { sessionsState } from "../../logic/states/sessionStates";
-import { Request } from "../../logic/active/actTypes";
-import { addHandlers } from "../../logic/active/actWebsocket";
-import { hndlAddSession } from "../../logic/active/actSessionHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
-import { Authorized } from "../../logic/states/appCommonStates";
 import { GetSessions } from "../../logic/db/dbSessions";
 
 export default function SessionsList() {
@@ -13,13 +9,7 @@ export default function SessionsList() {
     null,
   );
   const { currentUser } = AppUser();
-  const {
-    sessionlist,
-    setSessionList,
-    currentSession,
-    setCurrentSession,
-  } = sessionsState();
-  const { isComplete } = Authorized();
+  const { sessionlist, setSessionList, setCurrentSession } = sessionsState();
 
   useEffect(() => {
     async function getSessions() {
@@ -33,30 +23,6 @@ export default function SessionsList() {
     }
     getSessions();
   }, []);
-
-  useEffect(() => {
-    addHandlers(handlersRef.current);
-  }, [isComplete, sessionlist, currentSession, currentUser]);
-
-  const handlersRef = useRef({
-    sessions: HndlSessions,
-  });
-
-  function HndlSessions(req: Request) {
-    if (!req.headers) {
-      console.error("request has no methods");
-      return;
-    }
-    switch (req.headers.task) {
-      case "add":
-        if (!currentUser?.config) {
-          console.error("user is not define!");
-          return;
-        }
-        hndlAddSession(req);
-        break;
-    }
-  }
 
   return (
     <div className="space-y-1 p-2">

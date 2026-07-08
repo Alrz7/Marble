@@ -1,9 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { searchResult } from "../../logic/states/appCommonStates";
 import { Audience, Session } from "../../logic/internal/commonTypes";
-import { Request } from "../../logic/active/actTypes";
-import { useEffect, useRef } from "react";
-import { addHandlers } from "../../logic/active/actWebsocket";
 import { sessionsState } from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
 
@@ -12,25 +9,10 @@ interface SearchPanelProps {
 }
 
 export default function SearchPanel({ query }: SearchPanelProps) {
-  const { Users, setUsers } = searchResult();
+  const { Users } = searchResult();
   const { setCurrentSession, addSession } = sessionsState();
   const { currentUser } = AppUser();
 
-  useEffect(() => {
-    addHandlers(HandlersRef.current);
-  }, []);
-  const HandlersRef = useRef({
-    searchUser: HndlSearchResult,
-  });
-
-  // --- Handler ---
-  function HndlSearchResult(req: Request) {
-    if (!req.body) return;
-    const data: { results: Audience[] } = JSON.parse(req.body);
-    if (data.results) {
-      setUsers(data.results);
-    }
-  }
   /**
 creates a preReserved Session with CreateStage=on to use HandleCreate while sending the Starting
 message to initiate the new session

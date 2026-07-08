@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
-import { loadSavedMessages } from "../../logic/active/actSessionHandlers";
+import { loadSavedMessages } from "../../logic/active/actMessageHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
 
 export default function ChatMessageList() {

@@ -5,8 +5,8 @@ import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
 import {
   onCreateNewSession,
-  onSendMessage,
 } from "../../logic/active/actSessionHandlers";
+import { onSendMessage } from "../../logic/active/actMessageHandlers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");

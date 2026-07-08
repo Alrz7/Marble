@@ -1,31 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from "lucide-react";
 import { notifState } from "../logic/states/appCommonStates";
-import { Request } from "../logic/active/actTypes";
-import { addHandlers } from "../logic/active/actWebsocket";
 
 export default function Notification() {
-  const {
-    notifQueue,
-    currentNotif,
-    setCurrentNotif,
-    addNotification,
-    popNotification,
-  } = notifState();
+  const { notifQueue, currentNotif, setCurrentNotif, popNotification } =
+    notifState();
 
-  useEffect(() => {
-    addHandlers(HandlersRef.current);
-  }, []);
-  const HandlersRef = useRef({
-    notif: HndlNotifs,
-  });
-
-  function HndlNotifs(req: Request) {
-    if (!req.notif) return;
-    addNotification(req.notif);
-  }
-
-  // apply
   useEffect(() => {
     if (notifQueue.length > 0 && currentNotif === null) {
       // here we can either just choose the fist notif in the queue to implement the
