@@ -3,10 +3,7 @@ import { Circle } from "lucide-react";
 import { sessionsState } from "../../logic/states/sessionStates";
 import { Request } from "../../logic/active/actTypes";
 import { addHandlers } from "../../logic/active/actWebsocket";
-import {
-  onSyncSession,
-  hndlAddSession,
-} from "../../logic/active/actSessionHandlers";
+import { hndlAddSession } from "../../logic/active/actSessionHandlers";
 import { AppUser } from "../../logic/states/userMainStates";
 import { Authorized } from "../../logic/states/appCommonStates";
 import { GetSessions } from "../../logic/db/dbSessions";
@@ -16,8 +13,12 @@ export default function SessionsList() {
     null,
   );
   const { currentUser } = AppUser();
-  const { sessionlist, setSessionList, addSession, setCurrentSession } =
-    sessionsState();
+  const {
+    sessionlist,
+    setSessionList,
+    currentSession,
+    setCurrentSession,
+  } = sessionsState();
   const { isComplete } = Authorized();
 
   useEffect(() => {
@@ -35,8 +36,7 @@ export default function SessionsList() {
 
   useEffect(() => {
     addHandlers(handlersRef.current);
-    if (isComplete && currentUser?.config) onSyncSession(sessionlist);
-  }, [isComplete]);
+  }, [isComplete, sessionlist, currentSession, currentUser]);
 
   const handlersRef = useRef({
     sessions: HndlSessions,
@@ -53,7 +53,7 @@ export default function SessionsList() {
           console.error("user is not define!");
           return;
         }
-        hndlAddSession(req, currentUser.MasterKey, sessionlist, addSession);
+        hndlAddSession(req);
         break;
     }
   }

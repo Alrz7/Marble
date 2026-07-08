@@ -34,12 +34,12 @@ export default function ChatInput() {
     };
 
     if (currentSession?.onCreateStage) {
-      onCreateNewSession(currentSession.audience, newMessage);
+      onCreateNewSession(newMessage);
     } else {
-      onSendMessage(currentSession, currentUser.MasterKey, newMessage);
+      onSendMessage(newMessage);
     }
 
-    addMessage(Messagelist, newMessage);
+    addMessage(newMessage);
   };
 
   const onSend = () => {

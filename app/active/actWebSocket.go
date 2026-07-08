@@ -2,7 +2,6 @@ package active
 
 import (
 	"encoding/json"
-	"fmt"
 	"marble/internal"
 	"marble/internal/loggy"
 	"net/http"
@@ -23,7 +22,10 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 	}
 
 	defer func() {
-		conn.Close()
+		err = conn.Close()
+		if err != nil {
+			DefaultLogger.Fatal(err)
+		}
 		DeleteUserOf(conn)
 	}()
 
@@ -66,7 +68,7 @@ func manageHandeler(Request *Request) {
 		"messages":   HndlMessages,
 		"searchUser": HndlSearchUser,
 	}
-	fmt.Println(Request.Channel, Request.Headers)
+	// fmt.Println(Request.Channel, Request.Headers)
 	Handeler, ok := Handelers[Request.Channel]
 	if !ok {
 		//any errors or anything else

@@ -3,6 +3,7 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id BLOB NOT NULL,
     display_id BLOB NOT NULL,
+    hmac_display_id BLOB NOT NULL,
     name BLOB NOT NULL,
     email BLOB NOT NULL,
     encrypted_master_key BLOB NOT NULL,

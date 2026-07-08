@@ -22,7 +22,7 @@ export default function Notification() {
 
   function HndlNotifs(req: Request) {
     if (!req.notif) return;
-    addNotification(notifQueue, req.notif);
+    addNotification(req.notif);
   }
 
   // apply

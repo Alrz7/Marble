@@ -18,9 +18,7 @@ export default function ChatMessageList() {
       currentSession.id == -1
     )
       return;
-    const messages =
-      (await loadSavedMessages(currentUser.MasterKey, currentSession)) ??
-      [];
+    const messages = (await loadSavedMessages()) ?? [];
     setMessages(messages);
   }
 

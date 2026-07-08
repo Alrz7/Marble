@@ -64,16 +64,18 @@ func (m SessionModel) Update(session *Session) error {
 
 func (m SessionModel) IncreaseSessionSequence(sessionId internal.SessionId) (int, error) {
 	var res int
-	query := `UPDATE session 
-     SET last_sequence = last_sequence + 1 
-     WHERE storage_id = $1 
-     RETURNING last_sequence`
-	err := m.Db.QueryRow(query, sessionId).Scan(res)
+	query := `UPDATE session
+SET
+  last_sequence = last_sequence + 1
+WHERE
+  id = $1
+RETURNING
+  last_sequence`
+	err := m.Db.QueryRow(query, sessionId).Scan(&res)
 	if err != nil {
 		return -1, err
 	}
 	return res, nil
-
 }
 
 func (m SessionModel) Delete(id int64) error {

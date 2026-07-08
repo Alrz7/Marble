@@ -34,9 +34,6 @@ func HndlSearchUser(req *Request) {
 	if err != nil {
 		DefaultLogger.Error(err)
 	}
-	// Mod := users.UserModel{
-	// 	DB: internal.App.Db,
-	// }
 	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
 	if err != nil {
 		// DefaultLogger.Error(err)
@@ -44,7 +41,7 @@ func HndlSearchUser(req *Request) {
 	}
 	results := envelope{"results": []Audience{{Name: beta.UserName,
 		UserId: beta.Id, DisplayId: beta.DisplayId,
-		ArmedPubKey: beta.PgpProfile.PublicKey}}}
+		ArmedPubKey: beta.PgpProfile.PublicKey, ProfileAvatar: ""}}}
 
 	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
 }

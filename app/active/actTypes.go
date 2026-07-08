@@ -26,10 +26,11 @@ const (
 )
 
 type Audience struct {
-	Name        string          `json:"name"`
-	UserId      internal.UserId `json:"userId"`
-	DisplayId   string          `json:"displayId"`
-	ArmedPubKey string          `json:"armedPubKey"`
+	Name          string          `json:"name"`
+	UserId        internal.UserId `json:"userId"`
+	DisplayId     string          `json:"displayId"`
+	ProfileAvatar string          `json:"profileAvatar"`
+	ArmedPubKey   string          `json:"armedPubKey"`
 }
 type Request struct {
 	conn    *websocket.Conn
@@ -48,8 +49,6 @@ type Claims struct {
 	UserId internal.UserId `json:"userId"`
 	jwt.RegisteredClaims
 }
-type existingAudiences map[internal.UserId]int64
-
 
 // ------------------------------------------
 

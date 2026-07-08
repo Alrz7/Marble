@@ -15,17 +15,19 @@ export async function InsertSession(
   masterKey: CryptoKey,
 ): Promise<number> {
   const encSessionId = await encryptData(session.sessionId, masterKey);
+
   const res = await db.select<{ id: number }[]>(
     `INSERT INTO session (session_id, owner_id, audience_id, last_sequence) VALUES ($1, $2, $3, $4)
     RETURNING id`,
     [encSessionId, session.ownerId, session.audience.id, 0],
   );
+
   if (!res[0]) throw new Error("there was an error while inserting session");
   return res[0].id;
 }
 
 export async function GetSessions(
-  userId: UserId,
+  ownerId: UserId,
   masterKey: CryptoKey,
 ): Promise<Session[]> {
   const res = await db.select<
@@ -33,11 +35,11 @@ export async function GetSessions(
   >(
     `--sql
     SELECT id, session_id, audience_id FROM Session WHERE owner_id = $1`,
-    [userId],
+    [ownerId],
   );
   const existing: Session[] = [];
   for (const val of res) {
-    const audience = await GetAudience(val.audience_id, null, masterKey);
+    const audience = await GetAudience(null, ownerId, masterKey);
     const decSessionId = await decryptDataFromDb<SessionId>(
       val.session_id,
       masterKey,
@@ -47,10 +49,45 @@ export async function GetSessions(
       id: val.id,
       sessionId: decSessionId,
       audience: audience,
-      ownerId: userId,
+      ownerId: ownerId,
     });
   }
   return existing;
+}
+
+export async function UpdateSession(
+  ownerId: number,
+  audieceId: number,
+  sessionId: SessionId,
+  lastSeq?: number,
+) {
+  const newValues = [sessionId];
+  if (lastSeq !== undefined) {
+    newValues.push(lastSeq);
+  }
+
+  const query = `--sql
+  UPDATE session
+  SET session_id = $3${lastSeq !== undefined ? ", last_sequence = $4" : ""}
+  WHERE owner_id = $1 AND audience_id = $2`;
+
+  await db.execute(query, [ownerId, audieceId, ...newValues]);
+}
+export async function DoesSessionExist(
+  ownerId: number,
+  audieceId: number,
+): Promise<boolean> {
+  const query = `--sql
+  SELECT EXISTS(
+    SELECT 1
+    FROM session
+    WHERE owner_id = $1 AND audience_id = $2
+  ) AS found`;
+  const res = await db.select<{ found: number }[]>(query, [
+    ownerId,
+    audieceId,
+  ]);
+  return res[0]?.found == 1;
 }
 
 // -------- Audience --------
@@ -65,7 +102,7 @@ export async function InsertAudience(
     audience.ownerId,
     encryptData(audience.name, masterKey),
     encryptData(audience.armedPubKey, masterKey),
-    encryptData(audience.ProfileAvatar, masterKey),
+    encryptData(audience.profileAvatar, masterKey),
   ]);
   const res = await db.select<{ id: number }[]>(
     `INSERT INTO audience (user_id, display_id, owner_id, name, public_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6)
@@ -115,7 +152,7 @@ export async function GetAudience(
     ownerId: res[0].owner_id,
     name: await decryptDataFromDb<string>(res[0].name, masterKey),
     armedPubKey: await decryptDataFromDb<string>(res[0].public_key, masterKey),
-    ProfileAvatar: await decryptDataFromDb<string>(
+    profileAvatar: await decryptDataFromDb<string>(
       res[0].profile_avatar,
       masterKey,
     ),
@@ -134,8 +171,8 @@ export async function InsertMessage(
   const updateRes = await db.select<{ last_sequence: number }[]>(
     `UPDATE session 
      SET last_sequence = last_sequence + 1 
-     WHERE storage_id = $1 
-     RETURNING id, last_sequence`,
+     WHERE id = $1 
+     RETURNING last_sequence`,
     [session.id],
   );
 
@@ -178,8 +215,8 @@ export async function GetMessages(
     }[]
   >(
     `--sql
-    SELECT * FROM message FETCH FIRST $1 ROW ONLY WHERE session_id = $2 `,
-    [count, session.id],
+    SELECT * FROM message WHERE session_id = $1 ORDER BY seq DESC LIMIT $2`,
+    [session.id, count],
   );
   const existing: Message[] = [];
 
@@ -187,7 +224,7 @@ export async function GetMessages(
     existing.push({
       id: msg.id,
       seq: msg.seq,
-      sessionId: msg.sender_id,
+      sessionId: msg.session_id,
       content: await decryptDataFromDb<string>(msg.content, masterKey),
       senderId: await decryptDataFromDb<number>(msg.sender_id, masterKey),
       timestamp: new Date(

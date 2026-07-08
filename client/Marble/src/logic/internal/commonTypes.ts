@@ -42,7 +42,7 @@ export type Audience = {
   name: string;
   armedPubKey: string;
   isOnline: boolean;
-  ProfileAvatar: string;
+  profileAvatar: string;
 };
 
 export type Session = {

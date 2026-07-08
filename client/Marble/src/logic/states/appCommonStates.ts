@@ -24,13 +24,13 @@ export const Authorized = create<{
 interface SearchResult {
   Users: Audience[];
   setUsers: (users: Audience[]) => void;
-  addtoUsers: (origin: Audience[], newUsers: Audience[]) => void;
+  addtoUsers: (newUsers: Audience[]) => void;
 }
 export const searchResult = create<SearchResult>((set) => ({
   Users: [],
   setUsers: (users: Audience[]) => set({ Users: users }),
-  addtoUsers: (origin: Audience[], newUsers: Audience[]) =>
-    set({ Users: [...origin, ...newUsers] }),
+  addtoUsers: (newUsers: Audience[]) =>
+    set((state) => ({ Users: [...state.Users, ...newUsers] })),
 }));
 
 // ---- Notifications ----
@@ -40,10 +40,7 @@ interface NotifState {
   currentNotif: Notification | null;
   setNotification: (notifList: Notification[]) => void;
   setCurrentNotif: (notif: Notification | null) => void;
-  addNotification: (
-    origin: Notification[],
-    notif: Notification,
-  ) => Notification[];
+  addNotification: (notif: Notification) => void;
   popNotification: (notifQueue: Notification[]) => void;
 }
 
@@ -53,8 +50,8 @@ export const notifState = create<NotifState>((set) => ({
   setNotification: (notifList: Notification[]) =>
     set({ notifQueue: notifList }),
   setCurrentNotif: (notif: Notification | null) => set({ currentNotif: notif }),
-  addNotification: (origin: Notification[], notif: Notification) => {
-    set({ notifQueue: [...origin, notif] });
+  addNotification: (notif: Notification) => {
+    set((state) => ({ notifQueue: [...state.notifQueue, notif] }));
     return [...origin, notif];
   },
   popNotification: (notifQueue: Notification[]) =>

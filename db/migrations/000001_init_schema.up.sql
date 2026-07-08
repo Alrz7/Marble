@@ -5,6 +5,7 @@ CREATE TABLE users (
     display_id VARCHAR(60) UNIQUE NOT NULL DEFAULT ('u' || nextval('display_id_seq')::text),
     name VARCHAR(60) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
+    profile_avatar TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -19,8 +20,7 @@ CREATE TABLE session (
     alpha_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     beta_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     last_sequence INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE message (

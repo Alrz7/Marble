@@ -15,7 +15,7 @@ func (m *MessageModel) Insert(message *Message) error {
 	VALUES ($1, $2, $3, $4, $5)
 	RETURNING 	id`
 	args := []any{message.Seq, message.SessionId, message.SenderId, message.Content, message.Profile}
-	err := m.Db.QueryRow(query, args...).Scan(message.Id)
+	err := m.Db.QueryRow(query, args...).Scan(&message.Id)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (m *MessageModel) GetBySesionId(sessionId internal.SessionId) ([]*Message, 
 	for rows.Next() {
 		var nxm Message
 
-		err = rows.Scan(nxm.Seq, nxm.SessionId, nxm.SenderId, nxm.Content, nxm.Profile)
+		err = rows.Scan(&nxm.Seq, &nxm.SessionId, &nxm.SenderId, &nxm.Content, &nxm.Profile)
 		if err != nil {
 			return nil, err
 		}

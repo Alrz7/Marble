@@ -13,7 +13,7 @@ interface SearchPanelProps {
 
 export default function SearchPanel({ query }: SearchPanelProps) {
   const { Users, setUsers } = searchResult();
-  const { setCurrentSession } = sessionsState();
+  const { setCurrentSession, addSession } = sessionsState();
   const { currentUser } = AppUser();
 
   useEffect(() => {
@@ -36,7 +36,8 @@ creates a preReserved Session with CreateStage=on to use HandleCreate while send
 message to initiate the new session
  */
   function setNewSessionOnStage(audience: Audience) {
-    if (!currentUser) return
+    if (!currentUser) return;
+    audience.ownerId = currentUser.config.id;
     const preReservedSession: Session = {
       id: -1,
       ownerId: currentUser?.config.id,
@@ -44,6 +45,7 @@ message to initiate the new session
       onCreateStage: true,
       audience: audience,
     };
+    addSession(preReservedSession);
     setCurrentSession(preReservedSession);
   }
 

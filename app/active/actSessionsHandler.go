@@ -7,8 +7,11 @@ import (
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
+
+	"github.com/gorilla/websocket"
 )
 
+// --------- session ---------
 func HndlCreateSession(req *Request) error {
 	entry := struct {
 		AudienceId int    `json:"audienceId"`
@@ -25,43 +28,47 @@ func HndlCreateSession(req *Request) error {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	err = req.user.CreateSession(Beta.Id, entry.Content)
+	newSession, err := req.user.CreateSession(Beta.Id, entry.Content)
 	if err != nil {
 		actServerErrorResponse(req.conn, err)
 		return err
 	}
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
+	req.user.OnAddSession(req.conn, []*session.Session{newSession})
 	return nil
 }
 
-func (u *ActvUser) CreateSession(betaId internal.UserId, content string) error {
+func (u *ActvUser) CreateSession(betaId internal.UserId, content string) (*session.Session, error) {
 	session, err := db.AppModels.SessionModel.CreateSession(u.Id, betaId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = u.SendMessage(session, content)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
 }
 
-/*
-Handles `onSyncSession` requests.
-*/
-// func HndlSyncSessions(req *Request) {
-// 	entry := struct {
-// 		ClientExistingSessions existingAudiences `json:"existingSessions"`
-// 	}{}
-// 	err := json.Unmarshal([]byte(req.Body), &entry)
-// 	if err != nil {
-// 		actBadRequestResponse(req.conn, err)
-// 	}
-// 	RemainingUsers, err := returnUnsyncedSessions(req.user.PgpProfile.Sessions, entry.ClientExistingSessions)
-// 	if err != nil {
-// 		actServerErrorResponse(req.conn, err)
-// 	}
-// 	body := envelope{"sessions": RemainingUsers}
-// 	headers := RequestHeaders{"task": "add"}
-// 	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
-// }
+func (u *ActvUser) OnAddSession(conn *websocket.Conn, sessions []*session.Session) {
+	addingSessions := []envelope{}
+	for _, session := range sessions {
+		audience, err := db.AppModels.UserModel.GetUserProfile(session.Beta)
+		if err != nil {
+			actNotFoundResponse(conn, err)
+		}
+
+		newSession := envelope{"sessionId": session.Id, "audience": Audience{audience.UserName,
+			audience.Id,
+			audience.DisplayId,
+			"",
+			audience.PgpProfile.PublicKey}}
+		addingSessions = append(addingSessions, newSession)
+	}
+	Body := envelope{"sessions": addingSessions}
+	headers := RequestHeaders{"task": "add"}
+	sendHandlerResponse(conn, StatusPending, "sessions", headers, Body)
+}
 
 // --- Messages ---
 func HndlSendMesage(req *Request) error {

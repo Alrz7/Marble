@@ -24,6 +24,7 @@ export async function InsertUser(
 ): Promise<number> {
   const encrypted = await Promise.all([
     encryptData(user.config.userId, keychainKey),
+    encryptData(user.config.displayId, keychainKey),
     SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
     encryptData(user.config.name, keychainKey),
     encryptData(user.config.email, keychainKey),
@@ -32,7 +33,7 @@ export async function InsertUser(
   ]);
 
   const ids = await db.select<{ id: number }[]>(
-    `INSERT INTO users (user_id, display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id`,
     encrypted,
   );
@@ -51,7 +52,7 @@ export async function GetUser(
   if (id) {
     selectBy = "id";
   } else if (display_id) {
-    selectBy = "display_id";
+    selectBy = "hmac_display_id";
   } else {
     return null;
   }
@@ -78,8 +79,7 @@ export async function GetUser(
   const config: UserConfig = {
     id: res[0].id,
     userId: await decryptDataFromDb<number>(res[0].user_id, keychainKey),
-    // displayId: await decryptDataFromDb<string>(res[0].display_id, keychainKey),
-    displayId: "test",
+    displayId: await decryptDataFromDb<string>(res[0].display_id, keychainKey),
     name: await decryptDataFromDb<string>(res[0].name, keychainKey),
     email: await decryptDataFromDb<string>(res[0].email, keychainKey),
     profile_avatar: await decryptDataFromDb<string>(
