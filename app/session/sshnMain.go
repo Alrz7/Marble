@@ -1,7 +1,6 @@
 package session
 
 import (
-	"fmt"
 	"marble/internal"
 )
 
@@ -11,22 +10,13 @@ func (m SessionModel) CreateSession(alphaId, betaId internal.UserId) (*Session, 
 		Beta:    betaId,
 		LastSeq: 0,
 	}
-	err := m.Save(&newSession)
+	err := m.Insert(&newSession)
 	if err != nil {
 		return nil, err
 	}
 	return &newSession, nil
 }
 
-func (m MessageModel) SendMessage(message *Message) error {
-	return m.Insert(message)
-}
-
-func (m SessionModel) Save(session *Session) error {
-	err := m.Insert(session)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
-}
+// func (m MessageModel) SendMessage(message *Message) error {
+// 	return m.Insert(message)
+// }

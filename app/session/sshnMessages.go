@@ -3,6 +3,7 @@ package session
 import (
 	"database/sql"
 	"marble/internal"
+	"marble/internal/loggy"
 )
 
 type MessageModel struct {
@@ -10,6 +11,8 @@ type MessageModel struct {
 }
 
 func (m *MessageModel) Insert(message *Message) error {
+	loggy.DefaultLogger.Info(message)
+
 	query := `--sql
 	INSERT INTO message (seq, session_id, sender_id, content, profile)
 	VALUES ($1, $2, $3, $4, $5)

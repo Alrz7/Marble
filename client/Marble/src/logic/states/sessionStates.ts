@@ -30,3 +30,9 @@ export const Messages = create<MessageStates>((set) => ({
   addMessage: (newMessage: Message) =>
     set((state) => ({ Messagelist: [...state.Messagelist, newMessage] })),
 }));
+
+export function reserveSessionId(): number {
+  const { sessionlist } = sessionsState.getState();
+  const existingIds = sessionlist.filter((s) => s.id < 0).map((s) => s.id);
+  return (existingIds.length ? Math.min(...existingIds) : 0) - 1;
+}

@@ -2,7 +2,7 @@ import {
   InsertAudience,
   InsertMessage,
   InsertSession,
-  UpdateSession,
+  UpdateSessionById,
 } from "../db/dbSessions";
 import { encryptMessage } from "../enc/encOpenpgp";
 import { Message, Session } from "../internal/commonTypes";
@@ -17,7 +17,6 @@ export async function onCreateNewSession(message: Message) {
   const { currentSession, setCurrentSession } = sessionsState.getState();
   const { currentUser } = AppUser.getState();
   if (!currentUser || !currentSession) return;
-  if (!currentSession) return;
 
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
@@ -44,8 +43,8 @@ export async function onCreateNewSession(message: Message) {
   currentSession.audience.id = id;
   id = await InsertSession(currentSession, currentUser.MasterKey);
   currentSession.id = id;
-  setCurrentSession(currentSession);
   await InsertMessage(currentSession, message, currentUser.MasterKey);
+  setCurrentSession({ ...currentSession });
 }
 
 export async function hndlAddSession(req: Request) {
@@ -58,10 +57,15 @@ export async function hndlAddSession(req: Request) {
     for (let session of data.sessions) {
       session.audience.ownerId = currentUser.config.id;
       session.ownerId = currentUser.config.id;
+      // console.log(session);
 
       const existing = await SameOnStage(session);
-      if (existing) {
-        UpdateSession(currentUser.config.id, session.audience.id, session.id);
+      if (existing !== null) {
+        UpdateSessionById(
+          existing.id,
+          session.sessionId,
+          currentUser.MasterKey,
+        );
       } else {
         var id = await InsertAudience(session.audience, currentUser.MasterKey);
         session.audience.id = id;
@@ -69,23 +73,27 @@ export async function hndlAddSession(req: Request) {
         session.id = id;
         addSession(session);
       }
+      // console.log(existing?.id, existing?.sessionId);
     }
   } catch (err) {
     console.error(err);
   }
 }
 
-export async function SameOnStage(addingSession: Session): Promise<boolean> {
+export async function SameOnStage(
+  addingSession: Session,
+): Promise<Session | null> {
   const { sessionlist, currentSession } = sessionsState.getState();
 
   for (const ex of currentSession
     ? [currentSession, ...sessionlist]
     : sessionlist) {
     if (ex.audience.userId === addingSession.audience.userId) {
-      return true;
+      ex.sessionId = addingSession.sessionId;
+      return ex;
     }
   }
-  return false;
+  return null;
 }
 
 /** 

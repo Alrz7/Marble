@@ -10,6 +10,7 @@ export default function SessionsList() {
   );
   const { currentUser } = AppUser();
   const { sessionlist, setSessionList, setCurrentSession } = sessionsState();
+  
 
   useEffect(() => {
     async function getSessions() {

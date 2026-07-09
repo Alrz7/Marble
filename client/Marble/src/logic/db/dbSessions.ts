@@ -55,24 +55,47 @@ export async function GetSessions(
   return existing;
 }
 
-export async function UpdateSession(
-  ownerId: number,
-  audieceId: number,
+export async function UpdateSessionById(
+  id: SessionId,
   sessionId: SessionId,
+  masterKey: CryptoKey,
   lastSeq?: number,
 ) {
-  const newValues = [sessionId];
-  if (lastSeq !== undefined) {
-    newValues.push(lastSeq);
-  }
-
-  const query = `--sql
+  try {
+    const encSessionId = await encryptData(sessionId, masterKey);
+    type comb = Uint8Array<ArrayBufferLike> | number;
+    const newValues: comb[] = [encSessionId];
+    if (lastSeq !== undefined) {
+      newValues.push(lastSeq);
+    }
+    const query = `--sql
   UPDATE session
-  SET session_id = $3${lastSeq !== undefined ? ", last_sequence = $4" : ""}
-  WHERE owner_id = $1 AND audience_id = $2`;
+  SET session_id = $2${lastSeq !== undefined ? ", last_sequence = $3" : ""}
+  WHERE id = $1`;
 
-  await db.execute(query, [ownerId, audieceId, ...newValues]);
+    await db.execute(query, [id, ...newValues]);
+  } catch (err) {
+    console.warn(err);
+  }
 }
+// export async function UpdateSession(
+//   ownerId: number,
+//   audieceId: number,
+//   sessionId: SessionId,
+//   lastSeq?: number,
+// ) {
+//   const newValues = [sessionId];
+//   if (lastSeq !== undefined) {
+//     newValues.push(lastSeq);
+//   }
+
+//   const query = `--sql
+//   UPDATE session
+//   SET session_id = $3${lastSeq !== undefined ? ", last_sequence = $4" : ""}
+//   WHERE owner_id = $1 AND audience_id = $2`;
+
+//   await db.execute(query, [ownerId, audieceId, ...newValues]);
+// }
 export async function DoesSessionExist(
   ownerId: number,
   audieceId: number,
@@ -83,10 +106,7 @@ export async function DoesSessionExist(
     FROM session
     WHERE owner_id = $1 AND audience_id = $2
   ) AS found`;
-  const res = await db.select<{ found: number }[]>(query, [
-    ownerId,
-    audieceId,
-  ]);
+  const res = await db.select<{ found: number }[]>(query, [ownerId, audieceId]);
   return res[0]?.found == 1;
 }
 

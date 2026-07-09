@@ -3,6 +3,7 @@ import { searchResult } from "../../logic/states/appCommonStates";
 import { Audience, Session } from "../../logic/internal/commonTypes";
 import { sessionsState } from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
+import { useEffect } from "react";
 
 interface SearchPanelProps {
   query: string;
@@ -10,8 +11,12 @@ interface SearchPanelProps {
 
 export default function SearchPanel({ query }: SearchPanelProps) {
   const { Users } = searchResult();
-  const { setCurrentSession, addSession } = sessionsState();
+  const { setCurrentSession, addSession, currentSession } = sessionsState();
   const { currentUser } = AppUser();
+
+  useEffect(() => {
+    console.log(currentSession);
+  }, [currentSession]);
 
   /**
 creates a preReserved Session with CreateStage=on to use HandleCreate while sending the Starting

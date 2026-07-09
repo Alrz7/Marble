@@ -28,9 +28,12 @@ func HndlCreateSession(req *Request) error {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	newSession, err := req.user.CreateSession(Beta.Id, entry.Content)
+	newSession, err := db.AppModels.SessionModel.CreateSession(req.user.Id, Beta.Id)
 	if err != nil {
-		actServerErrorResponse(req.conn, err)
+		return err
+	}
+	err = req.user.SendMessage(newSession, entry.Content)
+	if err != nil {
 		return err
 	}
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
@@ -38,34 +41,22 @@ func HndlCreateSession(req *Request) error {
 	return nil
 }
 
-func (u *ActvUser) CreateSession(betaId internal.UserId, content string) (*session.Session, error) {
-	session, err := db.AppModels.SessionModel.CreateSession(u.Id, betaId)
-	if err != nil {
-		return nil, err
-	}
-	err = u.SendMessage(session, content)
-	if err != nil {
-		return nil, err
-	}
-	return session, nil
-}
-
 func (u *ActvUser) OnAddSession(conn *websocket.Conn, sessions []*session.Session) {
-	addingSessions := []envelope{}
+	sendingSessions := []envelope{}
 	for _, session := range sessions {
 		audience, err := db.AppModels.UserModel.GetUserProfile(session.Beta)
 		if err != nil {
 			actNotFoundResponse(conn, err)
 		}
 
-		newSession := envelope{"sessionId": session.Id, "audience": Audience{audience.UserName,
+		newSendingSession := envelope{"sessionId": session.Id, "audience": Audience{audience.UserName,
 			audience.Id,
 			audience.DisplayId,
 			"",
 			audience.PgpProfile.PublicKey}}
-		addingSessions = append(addingSessions, newSession)
+		sendingSessions = append(sendingSessions, newSendingSession)
 	}
-	Body := envelope{"sessions": addingSessions}
+	Body := envelope{"sessions": sendingSessions}
 	headers := RequestHeaders{"task": "add"}
 	sendHandlerResponse(conn, StatusPending, "sessions", headers, Body)
 }
@@ -91,6 +82,7 @@ func HndlSendMesage(req *Request) error {
 }
 
 func (u *ActvUser) SendMessage(S *session.Session, message string) error {
+	DefaultLogger.Info("sending")
 	var newMessage = session.Message{
 		SessionId: S.Id,
 		Content:   message,
@@ -102,10 +94,15 @@ func (u *ActvUser) SendMessage(S *session.Session, message string) error {
 		if err != nil {
 			return err
 		}
+		DefaultLogger.Info(newSeq)
+
 		newMessage.Seq = newSeq
-		err = db.AppModels.MessageModel.SendMessage(&newMessage)
+		err = db.AppModels.MessageModel.Insert(&newMessage)
+		// err = db.AppModels.MessageModel.SendMessage(&newMessage)
 		if err != nil {
+			DefaultLogger.Info(err)
 			return err
+
 		}
 	} else {
 		return errors.New("There was a mismatch among audiences while sending message")

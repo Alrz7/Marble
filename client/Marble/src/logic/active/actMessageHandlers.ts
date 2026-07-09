@@ -10,8 +10,9 @@ import { AppUser } from "../states/userMainStates";
 export async function onSendMessage(message: Message) {
   const { currentUser } = AppUser.getState();
   const { currentSession } = sessionsState.getState();
+  
   if (!currentUser || !currentSession) return;
-
+  console.log(currentSession)
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
     currentSession.audience.armedPubKey,
@@ -34,6 +35,7 @@ export async function onSendMessage(message: Message) {
     headers: { task: "send" },
     body: JSON.stringify(struct),
   };
+  console.log(req);
   sendRequest(req);
 
   saveNewMessage(currentSession, currentUser.MasterKey, message);

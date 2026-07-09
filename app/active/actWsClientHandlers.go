@@ -55,7 +55,10 @@ func HndlMessages(req *Request) {
 	}
 	switch tesk {
 	case "send":
-		HndlSendMesage(req)
+		err := HndlSendMesage(req)
+		if err != nil {
+			DefaultLogger.Error(err)
+		}
 	case "sync":
 		// HndlSyncMesages(req)
 	}
