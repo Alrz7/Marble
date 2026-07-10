@@ -9,13 +9,15 @@ import { AppUser } from "../states/userMainStates";
 // -----* messages *-----
 export async function onSendMessage(message: Message) {
   const { currentUser } = AppUser.getState();
-  const { currentSession } = sessionsState.getState();
-  
-  if (!currentUser || !currentSession) return;
-  console.log(currentSession)
+  const { currentSessionId, sessions } = sessionsState.getState();
+  if (!currentUser) return;
+  const curSession = sessions.get(currentSessionId);
+  if (!curSession) return;
+
+  console.log(curSession);
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
-    currentSession.audience.armedPubKey,
+    curSession.audience.armedPubKey,
     MessageToJsonString,
   );
   if (!encMessage) return;
@@ -25,8 +27,8 @@ export async function onSendMessage(message: Message) {
     sessionId: SessionId;
     message: String;
   } = {
-    audienceId: currentSession.audience.userId,
-    sessionId: currentSession.sessionId,
+    audienceId: curSession.audience.userId,
+    sessionId: curSession.sessionId,
     message: encMessage,
   };
   const req: Request = {
@@ -38,7 +40,7 @@ export async function onSendMessage(message: Message) {
   console.log(req);
   sendRequest(req);
 
-  saveNewMessage(currentSession, currentUser.MasterKey, message);
+  saveNewMessage(curSession, currentUser.MasterKey, message);
 }
 
 export async function saveNewMessage(
@@ -52,9 +54,11 @@ export async function saveNewMessage(
 
 export async function loadSavedMessages() {
   const { currentUser } = AppUser.getState();
-  const { currentSession } = sessionsState.getState();
-  if (!currentUser || !currentSession) return;
+  if (!currentUser) return;
+  const { currentSessionId, sessions } = sessionsState.getState();
+  const curSession = sessions.get(currentSessionId);
+  if (!curSession) return;
 
-  const existing = await GetMessages(currentUser.MasterKey, currentSession, 10);
+  const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
   return existing;
 }

@@ -4,11 +4,11 @@ import ChatInput from "./ChatInput";
 import { sessionsState } from "../../logic/states/sessionStates";
 
 export default function ChatArea() {
-  const { currentSession } = sessionsState();
-
+  const { currentSessionId, sessions } = sessionsState();
+  const curSession = sessions.get(currentSessionId);
   return (
     <div className="flex flex-col h-full bg-background">
-      {currentSession ? (
+      {curSession ? (
         <>
           <ChatHeader />
           <ChatMessageList />

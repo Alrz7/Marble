@@ -14,13 +14,16 @@ import { AppUser } from "../states/userMainStates";
 // ---- sessions ----
 
 export async function onCreateNewSession(message: Message) {
-  const { currentSession, setCurrentSession } = sessionsState.getState();
   const { currentUser } = AppUser.getState();
-  if (!currentUser || !currentSession) return;
+  if (!currentUser) return;
+  const { currentSessionId, sessions, UpdateCurrentSession } =
+    sessionsState.getState();
+  const curSession = sessions.get(currentSessionId);
+  if (!curSession) return;
 
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
-    currentSession.audience.armedPubKey,
+    curSession.audience.armedPubKey,
     MessageToJsonString,
   );
   if (!encMessage) return;
@@ -29,7 +32,7 @@ export async function onCreateNewSession(message: Message) {
     audienceId: number;
     content: string;
   } = {
-    audienceId: currentSession.audience.userId,
+    audienceId: curSession.audience.userId,
     content: encMessage,
   };
   const req: Request = {
@@ -38,18 +41,28 @@ export async function onCreateNewSession(message: Message) {
     headers: { task: "create" },
     body: JSON.stringify(struct),
   };
+  // preSaving in database
+  const next: Session = { ...curSession, audience: { ...curSession.audience } };
+
+  var audieceId = await InsertAudience(
+    curSession.audience,
+    currentUser.MasterKey,
+  );
+  next.audience.id = audieceId;
+
+  const sessionId = await InsertSession(next, currentUser.MasterKey);
+  next.id = sessionId;
+
+  await InsertMessage(next, message, currentUser.MasterKey);
+  console.log(curSession.id, next);
+  UpdateCurrentSession(next);
+
   sendRequest(req);
-  var id = await InsertAudience(currentSession.audience, currentUser.MasterKey);
-  currentSession.audience.id = id;
-  id = await InsertSession(currentSession, currentUser.MasterKey);
-  currentSession.id = id;
-  await InsertMessage(currentSession, message, currentUser.MasterKey);
-  setCurrentSession({ ...currentSession });
 }
 
 export async function hndlAddSession(req: Request) {
   const { currentUser } = AppUser.getState();
-  const { addSession } = sessionsState.getState();
+  const { addSession, updateSession } = sessionsState.getState();
   if (!currentUser) return;
 
   try {
@@ -57,15 +70,20 @@ export async function hndlAddSession(req: Request) {
     for (let session of data.sessions) {
       session.audience.ownerId = currentUser.config.id;
       session.ownerId = currentUser.config.id;
-      // console.log(session);
 
       const existing = await SameOnStage(session);
       if (existing !== null) {
-        UpdateSessionById(
+        await UpdateSessionById(
           existing.id,
           session.sessionId,
           currentUser.MasterKey,
         );
+        const next: Session = {
+          ...existing,
+          sessionId: session.sessionId,
+          onCreateStage: false,
+        };
+        updateSession(existing.id, next);
       } else {
         var id = await InsertAudience(session.audience, currentUser.MasterKey);
         session.audience.id = id;
@@ -73,7 +91,6 @@ export async function hndlAddSession(req: Request) {
         session.id = id;
         addSession(session);
       }
-      // console.log(existing?.id, existing?.sessionId);
     }
   } catch (err) {
     console.error(err);
@@ -83,13 +100,14 @@ export async function hndlAddSession(req: Request) {
 export async function SameOnStage(
   addingSession: Session,
 ): Promise<Session | null> {
-  const { sessionlist, currentSession } = sessionsState.getState();
+  const { currentSessionId, sessions } = sessionsState.getState();
+  const curSession = sessions.get(currentSessionId);
+  if (!curSession) return null;
 
-  for (const ex of currentSession
-    ? [currentSession, ...sessionlist]
-    : sessionlist) {
+  for (const ex of curSession
+    ? [curSession, ...sessions.values()]
+    : [...sessions.values()]) {
     if (ex.audience.userId === addingSession.audience.userId) {
-      ex.sessionId = addingSession.sessionId;
       return ex;
     }
   }

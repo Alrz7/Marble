@@ -1,9 +1,12 @@
 import { MessageCircle } from "lucide-react";
 import { searchResult } from "../../logic/states/appCommonStates";
 import { Audience, Session } from "../../logic/internal/commonTypes";
-import { sessionsState } from "../../logic/states/sessionStates";
+import {
+  reserveSessionId,
+  sessionsState,
+} from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
-import { useEffect } from "react";
+import { SameOnStage } from "../../logic/active/actSessionHandlers";
 
 interface SearchPanelProps {
   query: string;
@@ -11,29 +14,31 @@ interface SearchPanelProps {
 
 export default function SearchPanel({ query }: SearchPanelProps) {
   const { Users } = searchResult();
-  const { setCurrentSession, addSession, currentSession } = sessionsState();
+  const { addSession, setCurrentSessionId } = sessionsState();
   const { currentUser } = AppUser();
-
-  useEffect(() => {
-    console.log(currentSession);
-  }, [currentSession]);
 
   /**
 creates a preReserved Session with CreateStage=on to use HandleCreate while sending the Starting
 message to initiate the new session
  */
-  function setNewSessionOnStage(audience: Audience) {
+  async function setNewSessionOnStage(audience: Audience) {
     if (!currentUser) return;
+    const newReservedId = reserveSessionId();
     audience.ownerId = currentUser.config.id;
     const preReservedSession: Session = {
-      id: -1,
+      id: newReservedId,
       ownerId: currentUser?.config.id,
-      sessionId: -1,
+      sessionId: newReservedId,
       onCreateStage: true,
       audience: audience,
     };
-    addSession(preReservedSession);
-    setCurrentSession(preReservedSession);
+    const existing = await SameOnStage(preReservedSession);
+    if (existing == null) {
+      addSession(preReservedSession);
+      setCurrentSessionId(newReservedId);
+    } else {
+      setCurrentSessionId(existing.id);
+    }
   }
 
   if (Users.length === 0) {

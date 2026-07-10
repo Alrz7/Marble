@@ -3,28 +3,19 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
 import { loadSavedMessages } from "../../logic/active/actMessageHandlers";
-import { AppUser } from "../../logic/states/userMainStates";
 
 export default function ChatMessageList() {
-  const { currentSession } = sessionsState();
+  const { currentSessionId, sessions } = sessionsState();
   const { Messagelist, setMessages } = Messages();
-  const { currentUser } = AppUser();
 
   async function loadMessages() {
-    if (
-      !currentUser ||
-      !currentUser.config ||
-      !currentSession ||
-      currentSession.id == -1
-    )
-      return;
     const messages = (await loadSavedMessages()) ?? [];
     setMessages(messages);
   }
 
   useEffect(() => {
     loadMessages();
-  }, [currentSession]);
+  }, [currentSessionId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +47,11 @@ export default function ChatMessageList() {
       )}
 
       {/* {isTyping && <TypingIndicator senderName="John " />} */}
-      {false && <TypingIndicator senderName={currentSession?.audience.name} />}
+      {false && (
+        <TypingIndicator
+          senderName={sessions.get(currentSessionId)?.audience.name}
+        />
+      )}
 
       <div ref={messagesEndRef} />
     </div>

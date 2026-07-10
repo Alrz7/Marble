@@ -7,6 +7,7 @@ import {
   SessionId,
   UserId,
 } from "../internal/commonTypes";
+import { getRandomString } from "../internal/helperfuncs";
 import { db } from "./dbMain";
 
 // ----- Sessions -----
@@ -24,6 +25,13 @@ export async function InsertSession(
 
   if (!res[0]) throw new Error("there was an error while inserting session");
   return res[0].id;
+}
+
+export async function InsertMocingSession(
+  session: Session,
+  masterKey: CryptoKey,
+): Promise<number> {
+  return Math.floor(Math.random() * 60);
 }
 
 export async function GetSessions(
@@ -78,24 +86,7 @@ export async function UpdateSessionById(
     console.warn(err);
   }
 }
-// export async function UpdateSession(
-//   ownerId: number,
-//   audieceId: number,
-//   sessionId: SessionId,
-//   lastSeq?: number,
-// ) {
-//   const newValues = [sessionId];
-//   if (lastSeq !== undefined) {
-//     newValues.push(lastSeq);
-//   }
 
-//   const query = `--sql
-//   UPDATE session
-//   SET session_id = $3${lastSeq !== undefined ? ", last_sequence = $4" : ""}
-//   WHERE owner_id = $1 AND audience_id = $2`;
-
-//   await db.execute(query, [ownerId, audieceId, ...newValues]);
-// }
 export async function DoesSessionExist(
   ownerId: number,
   audieceId: number,
@@ -131,6 +122,13 @@ export async function InsertAudience(
   );
   if (!res[0]) throw new Error("there was an error while inserting audience");
   return res[0].id;
+}
+
+export async function InsertMocingAudience(
+  audience: Audience,
+  masterKey: CryptoKey,
+): Promise<number> {
+  return Math.floor(Math.random() * 60);
 }
 
 export async function GetAudience(
@@ -216,6 +214,14 @@ export async function InsertMessage(
   );
   if (!res[0]) throw new Error("there was an error while inserting message");
   return res[0].id;
+}
+
+export async function InsertMocingMessage(
+  session: Session,
+  message: Message,
+  masterKey: CryptoKey,
+): Promise<number> {
+  return Math.floor(Math.random() * 60);
 }
 
 export async function GetMessages(

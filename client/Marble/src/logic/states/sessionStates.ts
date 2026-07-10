@@ -2,21 +2,56 @@ import { create } from "zustand";
 import { Message, Session } from "../internal/commonTypes";
 
 interface SessionsState {
-  sessionlist: Session[];
-  currentSession: Session | null;
-  setSessionList: (list: Session[]) => void;
-  addSession: (essions: Session) => void;
-  setCurrentSession: (newsession: Session | null) => void;
+  sessions: Map<number, Session>;
+  currentSessionId: number;
+  setSessions: (list: Session[]) => void;
+  addSession: (session: Session) => void;
+  updateSession: (oldId: number, next: Session) => void;
+  UpdateCurrentSession: (next: Session) => void;
+  setCurrentSessionId: (id: number) => void;
 }
 
 export const sessionsState = create<SessionsState>((set) => ({
-  sessionlist: [],
-  currentSession: null,
-  setSessionList: (list: Session[]) => set({ sessionlist: list }),
-  addSession: (sessions: Session) =>
-    set((state) => ({ sessionlist: [...state.sessionlist, sessions] })),
-  setCurrentSession: (newsession: Session | null) =>
-    set({ currentSession: newsession }),
+  sessions: new Map<number, Session>([]),
+  currentSessionId: 0,
+  setSessions: (list: Session[]) =>
+    set(() => {
+      const newSessions = new Map();
+      for (const s of list) {
+        newSessions.set(s.id, s);
+      }
+      return {
+        sessions: newSessions,
+      };
+    }),
+  addSession: (session: Session) =>
+    set((state) => {
+      const next = new Map(state.sessions);
+      next.set(session.id, session);
+      return { sessions: next };
+    }),
+  updateSession: (oldId: number, next: Session) =>
+    set((state) => {
+      const newGen = new Map(state.sessions);
+      const old = newGen.get(oldId);
+      if (!old) return state;
+      newGen.delete(oldId);
+      newGen.set(next.id, next);
+      return {
+        sessions: newGen,
+      };
+    }),
+  UpdateCurrentSession: (next: Session) =>
+    set((state) => {
+      const newGen = new Map(state.sessions);
+      newGen.delete(state.currentSessionId);
+      newGen.set(next.id, next);
+      return {
+        sessions: newGen,
+        currentSessionId: next.id,
+      };
+    }),
+  setCurrentSessionId: (id: number) => set({ currentSessionId: id }),
 }));
 
 interface MessageStates {
@@ -32,7 +67,9 @@ export const Messages = create<MessageStates>((set) => ({
 }));
 
 export function reserveSessionId(): number {
-  const { sessionlist } = sessionsState.getState();
-  const existingIds = sessionlist.filter((s) => s.id < 0).map((s) => s.id);
+  const { sessions } = sessionsState.getState();
+  const existingIds = [...sessions.values()]
+    .filter((s) => s.id < 0)
+    .map((s) => s.id);
   return (existingIds.length ? Math.min(...existingIds) : 0) - 1;
 }

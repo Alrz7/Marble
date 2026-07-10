@@ -3,16 +3,15 @@ import { Send, Paperclip, Smile } from "lucide-react";
 import { Messages, sessionsState } from "../../logic/states/sessionStates";
 import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
-import {
-  onCreateNewSession,
-} from "../../logic/active/actSessionHandlers";
+import { onCreateNewSession } from "../../logic/active/actSessionHandlers";
 import { onSendMessage } from "../../logic/active/actMessageHandlers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { currentUser } = AppUser();
-  const { currentSession } = sessionsState();
+  const { currentSessionId, sessions } = sessionsState();
+  const curSession = sessions.get(currentSessionId);
   const { Messagelist, addMessage } = Messages();
 
   /**
@@ -21,19 +20,19 @@ export default function ChatInput() {
    * @returns
    */
   const PrepareNewMessage = (content: string) => {
-    if (!currentUser?.config || !currentSession) return;
+    if (!curSession || !currentUser) return;
     let lastId = Messagelist.at(-1)?.id;
     const newMessage: Message = {
       id: lastId ? lastId++ : 0,
       seq: -1,
-      sessionId: currentSession.id,
+      sessionId: curSession.id,
       content,
       senderId: currentUser?.config.id,
       timestamp: new Date(),
       status: "sent",
     };
 
-    if (currentSession?.onCreateStage) {
+    if (curSession?.onCreateStage) {
       onCreateNewSession(newMessage);
     } else {
       onSendMessage(newMessage);

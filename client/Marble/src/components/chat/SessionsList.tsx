@@ -5,34 +5,34 @@ import { AppUser } from "../../logic/states/userMainStates";
 import { GetSessions } from "../../logic/db/dbSessions";
 
 export default function SessionsList() {
-  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(
-    null,
-  );
+  const [selectedSessionId] = useState<number | null>(null);
   const { currentUser } = AppUser();
-  const { sessionlist, setSessionList, setCurrentSession } = sessionsState();
-  
-
+  const { sessions, setSessions, currentSessionId, setCurrentSessionId } =
+    sessionsState();
   useEffect(() => {
     async function getSessions() {
-      if (currentUser?.config) {
+      if (currentUser) {
         const sessions = await GetSessions(
           currentUser.config.id,
           currentUser.MasterKey,
         );
-        setSessionList(sessions);
+        setSessions(sessions);
       }
     }
     getSessions();
-  }, []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    console.log(currentSessionId, sessions);
+  }, [currentSessionId, sessions]);
 
   return (
     <div className="space-y-1 p-2">
-      {sessionlist.map((session) => (
+      {[...sessions.values()].map((session) => (
         <button
           key={session.sessionId}
           onClick={() => {
-            setCurrentSession(session);
-            setSelectedSessionId(session.sessionId);
+            setCurrentSessionId(session.id);
           }}
           className={`w-full px-3 py-3 rounded-lg transition-colors flex items-start gap-3 ${
             selectedSessionId === session.sessionId

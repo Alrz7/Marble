@@ -82,7 +82,6 @@ func HndlSendMesage(req *Request) error {
 }
 
 func (u *ActvUser) SendMessage(S *session.Session, message string) error {
-	DefaultLogger.Info("sending")
 	var newMessage = session.Message{
 		SessionId: S.Id,
 		Content:   message,
@@ -94,15 +93,12 @@ func (u *ActvUser) SendMessage(S *session.Session, message string) error {
 		if err != nil {
 			return err
 		}
-		DefaultLogger.Info(newSeq)
 
 		newMessage.Seq = newSeq
 		err = db.AppModels.MessageModel.Insert(&newMessage)
 		// err = db.AppModels.MessageModel.SendMessage(&newMessage)
 		if err != nil {
-			DefaultLogger.Info(err)
 			return err
-
 		}
 	} else {
 		return errors.New("There was a mismatch among audiences while sending message")
