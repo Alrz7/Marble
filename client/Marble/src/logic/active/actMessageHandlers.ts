@@ -14,14 +14,11 @@ export async function onSendMessage(message: Message) {
   const curSession = sessions.get(currentSessionId);
   if (!curSession) return;
 
-  console.log(curSession);
   const MessageToJsonString: string = JSON.stringify(message);
   const encMessage = await encryptMessage(
     curSession.audience.armedPubKey,
     MessageToJsonString,
   );
-  if (!encMessage) return;
-
   const struct: {
     audienceId: UserId;
     sessionId: SessionId;

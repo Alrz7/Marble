@@ -102,7 +102,6 @@ export async function SameOnStage(
 ): Promise<Session | null> {
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
-  if (!curSession) return null;
 
   for (const ex of curSession
     ? [curSession, ...sessions.values()]

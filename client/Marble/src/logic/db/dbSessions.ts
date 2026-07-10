@@ -7,7 +7,6 @@ import {
   SessionId,
   UserId,
 } from "../internal/commonTypes";
-import { getRandomString } from "../internal/helperfuncs";
 import { db } from "./dbMain";
 
 // ----- Sessions -----
@@ -27,12 +26,12 @@ export async function InsertSession(
   return res[0].id;
 }
 
-export async function InsertMocingSession(
-  session: Session,
-  masterKey: CryptoKey,
-): Promise<number> {
-  return Math.floor(Math.random() * 60);
-}
+// export async function InsertMocingSession(
+//   session: Session,
+//   masterKey: CryptoKey,
+// ): Promise<number> {
+//   return Math.floor(Math.random() * 60);
+// }
 
 export async function GetSessions(
   ownerId: UserId,
@@ -124,12 +123,12 @@ export async function InsertAudience(
   return res[0].id;
 }
 
-export async function InsertMocingAudience(
-  audience: Audience,
-  masterKey: CryptoKey,
-): Promise<number> {
-  return Math.floor(Math.random() * 60);
-}
+// export async function InsertMocingAudience(
+//   audience: Audience,
+//   masterKey: CryptoKey,
+// ): Promise<number> {
+//   return Math.floor(Math.random() * 60);
+// }
 
 export async function GetAudience(
   id: number | null,
@@ -216,13 +215,13 @@ export async function InsertMessage(
   return res[0].id;
 }
 
-export async function InsertMocingMessage(
-  session: Session,
-  message: Message,
-  masterKey: CryptoKey,
-): Promise<number> {
-  return Math.floor(Math.random() * 60);
-}
+// export async function InsertMocingMessage(
+//   session: Session,
+//   message: Message,
+//   masterKey: CryptoKey,
+// ): Promise<number> {
+//   return Math.floor(Math.random() * 60);
+// }
 
 export async function GetMessages(
   masterKey: CryptoKey,
@@ -262,5 +261,5 @@ export async function GetMessages(
       )) as MessageStatus,
     });
   }
-  return existing;
+  return existing.reverse();
 }

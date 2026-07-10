@@ -40,7 +40,6 @@ message to initiate the new session
       setCurrentSessionId(existing.id);
     }
   }
-
   if (Users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12 text-center">

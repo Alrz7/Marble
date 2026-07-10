@@ -11,12 +11,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const { currentUser } = AppUser();
 
-  const formatTime = (date: Date) => {
-    return date?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  // const formatTime = (date: Date) => {
+  //   return date?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  // };
 
-  const handleCopy = () => {
-  };
+  const handleCopy = () => {};
 
   const handleReply = () => {
     // Implement reply logic
@@ -89,7 +88,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               : "flex-row"
           }`}
         >
-          {/* <span>{formatTime(message.timestamp)}</span> **this should be checked** */} 
+          {/* <span>{formatTime(message.timestamp)}</span> **this should be checked** */}
           {getStatusIcon()}
         </div>
       </div>

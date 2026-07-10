@@ -42,7 +42,7 @@ export default function ChatMessageList() {
         </div>
       ) : (
         Messagelist.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble key={message.seq} message={message} />
         ))
       )}
 
