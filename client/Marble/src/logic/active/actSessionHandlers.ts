@@ -11,8 +11,12 @@ import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "../states/sessionStates";
 import { AppUser } from "../states/userMainStates";
 
-// ---- sessions ----
-
+/** 
+onCreateNewSession trigers by sending the first message to the session,
+it saves the current-onStage-session & its audience & the first message
+inside the Db, then it sends a struct of session itself including
+message<encrypted by the audience's public key> to the server.
+ */
 export async function onCreateNewSession(message: Message) {
   const { currentUser } = AppUser.getState();
   if (!currentUser) return;
@@ -60,6 +64,14 @@ export async function onCreateNewSession(message: Message) {
   sendRequest(req);
 }
 
+/** 
+hndlAddSession is trigerd by server when ever it needs to add a session
+to the client to save localy; it searchs for the adding session inside
+existing sessions, if there was a session with same identity(meaning
+the adding request was built by the same client's onCreateNewSession
+fucntion) it just alters the existing one and updates the datas, &
+if adding-session was new, it inserts it instead.
+ */
 export async function hndlAddSession(req: Request) {
   const { currentUser } = AppUser.getState();
   const { addSession, updateSession } = sessionsState.getState();
@@ -97,6 +109,11 @@ export async function hndlAddSession(req: Request) {
   }
 }
 
+/** 
+SameOnStage checks for a new addingSession to be Unique and not
+duplicate if there was a duplicate existing -> it returns that session,
+otherwise if it was Unique -> it returns Null.
+ */
 export async function SameOnStage(
   addingSession: Session,
 ): Promise<Session | null> {

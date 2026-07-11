@@ -17,10 +17,13 @@ export default function ChatMessageList() {
     loadMessages();
   }, [currentSessionId]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -28,17 +31,16 @@ export default function ChatMessageList() {
   }, [Messagelist]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+    <div
+      ref={scrollContainerRef}
+      className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-3 marble-scrollbar"
+    >
       {Messagelist.length === 0 ? (
-        <div className="flex items-center justify-center h-full text-center">
-          <div>
-            <p className="text-muted-foreground text-sm mb-2">
-              No messages yet
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Start the conversation!
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center h-full text-center gap-1">
+          <p className="text-muted-foreground text-sm">No messages yet</p>
+          <p className="text-xs text-muted-foreground/60">
+            Start the conversation!
+          </p>
         </div>
       ) : (
         Messagelist.map((message) => (
@@ -46,14 +48,11 @@ export default function ChatMessageList() {
         ))
       )}
 
-      {/* {isTyping && <TypingIndicator senderName="John " />} */}
       {false && (
         <TypingIndicator
           senderName={sessions.get(currentSessionId)?.audience.name}
         />
       )}
-
-      <div ref={messagesEndRef} />
     </div>
   );
 }

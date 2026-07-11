@@ -14,8 +14,8 @@ body,
 #root {
   width: 100%;
   height: 100%;
-  background-color: #0f1117;
-  color: #e8eaed;
+  background-color: #131316;
+  color: #EDEDEF;
 }
 
 body {
@@ -28,41 +28,48 @@ body {
 
 @layer components {
   .marble-button-primary {
-    @apply px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity;
+    @apply px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 active:scale-[0.98] transition-all duration-200;
   }
 
   .marble-button-secondary {
-    @apply px-4 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-muted transition-colors;
+    @apply px-4 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-muted active:scale-[0.98] transition-all duration-200;
   }
 
   .marble-input {
-    @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary;
+    @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200;
   }
 
   .marble-card {
-    @apply bg-card text-card-foreground rounded-lg p-4;
+    @apply bg-card text-card-foreground rounded-xl p-4;
   }
 
   .marble-scrollbar {
     @apply scrollbar-thin scrollbar-thumb-muted scrollbar-track-background;
   }
+
+  .glass-panel {
+    @apply bg-card/70 backdrop-blur-xl border border-white/5;
+  }
+
+  .glass-panel-strong {
+    @apply bg-card/90 backdrop-blur-2xl border border-white/5;
+  }
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1117;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2f3a;
-  border-radius: 4px;
+  background: #2A2B33;
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3f4a;
+  background: #383a45;
 }

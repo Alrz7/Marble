@@ -28,13 +28,11 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Header */}
       <SidebarHeader />
 
-      {/* Search Bar */}
       <div className="px-4 py-3 border-b border-border">
         <div className="relative">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search conversations..."
@@ -48,25 +46,14 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Sessions or Search Results */}
-      <div className="flex-1 overflow-y-auto">
-        {showSearchResults && searchQuery ? (
-          <SearchPanel query={searchQuery} />
-        ) : (
-          <SessionsList />
-        )}
+      <div className="flex-1 overflow-y-auto marble-scrollbar">
+        {showSearchResults && searchQuery ? <SearchPanel query={searchQuery} /> : <SessionsList />}
       </div>
 
-      {/* Footer Actions */}
-      <div className="border-t border-border p-3 space-y-2">
-        {/* <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors text-foreground text-sm">
-          <Plus className="w-4 h-4 text-primary" />
-          New Chat
-        </button> */}
-
+      <div className="border-t border-border p-3 space-y-1">
         <button
           onClick={() => setShowSettings(true)}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors text-foreground text-sm"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-foreground text-sm"
         >
           <Settings className="w-4 h-4 text-primary" />
           Settings
@@ -74,14 +61,13 @@ export default function Sidebar() {
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors text-destructive text-sm"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 transition-colors text-destructive text-sm"
         >
           <LogOut className="w-4 h-4" />
           Logout
         </button>
       </div>
 
-      {/* Settings Modal */}
       {showSettings && <SettingsPage onClose={() => setShowSettings(false)} />}
     </>
   );

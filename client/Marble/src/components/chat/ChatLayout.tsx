@@ -41,29 +41,19 @@ export default function ChatLayout() {
       window.removeEventListener("selectstart", disableSelect);
     };
   }, [isDragging]);
+
   return (
-    <div
-      ref={containerRef}
-      className="flex w-full h-screen bg-background select-none"
-    >
-      {/* Sidebar */}
-      <div
-        style={{ width: `${sidebarWidth}px` }}
-        className="flex flex-col bg-background border-r border-border"
-      >
+    <div ref={containerRef} className="flex w-full h-screen bg-background select-none">
+      <div style={{ width: `${sidebarWidth}px` }} className="flex flex-col bg-background border-r border-border shrink-0">
         <Sidebar />
       </div>
 
-      {/* Resizer */}
       <div
         onMouseDown={handleMouseDown}
-        className={`w-1 bg-border hover:bg-primary/50 cursor-col-resize transition-colors ${
-          isDragging ? "bg-primary" : ""
-        }`}
+        className={`w-1 cursor-col-resize transition-colors ${isDragging ? "bg-primary" : "bg-border hover:bg-primary/50"}`}
       />
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-background overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <ChatArea />
       </div>
       <Notification />
