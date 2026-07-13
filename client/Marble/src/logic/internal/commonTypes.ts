@@ -69,11 +69,12 @@ export interface Message {
 }
 
 // --- Notification ---
-
+export type NotifType = "info" | "error" | "success" | "warning";
 export type Notification = {
-  type: "info" | "error" | "success" | "warning";
+  type: NotifType;
   key: string;
   message: string;
+  timeOut?: number;
 };
 
 // Constants-----------------------------------

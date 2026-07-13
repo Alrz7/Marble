@@ -263,3 +263,9 @@ export async function GetMessages(
   }
   return existing.reverse();
 }
+
+export async function DeleteMessge(message: Message) {
+  const query = `--sql
+  DELETE FROM message where session_id = $1 AND seq = $2`;
+  db.execute(query, [message.sessionId, message.seq])
+}

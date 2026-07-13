@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
-import { Messages, sessionsState } from "../../logic/states/sessionStates";
+import { messageState, sessionsState } from "../../logic/states/sessionStates";
 import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
 import { onCreateNewSession } from "../../logic/active/actSessionHandlers";
@@ -12,7 +12,7 @@ export default function ChatInput() {
   const { currentUser } = AppUser();
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
-  const { Messagelist, addMessage } = Messages();
+  const { Messagelist, addMessage } = messageState();
 
   const PrepareNewMessage = (content: string) => {
     if (!curSession || !currentUser) return;

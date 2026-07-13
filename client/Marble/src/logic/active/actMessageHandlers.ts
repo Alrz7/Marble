@@ -1,9 +1,9 @@
-import { GetMessages, InsertMessage } from "../db/dbSessions";
+import { DeleteMessge, GetMessages, InsertMessage } from "../db/dbSessions";
 import { encryptMessage } from "../enc/encOpenpgp";
 import { Message, Session, SessionId, UserId } from "../internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
-import { sessionsState } from "../states/sessionStates";
+import { messageState, sessionsState } from "../states/sessionStates";
 import { AppUser } from "../states/userMainStates";
 
 // -----* messages *-----
@@ -34,7 +34,6 @@ export async function onSendMessage(message: Message) {
     headers: { task: "send" },
     body: JSON.stringify(struct),
   };
-  console.log(req);
   sendRequest(req);
 
   saveNewMessage(curSession, currentUser.MasterKey, message);
@@ -58,4 +57,13 @@ export async function loadSavedMessages() {
 
   const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
   return existing;
+}
+
+export async function DeleteMessage(message: Message) {
+  const { Messagelist, DeleteMessage } = messageState.getState();
+  const indx = Messagelist.indexOf(message);
+  if (indx !== -1) {
+    DeleteMessage(indx);
+    await DeleteMessge(message);
+  }
 }

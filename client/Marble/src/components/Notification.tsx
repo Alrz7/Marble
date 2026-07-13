@@ -24,7 +24,7 @@ export default function Notification() {
     if (!currentNotif) return;
     const timer = setTimeout(() => {
       setCurrentNotif(null);
-    }, 3000);
+    }, currentNotif.timeOut ?? 3000);
     return () => clearTimeout(timer);
   }, [currentNotif]);
 
