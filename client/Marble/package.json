@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@tailwindcss/postcss": "^4.3.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
     "@tauri-apps/plugin-http": "^2.5.8",
@@ -23,7 +24,7 @@
     "openpgp": "^6.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwind-scrollbar": "^3.1.0",
+    "tailwind-scrollbar": "^4.0.2",
     "tauri-plugin-keyring-api": "^0.1.1",
     "vite-plugin-svgr": "^5.2.0",
     "zustand": "^5.0.14"
@@ -36,7 +37,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.15",
-    "tailwindcss": "^3.4.19",
+    "tailwindcss": "^4.3.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }

@@ -78,16 +78,16 @@ export default function Notification() {
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
       <div
         className={`
-          bg-gradient-to-br ${styles.bgGradient}
+          bg-linear-to-br ${styles.bgGradient}
           backdrop-blur-xl
           border ${styles.borderColor}
           rounded-xl
           shadow-2xl
           flex items-start gap-4
           px-5 py-4
-          min-w-[280px]
+          min-w-70
           max-w-[90vw]
-          sm:max-w-[420px]
+          sm:max-w-105
           pointer-events-auto
           hover:shadow-3xl
           transition-shadow
@@ -100,7 +100,7 @@ export default function Notification() {
         }}
       >
         {/* Icon Container */}
-        <div className={`${styles.accentBg} rounded-lg p-2.5 flex-shrink-0`}>
+        <div className={`${styles.accentBg} rounded-lg p-2.5 shrink-0`}>
           <IconComponent className={`${styles.iconColor} w-5 h-5`} />
         </div>
 
@@ -114,7 +114,7 @@ export default function Notification() {
         {/* Close Button */}
         <button
           onClick={() => setCurrentNotif(null)}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-200 transition-colors duration-200 p-1 hover:bg-white/5 rounded-lg"
+          className="shrink-0 text-gray-400 hover:text-gray-200 transition-colors duration-200 p-1 hover:bg-white/5 rounded-lg"
           aria-label="Close notification"
         >
           <X className="w-4 h-4" />

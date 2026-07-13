@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Circle } from "lucide-react";
-import { sessionsState } from "../../logic/states/sessionStates";
+import { messageState, sessionsState } from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
 import { GetSessions } from "../../logic/db/dbSessions";
 
@@ -8,6 +8,7 @@ export default function SessionsList() {
   const { currentUser } = AppUser();
   const { sessions, setSessions, currentSessionId, setCurrentSessionId } =
     sessionsState();
+  const { Messagelist } = messageState();
 
   useEffect(() => {
     async function getSessions() {
@@ -38,11 +39,11 @@ export default function SessionsList() {
               isActive ? "bg-primary/15" : "hover:bg-white/5"
             }`}
             style={
-              isActive ? { boxShadow: "inset 3px 0 0 0 #7B86C9" } : undefined
+              isActive ? { boxShadow: "inset 3px 0 0 0 #4a4e69" } : undefined
             }
           >
             <div className="relative shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground">
+              <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground">
                 {session.audience.name.charAt(0)}
               </div>
               {session.audience.isOnline && (
@@ -56,11 +57,13 @@ export default function SessionsList() {
                   {session.audience.name}
                 </h3>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  timestamp
+                  {Messagelist.at(-1)?.timestamp.toLocaleString()}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                lastMessage
+                {Messagelist.at(-1)
+                  ? Messagelist.at(-1)?.content.slice(0) + "..."
+                  : ""}
               </p>
             </div>
           </button>

@@ -17,7 +17,7 @@ export default function SettingsPage({ onClose }: SettingsPageProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="glass-panel-strong rounded-2xl w-full max-w-2xl max-h-[32rem] flex flex-col shadow-2xl animate-scale-in">
+      <div className="glass-panel-strong rounded-2xl w-full max-w-2xl max-h-128 flex flex-col shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
           <h2 className="text-lg font-semibold text-foreground">Settings</h2>
           <button

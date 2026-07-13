@@ -21,7 +21,7 @@ export default function UserProfilePanel({ audience, onClose }: UserProfilePanel
 
         <div className="flex flex-col items-center gap-4 px-8 pb-8 -mt-4">
           <div className="relative">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-3xl font-bold text-primary-foreground">
+            <div className="w-24 h-24 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-3xl font-bold text-primary-foreground">
               {audience.name?.charAt(0)}
             </div>
             {audience.isOnline && (

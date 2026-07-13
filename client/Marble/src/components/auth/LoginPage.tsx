@@ -41,7 +41,7 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
         <div className="glass-panel-strong rounded-2xl px-8 py-10 shadow-2xl">
           <div className="mb-10 text-center">
             <h1
-              className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer"
+              className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-size-[200%_auto] animate-shimmer"
               style={{ backgroundImage: "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)" }}
             >
               Marble

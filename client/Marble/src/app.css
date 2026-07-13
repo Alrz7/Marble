@@ -1,7 +1,174 @@
 @import "@fontsource-variable/inter";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "tailwind-scrollbar";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --color-background: #131316;
+  --color-foreground: #EDEDEF;
+  --color-card: #1B1C21;
+  --color-card-foreground: #EDEDEF;
+  --color-primary: #7B86C9;
+  --color-primary-foreground: #F5F5F7;
+  --color-secondary: #202127;
+  --color-secondary-foreground: #EDEDEF;
+  --color-muted: #1B1C21;
+  --color-muted-foreground: #96969E;
+  --color-accent: #6EA58F;
+  --color-accent-foreground: #F2F7F5;
+  --color-destructive: #D9615A;
+  --color-destructive-foreground: #FDF3F2;
+  --color-border: #26272E;
+  --color-input: #202127;
+  --color-ring: #7B86C9;
+
+  --color-glow-indigo: #7B86C9;
+  --color-glow-sage: #6EA58F;
+  --color-glow-clay: #C48B7E;
+  --color-glow-slate: #7E93B8;
+
+  --color-night-bordeaux-50: #fce9ee;
+  --color-night-bordeaux-100: #f8d3dd;
+  --color-night-bordeaux-200: #f1a7bc;
+  --color-night-bordeaux-300: #ea7b9a;
+  --color-night-bordeaux-400: #e34f79;
+  --color-night-bordeaux-500: #dd2257;
+  --color-night-bordeaux-600: #b01c46;
+  --color-night-bordeaux-700: #841534;
+  --color-night-bordeaux-800: #580e23;
+  --color-night-bordeaux-900: #2c0711;
+  --color-night-bordeaux-950: #1f050c;
+
+  --color-bondi-blue-50: #e6fafe;
+  --color-bondi-blue-100: #cdf5fe;
+  --color-bondi-blue-200: #9bebfd;
+  --color-bondi-blue-300: #69e1fc;
+  --color-bondi-blue-400: #37d7fb;
+  --color-bondi-blue-500: #05cdfa;
+  --color-bondi-blue-600: #04a4c8;
+  --color-bondi-blue-700: #037b96;
+  --color-bondi-blue-800: #025264;
+  --color-bondi-blue-900: #012932;
+  --color-bondi-blue-950: #011d23;
+
+  --color-cerulean-50: #e6f9ff;
+  --color-cerulean-100: #ccf4ff;
+  --color-cerulean-200: #9ae9fe;
+  --color-cerulean-300: #67ddfe;
+  --color-cerulean-400: #34d2fe;
+  --color-cerulean-500: #01c7fe;
+  --color-cerulean-600: #019fcb;
+  --color-cerulean-700: #017798;
+  --color-cerulean-800: #015065;
+  --color-cerulean-900: #002833;
+  --color-cerulean-950: #001c24;
+
+  --color-yale-blue-50: #eef2f6;
+  --color-yale-blue-100: #dde5ee;
+  --color-yale-blue-200: #bccbdc;
+  --color-yale-blue-300: #9ab2cb;
+  --color-yale-blue-400: #7898ba;
+  --color-yale-blue-500: #577ea8;
+  --color-yale-blue-600: #456587;
+  --color-yale-blue-700: #344c65;
+  --color-yale-blue-800: #233243;
+  --color-yale-blue-900: #111922;
+  --color-yale-blue-950: #0c1218;
+
+  --color-prussian-blue-50: #e8f2fc;
+  --color-prussian-blue-100: #d1e4fa;
+  --color-prussian-blue-200: #a3c9f5;
+  --color-prussian-blue-300: #75aef0;
+  --color-prussian-blue-400: #4794eb;
+  --color-prussian-blue-500: #1979e6;
+  --color-prussian-blue-600: #1461b8;
+  --color-prussian-blue-700: #0f488a;
+  --color-prussian-blue-800: #0a305c;
+  --color-prussian-blue-900: #05182e;
+  --color-prussian-blue-950: #041120;
+
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  --animate-drift1: drift1 18s ease-in-out infinite;
+  --animate-drift2: drift2 22s ease-in-out infinite;
+  --animate-drift3: drift3 20s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s linear infinite;
+  --animate-fade-in: fade-in 0.35s ease-out forwards;
+  --animate-scale-in: scale-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
+  --animate-orbit: orbit 3s linear infinite;
+  --animate-orbit-slow: orbit 6s linear infinite reverse;
+}
+
+@keyframes drift1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.06);
+  }
+}
+
+@keyframes drift2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-24px, 22px) scale(1.08);
+  }
+}
+
+@keyframes drift3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, 18px) scale(0.94);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 * {
   margin: 0;
@@ -15,7 +182,7 @@ body,
   width: 100%;
   height: 100%;
   background-color: #131316;
-  color: #EDEDEF;
+  color: #ededef;
 }
 
 body {
@@ -66,7 +233,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A2B33;
+  background: #2a2b33;
   border-radius: 999px;
 }
 

@@ -55,7 +55,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
           className="w-full px-3 py-3 rounded-xl hover:bg-white/5 transition-colors flex items-center gap-3"
           onClick={() => setNewSessionOnStage(user)}
         >
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0">
+          <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0">
             {user.name.charAt(0)}
           </div>
           <div className="text-left">

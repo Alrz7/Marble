@@ -26,7 +26,7 @@ export default function LoadingPage({ onLoadComplete }: LoadingPageProps) {
         </div>
 
         <div
-          className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer"
+          className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-size-[200%_auto] animate-shimmer"
           style={{ backgroundImage: "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)" }}
         >
           Marble

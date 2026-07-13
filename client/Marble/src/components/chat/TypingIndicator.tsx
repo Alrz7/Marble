@@ -5,7 +5,7 @@ interface TypingIndicatorProps {
 export default function TypingIndicator({ senderName }: TypingIndicatorProps) {
   return (
     <div className="flex gap-3 animate-fade-in">
-      <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+      <div className="w-8 h-8 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
         {senderName?.charAt(0)}
       </div>
 
