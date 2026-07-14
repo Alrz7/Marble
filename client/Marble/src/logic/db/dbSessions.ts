@@ -17,9 +17,9 @@ export async function InsertSession(
   const encSessionId = await encryptData(session.sessionId, masterKey);
 
   const res = await db.select<{ id: number }[]>(
-    `INSERT INTO session (session_id, owner_id, audience_id, last_sequence) VALUES ($1, $2, $3, $4)
+    `INSERT INTO session (session_id, seq, owner_id, audience_id, last_sequence) VALUES ($1, $2, $3, $4, $5)
     RETURNING id`,
-    [encSessionId, session.ownerId, session.audience.id, 0],
+    [encSessionId, session.seq, session.ownerId, session.audience.id, 0],
   );
 
   if (!res[0]) throw new Error("there was an error while inserting session");
@@ -38,10 +38,10 @@ export async function GetSessions(
   masterKey: CryptoKey,
 ): Promise<Session[]> {
   const res = await db.select<
-    { id: number; session_id: number[]; audience_id: number }[]
+    { id: number; seq: number; session_id: number[]; audience_id: number }[]
   >(
     `--sql
-    SELECT id, session_id, audience_id FROM Session WHERE owner_id = $1`,
+    SELECT id, seq, session_id, audience_id FROM Session WHERE owner_id = $1`,
     [ownerId],
   );
   const existing: Session[] = [];
@@ -54,6 +54,7 @@ export async function GetSessions(
     if (!audience) throw Error("audiece-data was not valid");
     existing.push({
       id: val.id,
+      seq: val.seq,
       sessionId: decSessionId,
       audience: audience,
       ownerId: ownerId,
@@ -64,23 +65,43 @@ export async function GetSessions(
 
 export async function UpdateSessionById(
   id: SessionId,
-  sessionId: SessionId,
-  masterKey: CryptoKey,
+  sessionId?: SessionId,
+  masterKey?: CryptoKey,
+  seq?: number,
   lastSeq?: number,
 ) {
-  try {
+  if (
+    !(
+      (sessionId !== undefined && masterKey) ||
+      seq !== undefined ||
+      lastSeq !== undefined
+    )
+  )
+    return;
+
+  const queryComb: string[] = [];
+  type comb = Uint8Array<ArrayBufferLike> | number;
+  const valueComb: comb[] = [];
+
+  if (sessionId !== undefined && masterKey) {
+    queryComb.push(`session_id = $${queryComb.length + 2}`);
     const encSessionId = await encryptData(sessionId, masterKey);
-    type comb = Uint8Array<ArrayBufferLike> | number;
-    const newValues: comb[] = [encSessionId];
-    if (lastSeq !== undefined) {
-      newValues.push(lastSeq);
-    }
+    valueComb.push(encSessionId);
+  }
+  if (seq !== undefined) {
+    queryComb.push(`seq = $${queryComb.length + 2}`);
+    valueComb.push(seq);
+  }
+  if (lastSeq !== undefined) {
+    queryComb.push(`last_sequence = $${queryComb.length + 2}`);
+    valueComb.push(lastSeq);
+  }
+  try {
     const query = `--sql
   UPDATE session
-  SET session_id = $2${lastSeq !== undefined ? ", last_sequence = $3" : ""}
+  SET ${queryComb.join(",")}
   WHERE id = $1`;
-
-    await db.execute(query, [id, ...newValues]);
+    await db.execute(query, [id, ...valueComb]);
   } catch (err) {
     console.warn(err);
   }
@@ -267,5 +288,5 @@ export async function GetMessages(
 export async function DeleteMessge(message: Message) {
   const query = `--sql
   DELETE FROM message where session_id = $1 AND seq = $2`;
-  db.execute(query, [message.sessionId, message.seq])
+  db.execute(query, [message.sessionId, message.seq]);
 }

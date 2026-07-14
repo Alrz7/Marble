@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { Message, Session } from "../internal/commonTypes";
 
 interface SessionsState {
-  sessions: Map<number, Session>;
+  sessions: Map<number, Session>; // Map<session.id, session>
   currentSessionId: number;
   setSessions: (list: Session[]) => void;
   addSession: (session: Session) => void;

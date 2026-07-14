@@ -3,6 +3,10 @@ import { notifState, searchResult } from "../states/appCommonStates";
 import { AppUser } from "../states/userMainStates";
 import { hndlAddSession } from "./actSessionHandlers";
 import { Request } from "./actTypes";
+import { StateAuthorized } from "../states/appCommonStates";
+import { MessageStatus } from "./actTypes";
+import { onSyncSession } from "./actWsClientHandelers";
+import { sessionsState } from "../states/sessionStates";
 
 export function HndlSessions(req: Request) {
   const { currentUser } = AppUser.getState();
@@ -35,4 +39,13 @@ export function HndlNotifs(req: Request) {
   const { addNotification } = notifState.getState();
   if (!req.notif) return;
   addNotification(req.notif);
+}
+
+export async function HndlAuthStatus(request: any) {
+  const { setState } = StateAuthorized.getState();
+  if (request.status == MessageStatus.Approved) {
+    setState(true);
+    const {sessions} = sessionsState.getState()
+    onSyncSession(Object.values(sessions))
+  }
 }

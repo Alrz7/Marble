@@ -28,8 +28,18 @@ func HndlCreateSession(req *Request) error {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	newSession, err := db.AppModels.SessionModel.CreateSession(req.user.Id, Beta.Id)
+	newSeq, err := db.AppModels.UserModel.IncreaseSessionLastSeq(req.user.Id)
 	if err != nil {
+		return err
+	}
+	_, err = db.AppModels.UserModel.IncreaseSessionLastSeq(Beta.Id)
+	if err != nil {
+		return err
+	}
+
+	newSession, err := db.AppModels.SessionModel.CreateSession(req.user.Id, Beta.Id, newSeq)
+	if err != nil {
+		loggy.DefaultLogger.Error(err)
 		return err
 	}
 	err = req.user.SendMessage(newSession, entry.Content)
@@ -49,11 +59,11 @@ func (u *ActvUser) OnAddSession(conn *websocket.Conn, sessions []*session.Sessio
 			actNotFoundResponse(conn, err)
 		}
 
-		newSendingSession := envelope{"sessionId": session.Id, "audience": Audience{audience.UserName,
-			audience.Id,
-			audience.DisplayId,
-			"",
-			audience.PgpProfile.PublicKey}}
+		newSendingSession := envelope{"sessionId": session.Id, "seq": session.Seq, "audience": internal.Audience{Name: audience.UserName,
+			UserId:        audience.Id,
+			DisplayId:     audience.DisplayId,
+			ProfileAvatar: audience.ProfileAvatar,
+			ArmedPubKey:   audience.PgpProfile.PublicKey}}
 		sendingSessions = append(sendingSessions, newSendingSession)
 	}
 	Body := envelope{"sessions": sendingSessions}
@@ -89,7 +99,7 @@ func (u *ActvUser) SendMessage(S *session.Session, message string) error {
 	}
 	if u.Id == S.Alpha || u.Id == S.Beta {
 		newMessage.SenderId = u.Id
-		newSeq, err := db.AppModels.SessionModel.IncreaseSessionSequence(S.Id)
+		newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
 		if err != nil {
 			return err
 		}

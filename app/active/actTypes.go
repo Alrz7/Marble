@@ -25,13 +25,7 @@ const (
 	StatusRetry
 )
 
-type Audience struct {
-	Name          string          `json:"name"`
-	UserId        internal.UserId `json:"userId"`
-	DisplayId     string          `json:"displayId"`
-	ProfileAvatar string          `json:"profileAvatar"`
-	ArmedPubKey   string          `json:"armedPubKey"`
-}
+
 type Request struct {
 	conn    *websocket.Conn
 	user    *ActvUser

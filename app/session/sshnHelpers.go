@@ -13,10 +13,10 @@ type SessionModel struct {
 
 func (m SessionModel) Insert(session *Session) error {
 	query := `
-	INSERT INTO session (alpha_id, beta_id)
-	VALUES ($1, $2)
+	INSERT INTO session (seq, alpha_id, beta_id)
+	VALUES ($1, $2, $3)
 	RETURNING 	id`
-	args := []any{session.Alpha, session.Beta}
+	args := []any{session.Seq, session.Alpha, session.Beta}
 	err := m.Db.QueryRow(query, args...).Scan(&session.Id)
 	if err != nil {
 		return err
@@ -28,11 +28,11 @@ func (m SessionModel) Get(id int64) (*Session, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT id, alpha_id, beta_id
+	query := `SELECT id, seq, alpha_id, beta_id
 			FROM session
 			WHERE id = $1`
 	var session Session
-	args := []any{&session.Id, &session.Alpha, &session.Beta}
+	args := []any{&session.Id, &session.Seq, &session.Alpha, &session.Beta}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
 		switch {
@@ -43,6 +43,34 @@ func (m SessionModel) Get(id int64) (*Session, error) {
 		}
 	}
 	return &session, nil
+}
+
+func (m SessionModel) GetSessionsByEvent(userId internal.UserId, lastEventSeq int, limit int) ([]*internal.ClientSession, error) {
+	query := `--sql
+	SELECT id, seq, alpha_id
+	FROM session
+	WHERE beta_id = $1 AND seq > $2 ORDER BY seq ASC LIMIT $3`
+
+	var sessions []*internal.ClientSession
+	rows, err := m.Db.Query(query, userId, lastEventSeq, limit)
+
+	for rows.Next() {
+		var session internal.ClientSession
+		err = rows.Scan(&session.SessionId, &session.Seq, &session.Audience.UserId)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, &session)
+	}
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, internal.ErrRecordNotFound
+		default:
+			return nil, loggy.Sayr("there was an error while fetching the session Data", err)
+		}
+	}
+	return sessions, nil
 }
 
 func (m SessionModel) Update(session *Session) error {
@@ -62,15 +90,15 @@ func (m SessionModel) Update(session *Session) error {
 	return nil
 }
 
-func (m SessionModel) IncreaseSessionSequence(sessionId internal.SessionId) (int, error) {
+func (m SessionModel) IncreaseMessageLastSeq(sessionId internal.SessionId) (int, error) {
 	var res int
 	query := `UPDATE session
 SET
-  last_sequence = last_sequence + 1
+  message_last_seq = message_last_seq + 1
 WHERE
   id = $1
 RETURNING
-  last_sequence`
+  message_last_seq;`
 	err := m.Db.QueryRow(query, sessionId).Scan(&res)
 	if err != nil {
 		return -1, err

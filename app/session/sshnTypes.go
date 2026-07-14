@@ -7,6 +7,7 @@ import (
 
 type Session struct {
 	Id      int64
+	Seq     int
 	Alpha   internal.UserId
 	Beta    internal.UserId
 	LastSeq int

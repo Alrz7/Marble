@@ -1,17 +1,17 @@
 import { GetAuthToken } from "../internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
-import { Authorized } from "../states/appCommonStates";
-import { MessageStatus } from "./actTypes";
 import {
   HndlNotifs,
   HndlSearchResult,
   HndlSessions,
 } from "../active/actWsServerHandlers";
+import { HndlAuthStatus } from "./actWsServerHandlers";
+import { StateAuthorized } from "../states/appCommonStates";
 
 // ----* handlers *----
 let ws: WebSocket | null = null;
 let handlers: Handelers = {
-  auth: defAuthStatus,
+  auth: HndlAuthStatus,
   sessions: HndlSessions,
   searchUser: HndlSearchResult,
   notif: HndlNotifs,
@@ -19,10 +19,6 @@ let handlers: Handelers = {
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // ----* Active Authorization *----
-export let isAuthorized = false;
-export function editAuthStatus(newstate: boolean) {
-  isAuthorized = newstate;
-}
 
 //---
 export function openConnection() {
@@ -34,7 +30,8 @@ export function openConnection() {
   ws = new WebSocket("ws://localhost:6280/actv");
 
   ws.onopen = () => {
-    if (!isAuthorized) sendToken();
+    const {isComplete} = StateAuthorized.getState()
+    if (!isComplete) sendToken()
   };
 
   ws.onmessage = (event) => {
@@ -114,13 +111,5 @@ function sendToken() {
       token: token,
     };
     sendRequest(req);
-  }
-}
-
-export async function defAuthStatus(request: any) {
-  const { setState } = Authorized.getState();
-  if (request.status == MessageStatus.Approved) {
-    editAuthStatus(true);
-    setState(true);
   }
 }

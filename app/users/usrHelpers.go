@@ -30,11 +30,11 @@ func (m UserModel) Get(id internal.UserId) (*User, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT id, email, name, display_id
+	query := `SELECT id, email, name, display_id, session_last_seq
 			FROM users
 			WHERE id = $1`
 	var user User
-	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId}
+	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId, &user.SessionLastSeq}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
 		switch {
@@ -71,6 +71,22 @@ func (m UserModel) Update(user *User) error {
 		}
 	}
 	return nil
+}
+
+func (m UserModel) IncreaseSessionLastSeq(userId internal.UserId) (int, error) {
+	var res int
+	query := `UPDATE users
+SET
+  session_last_seq = session_last_seq + 1
+WHERE
+  id = $1
+RETURNING
+  session_last_seq;`
+	err := m.Db.QueryRow(query, userId).Scan(&res)
+	if err != nil {
+		return -1, err
+	}
+	return res, nil
 }
 
 func (m UserModel) Delete(id internal.UserId) error {

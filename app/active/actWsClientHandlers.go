@@ -4,62 +4,48 @@ import (
 	"encoding/json"
 	"marble/db"
 	"marble/internal"
-	"marble/internal/loggy"
 )
 
-type envelope = internal.Envelope
+// Sessions
 
-func HndlSessions(req *Request) {
-	tesk, ok := req.Headers["task"]
-	if !ok {
-		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
+func HndlSyncSessions(req *Request) error {
+	DefaultLogger.Info("got sync request!")
+	var entry struct {
+		lastSessionEvent int
 	}
-	switch tesk {
-	case "create":
-		HndlCreateSession(req)
-	case "sync":
-		// HndlSyncSessions(req)
-	}
-}
-
-// ----- Search -----
-
-func HndlSearchUser(req *Request) {
-	//<---NOTE--->
-	// search in active storage for quick search first and if we didn't  find the user we search over the main DB
-	entry := struct {
-		Param string `json:"param"`
-	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
 		DefaultLogger.Error(err)
 	}
-	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
-	if err != nil {
-		// DefaultLogger.Error(err)
-		return
+	if req.user.SessionLastSeq > entry.lastSessionEvent {
+		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.lastSessionEvent, 5)
+		if err != nil {
+			return err
+		}
+		for _, clientSession := range sessions {
+			audience, err := db.AppModels.UserModel.GetUserProfile(clientSession.Audience.UserId)
+			if err != nil {
+				actNotFoundResponse(req.conn, err)
+			}
+			clientSession.Audience = internal.Audience{
+				Name:          audience.UserName,
+				UserId:        audience.Id,
+				DisplayId:     audience.DisplayId,
+				ProfileAvatar: audience.ProfileAvatar,
+				ArmedPubKey:   audience.PgpProfile.PublicKey,
+			}
+		}
+		Body := envelope{"sessions": sessions}
+		headers := RequestHeaders{"task": "add"}
+		DefaultLogger.Info(Body)
+		sendHandlerResponse(req.conn, StatusPending, "sessions", headers, Body)
 	}
-	results := envelope{"results": []Audience{{Name: beta.UserName,
-		UserId: beta.Id, DisplayId: beta.DisplayId,
-		ArmedPubKey: beta.PgpProfile.PublicKey, ProfileAvatar: ""}}}
 
-	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
+	return nil
 }
 
-// --------- Message -----------
+// Messages
 
-func HndlMessages(req *Request) {
-	tesk, ok := req.Headers["task"]
-	if !ok {
-		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
-	}
-	switch tesk {
-	case "send":
-		err := HndlSendMesage(req)
-		if err != nil {
-			DefaultLogger.Error(err)
-		}
-	case "sync":
-		// HndlSyncMesages(req)
-	}
+func HndlSyncMessages(req *Request) error {
+	return nil
 }

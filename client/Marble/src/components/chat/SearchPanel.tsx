@@ -1,7 +1,10 @@
 import { MessageCircle } from "lucide-react";
 import { searchResult } from "../../logic/states/appCommonStates";
 import { Audience, Session } from "../../logic/internal/commonTypes";
-import { reserveSessionId, sessionsState } from "../../logic/states/sessionStates";
+import {
+  reserveSessionId,
+  sessionsState,
+} from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
 import { SameOnStage } from "../../logic/active/actSessionHandlers";
 
@@ -20,6 +23,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
     audience.ownerId = currentUser.config.id;
     const preReservedSession: Session = {
       id: newReservedId,
+      seq: newReservedId,
       ownerId: currentUser?.config.id,
       sessionId: newReservedId,
       onCreateStage: true,
@@ -38,7 +42,9 @@ export default function SearchPanel({ query }: SearchPanelProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-12 text-center gap-1">
         <MessageCircle className="w-10 h-10 text-muted-foreground/30 mb-3" />
-        <p className="text-muted-foreground text-sm">No users found matching &quot;{query}&quot;</p>
+        <p className="text-muted-foreground text-sm">
+          No users found matching &quot;{query}&quot;
+        </p>
       </div>
     );
   }

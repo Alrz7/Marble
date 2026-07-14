@@ -4,8 +4,9 @@ import (
 	"marble/internal"
 )
 
-func (m SessionModel) CreateSession(alphaId, betaId internal.UserId) (*Session, error) {
+func (m SessionModel) CreateSession(alphaId, betaId internal.UserId, seq int) (*Session, error) {
 	newSession := Session{
+		Seq:     seq,
 		Alpha:   alphaId,
 		Beta:    betaId,
 		LastSeq: 0,

@@ -58,7 +58,6 @@ export async function onCreateNewSession(message: Message) {
   next.id = sessionId;
 
   await InsertMessage(next, message, currentUser.MasterKey);
-  console.log(curSession.id, next);
   UpdateCurrentSession(next);
 
   sendRequest(req);
@@ -79,6 +78,7 @@ export async function hndlAddSession(req: Request) {
 
   try {
     const data: { sessions: Session[] } = JSON.parse(req.body);
+    if (!data.sessions) return;
     for (let session of data.sessions) {
       session.audience.ownerId = currentUser.config.id;
       session.ownerId = currentUser.config.id;
@@ -89,9 +89,11 @@ export async function hndlAddSession(req: Request) {
           existing.id,
           session.sessionId,
           currentUser.MasterKey,
+          session.seq,
         );
         const next: Session = {
           ...existing,
+          seq: session.seq,
           sessionId: session.sessionId,
           onCreateStage: false,
         };
@@ -129,30 +131,3 @@ export async function SameOnStage(
   }
   return null;
 }
-
-/** 
-onSyncSession sends a sync request to pull any latest session changes
-we call this method once at the begining including the existing sessions
-then server will send update orders to client to update and sync changes
-to the latest version in server.
-then, when ever there was a need for update, the server pushes the changes
-automaticaly.
- */
-// export async function onSyncSession(existingSessions: Session[]) {
-//   const record: Record<UserId, SessionId> = {};
-//   Object.entries(existingSessions).forEach(([, val]) => {
-//     record[val.audience.id] = val.id;
-//   });
-//   const struct: {
-//     existingSessions: Record<UserId, SessionId>;
-//   } = {
-//     existingSessions: record,
-//   };
-//   const req: Request = {
-//     status: MessageStatus.Pending,
-//     channel: "sessions",
-//     headers: { task: "sync" },
-//     body: JSON.stringify(struct),
-//   };
-//   sendRequest(req);
-// }

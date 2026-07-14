@@ -47,6 +47,7 @@ export type Audience = {
 
 export type Session = {
   id: number;
+  seq: number;
   sessionId: SessionId;
   ownerId: UserId;
   audience: Audience;

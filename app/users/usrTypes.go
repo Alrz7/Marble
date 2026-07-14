@@ -7,11 +7,13 @@ import (
 )
 
 type User struct {
-	UserName   string
-	Email      string
-	DisplayId  string
-	Id         internal.UserId
-	PgpProfile pgp.Profile
+	Id             internal.UserId
+	DisplayId      string
+	UserName       string
+	Email          string
+	SessionLastSeq int
+	ProfileAvatar  string
+	PgpProfile     pgp.Profile
 }
 
 type UserModel struct {

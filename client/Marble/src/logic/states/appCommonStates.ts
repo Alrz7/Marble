@@ -12,14 +12,18 @@ export const AppState = create<AppState>((set) => ({
   setAppState: (newState: PAGES) => set({ appState: newState }),
 }));
 
+
 // ---- auth ----
-export const Authorized = create<{
+
+export const StateAuthorized = create<{
   isComplete: boolean;
   setState: (state: boolean) => void;
 }>((set) => ({
   isComplete: false,
   setState: (state: boolean) => set({ isComplete: state }),
 }));
+
+
 //  -- Search State --
 interface SearchResult {
   Users: Audience[];
