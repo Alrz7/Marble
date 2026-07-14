@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Trash2, Check, CheckCheck, Edit2, Reply } from "lucide-react";
+import { Copy, Trash2, Check, CheckCheck } from "lucide-react";
 import { Message } from "../../logic/internal/commonTypes";
 import { AppUser } from "../../logic/states/userMainStates";
 import { sessionsState } from "../../logic/states/sessionStates";
@@ -26,8 +26,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       timeOut: 1000,
     });
   };
-  const handleReply = () => {};
-  const handleEdit = () => {};
+  // const handleReply = () => {};
+  // const handleEdit = () => {};
   const handleDelete = () => {
     DeleteMessage(message);
   };
@@ -116,22 +116,22 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           >
             <Copy className="w-4 h-4" />
           </button>
-          <button
+          {/* <button
             onClick={handleReply}
             className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
             title="Reply"
           >
             <Reply className="w-4 h-4" />
-          </button>
+          </button> */}
           {isMine && (
             <>
-              <button
+              {/* <button
                 onClick={handleEdit}
                 className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
-              </button>
+              </button> */}
               <button
                 onClick={handleDelete}
                 className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"

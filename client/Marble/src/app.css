@@ -6,27 +6,27 @@
   --font-sans: "Inter", system-ui, sans-serif;
 
   --color-background: #131316;
-  --color-foreground: #EDEDEF;
-  --color-card: #1B1C21;
-  --color-card-foreground: #EDEDEF;
-  --color-primary: #7B86C9;
-  --color-primary-foreground: #F5F5F7;
+  --color-foreground: #ededef;
+  --color-card: #1b1c21;
+  --color-card-foreground: #ededef;
+  --color-primary: #7b86c9;
+  --color-primary-foreground: #f5f5f7;
   --color-secondary: #202127;
-  --color-secondary-foreground: #EDEDEF;
-  --color-muted: #1B1C21;
-  --color-muted-foreground: #96969E;
-  --color-accent: #6EA58F;
-  --color-accent-foreground: #F2F7F5;
-  --color-destructive: #D9615A;
-  --color-destructive-foreground: #FDF3F2;
-  --color-border: #26272E;
+  --color-secondary-foreground: #ededef;
+  --color-muted: #1b1c21;
+  --color-muted-foreground: #96969e;
+  --color-accent: #6ea58f;
+  --color-accent-foreground: #f2f7f5;
+  --color-destructive: #d9615a;
+  --color-destructive-foreground: #fdf3f2;
+  --color-border: #26272e;
   --color-input: #202127;
-  --color-ring: #7B86C9;
+  --color-ring: #7b86c9;
 
-  --color-glow-indigo: #7B86C9;
-  --color-glow-sage: #6EA58F;
-  --color-glow-clay: #C48B7E;
-  --color-glow-slate: #7E93B8;
+  --color-glow-indigo: #7b86c9;
+  --color-glow-sage: #6ea58f;
+  --color-glow-clay: #c48b7e;
+  --color-glow-slate: #7e93b8;
 
   --color-night-bordeaux-50: #fce9ee;
   --color-night-bordeaux-100: #f8d3dd;
@@ -98,82 +98,90 @@
   --animate-drift3: drift3 20s ease-in-out infinite;
   --animate-shimmer: shimmer 3s linear infinite;
   --animate-fade-in: fade-in 0.35s ease-out forwards;
-  --animate-scale-in: scale-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
+  --animate-scale-in: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-orbit: orbit 3s linear infinite;
   --animate-orbit-slow: orbit 6s linear infinite reverse;
+
+  /* تعریف کی‌فریم‌ها درون بلاک تم در نسخه ۴ فوق‌العاده تمیزتر اجرا می‌شود */
+  @keyframes drift1 {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(30px, -20px) scale(1.06);
+    }
+  }
+
+  @keyframes drift2 {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-24px, 22px) scale(1.08);
+    }
+  }
+
+  @keyframes drift3 {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(20px, 18px) scale(0.94);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes orbit {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 }
 
-@keyframes drift1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
-  50% {
-    transform: translate(30px, -20px) scale(1.06);
-  }
-}
-
-@keyframes drift2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-24px, 22px) scale(1.08);
-  }
-}
-
-@keyframes drift3 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(20px, 18px) scale(0.94);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes orbit {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 html,
@@ -193,34 +201,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@layer components {
-  .marble-button-primary {
-    @apply px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 active:scale-[0.98] transition-all duration-200;
-  }
+/* در نسخه ۴ نیازی به @layer components نیست. 
+   کلاس‌های سفارشی شما مستقیماً و با استفاده از @apply کار خواهند کرد.
+*/
+.marble-button-primary {
+  @apply px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 active:scale-[0.98] transition-all duration-200;
+}
 
-  .marble-button-secondary {
-    @apply px-4 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-muted active:scale-[0.98] transition-all duration-200;
-  }
+.marble-button-secondary {
+  @apply px-4 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-muted active:scale-[0.98] transition-all duration-200;
+}
 
-  .marble-input {
-    @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200;
-  }
+.marble-input {
+  @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200;
+}
 
-  .marble-card {
-    @apply bg-card text-card-foreground rounded-xl p-4;
-  }
+.marble-card {
+  @apply bg-card text-card-foreground rounded-xl p-4;
+}
 
-  .marble-scrollbar {
-    @apply scrollbar-thin scrollbar-thumb-muted scrollbar-track-background;
-  }
+.marble-scrollbar {
+  @apply scrollbar-thin scrollbar-thumb-muted scrollbar-track-background;
+}
 
-  .glass-panel {
-    @apply bg-card/70 backdrop-blur-xl border border-white/5;
-  }
+.glass-panel {
+  @apply bg-card/70 backdrop-blur-xl border border-white/5;
+}
 
-  .glass-panel-strong {
-    @apply bg-card/90 backdrop-blur-2xl border border-white/5;
-  }
+.glass-panel-strong {
+  @apply bg-card/90 backdrop-blur-2xl border border-white/5;
 }
 
 ::-webkit-scrollbar {
