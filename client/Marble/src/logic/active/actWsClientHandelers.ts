@@ -1,4 +1,4 @@
-import { Session } from "../internal/commonTypes";
+import { Session, SessionId } from "../internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 
@@ -38,6 +38,23 @@ export async function onSyncSession(sessions: Session[]) {
   const req: Request = {
     status: MessageStatus.Pending,
     channel: "sessions",
+    headers: { task: "sync" },
+    body: JSON.stringify(struct),
+  };
+  sendRequest(req);
+}
+
+export async function onSyncMessage(sessionId: SessionId, lastMessageSeq: number) {
+  const struct: {
+    sessionId: number;
+    lastMessageSeq: number
+  } = {
+    sessionId: sessionId,
+    lastMessageSeq: lastMessageSeq
+  };
+  const req: Request = {
+    status: MessageStatus.Pending,
+    channel: "messages",
     headers: { task: "sync" },
     body: JSON.stringify(struct),
   };

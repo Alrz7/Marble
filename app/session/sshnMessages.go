@@ -22,11 +22,11 @@ func (m *MessageModel) Insert(message *Message) error {
 	return nil
 }
 
-func (m *MessageModel) GetBySesionId(sessionId internal.SessionId) ([]*Message, error) {
+func (m *MessageModel) GetMessagesByEvent(sessionId internal.SessionId, senderId internal.UserId, limit int) ([]*Message, error) {
 	query := `--sql
 	SELECT seq, session_id, sender_id, content, profile FROM message
-	WHERE session_id = $1`
-	rows, err := m.Db.Query(query, sessionId)
+	WHERE session_id = $1 AND sender_id = $2 ORDER BY seq ASC LIMIT $3`
+	rows, err := m.Db.Query(query, sessionId, senderId, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -47,4 +47,13 @@ func (m *MessageModel) GetBySesionId(sessionId internal.SessionId) ([]*Message, 
 		return nil, err
 	}
 	return res, nil
+}
+
+func (m *MessageModel) DeleteMessagesByEvent(SessionId internal.SessionId, senderId internal.UserId, lastMessageSeq int) error {
+	query := `DELETE FROM message WHERE session_id = $1 AND sender_id = $2 AND seq <= $3`
+	_, err := m.Db.Exec(query, SessionId, senderId, lastMessageSeq)
+	if err != nil {
+		return err
+	}
+	return nil
 }

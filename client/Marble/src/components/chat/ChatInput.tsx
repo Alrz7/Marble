@@ -23,7 +23,8 @@ export default function ChatInput() {
       sessionId: curSession.id,
       content,
       senderId: currentUser?.config.id,
-      timestamp: new Date(),
+      createdAt: new Date(),
+      profile: "openpgp",
       status: "sent",
     };
 

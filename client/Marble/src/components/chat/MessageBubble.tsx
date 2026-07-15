@@ -91,13 +91,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <>
               {getStatusIcon()}
               <span className="text-muted-foreground/60">
-                {message.timestamp.toLocaleString()}
+                {message.createdAt.toLocaleString()}
               </span>
             </>
           ) : (
             <>
               <span className="text-muted-foreground/60">
-                {message.timestamp.toLocaleString()}
+                {message.createdAt.toLocaleString()}
               </span>
               {getStatusIcon()}
             </>

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"marble/db"
 	"marble/internal"
+	"marble/internal/loggy"
 )
 
 // Sessions
@@ -15,10 +16,11 @@ func HndlSyncSessions(req *Request) error {
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
 		DefaultLogger.Error(err)
+		return err
 	}
-	Limit := 5
+	limit := 5
 	if req.user.SessionLastSeq > entry.LastSessionEvent {
-		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.LastSessionEvent, Limit)
+		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.LastSessionEvent, limit)
 		if err != nil {
 			return err
 		}
@@ -35,17 +37,60 @@ func HndlSyncSessions(req *Request) error {
 				ArmedPubKey:   audience.PgpProfile.PublicKey,
 			}
 		}
-		hasMore := len(sessions) == Limit
-		Body := envelope{"changes": envelope{"add": sessions}, "hasMore": hasMore}
+		hasMore := len(sessions) == limit
+		body := envelope{"changes": envelope{"add": sessions}, "hasMore": hasMore}
 		headers := RequestHeaders{"task": "sync"}
 		// DefaultLogger.Info(Body)
-		sendHandlerResponse(req.conn, StatusPending, "sessions", headers, Body)
+		sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
 	}
+	body := envelope{"changes": nil, "hasMore": false}
+	headers := RequestHeaders{"task": "sync"}
+	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
 	return nil
 }
 
 // Messages
 
 func HndlSyncMessages(req *Request) error {
+	var entry struct {
+		SessionId      internal.SessionId `json:"sessionId"`
+		LastMessageSeq int                `json:"lastMessageSeq"`
+	}
+	err := json.Unmarshal([]byte(req.Body), &entry)
+	if err != nil {
+		DefaultLogger.Error(err)
+		return err
+	}
+	session, err := req.user.GetSessionById(entry.SessionId)
+	if err != nil {
+		return err
+	}
+	var senderId internal.UserId
+	switch req.user.Id {
+	case session.Alpha:
+		senderId = session.Beta
+	case session.Beta:
+		senderId = session.Alpha
+	default:
+		return loggy.Say("user is not a subscribed to the session")
+	}
+
+	if entry.LastMessageSeq != 0 {
+		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
+		if err != nil {
+			return err
+		}
+	}
+
+	limit := 5
+	messages, err := db.AppModels.MessageModel.GetMessagesByEvent(entry.SessionId, senderId, limit)
+	if err != nil {
+		return err
+	}
+	hasMore := len(messages) == limit
+	body := envelope{"sessionId": entry.SessionId, "changes": envelope{"add": messages}, "hasMore": hasMore}
+	headers := RequestHeaders{"task": "sync"}
+	// DefaultLogger.Info(Body)
+	sendHandlerResponse(req.conn, StatusPending, "messages", headers, body)
 	return nil
 }

@@ -59,13 +59,15 @@ export type GroupSession = {
 };
 
 export type MessageStatus = "sent" | "delivered" | "read";
+
 export interface Message {
   id: number;
   seq: number;
   sessionId: SessionId;
-  content: string;
   senderId: UserId;
-  timestamp: Date;
+  profile: string
+  content: string;
+  createdAt: Date;
   status: MessageStatus;
 }
 

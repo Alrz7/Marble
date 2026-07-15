@@ -83,7 +83,7 @@ func HndlSendMesage(req *Request) error {
 		actBadRequestResponse(req.conn, err)
 		return err
 	}
-	session, err := req.user.GetActiveSession(internal.SessionId(entry.SessionId))
+	session, err := req.user.GetSessionById(internal.SessionId(entry.SessionId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err
@@ -162,8 +162,7 @@ func (u *ActvUser) SendMessage(S *session.Session, message string) error {
 // 	return nil
 // }
 
-func (AU *ActvUser) GetActiveSession(sessionId internal.SessionId) (*session.Session, error) {
-
+func (AU *ActvUser) GetSessionById(sessionId internal.SessionId) (*session.Session, error) {
 	session, err := db.AppModels.SessionModel.Get(sessionId)
 	if err != nil {
 		return nil, loggy.Sayr("error while fetching session", err)

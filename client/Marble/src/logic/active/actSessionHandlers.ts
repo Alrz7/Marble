@@ -5,7 +5,7 @@ import {
   UpdateSessionById,
 } from "../db/dbSessions";
 import { encryptMessage } from "../enc/encOpenpgp";
-import { Message, Session } from "../internal/commonTypes";
+import { Message, Session, SessionId } from "../internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "../states/sessionStates";
@@ -25,7 +25,7 @@ export async function onCreateNewSession(message: Message) {
   const curSession = sessions.get(currentSessionId);
   if (!curSession) return;
 
-  const MessageToJsonString: string = JSON.stringify(message);
+  const MessageToJsonString: string = JSON.stringify(message.content);
   const encMessage = await encryptMessage(
     curSession.audience.armedPubKey,
     MessageToJsonString,
@@ -75,7 +75,7 @@ export async function hndlAddSession(req: Request) {
   try {
     const data: { sessions: Session[] } = JSON.parse(req.body);
     if (data.sessions.length == 0) return;
-    actAddSession(data.sessions);
+    await actAddSession(data.sessions);
   } catch (err) {
     console.error(err);
   }
@@ -137,4 +137,11 @@ export async function SameOnStage(
     }
   }
   return null;
+}
+
+export function getSessionBySessionId(sessionId: SessionId) {
+  const { sessions } = sessionsState.getState();
+  return Array.from(sessions.values()).find(
+    (session) => session.sessionId == sessionId,
+  );
 }

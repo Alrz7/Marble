@@ -1,6 +1,7 @@
 import { GetAuthToken } from "../internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
 import {
+  HndlMessages,
   HndlNotifs,
   HndlSearchResult,
   HndlSessions,
@@ -13,6 +14,7 @@ let ws: WebSocket | null = null;
 let handlers: Handelers = {
   auth: HndlAuthStatus,
   sessions: HndlSessions,
+  messages: HndlMessages,
   searchUser: HndlSearchResult,
   notif: HndlNotifs,
 };
@@ -30,8 +32,8 @@ export function openConnection() {
   ws = new WebSocket("ws://localhost:6280/actv");
 
   ws.onopen = () => {
-    const {states} = stateCommon.getState()
-    if (!states.get("authorized")) sendToken()
+    const { states } = stateCommon.getState();
+    if (!states.get("authorized")) sendToken();
   };
 
   ws.onmessage = (event) => {

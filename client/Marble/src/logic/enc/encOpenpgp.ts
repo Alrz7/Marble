@@ -1,6 +1,5 @@
 import * as openpgp from "openpgp";
 import { config } from "openpgp";
-import { Message } from "../internal/commonTypes";
 //---- Config ----
 config.aeadProtect = true;
 config.v6Keys = true;
@@ -84,7 +83,7 @@ export async function decryptMessage(
       });
     }
     const { data: decryptedJsonString } = await openpgp.decrypt(decOptions);
-    return JSON.parse(decryptedJsonString) as Message;
+    return JSON.parse(decryptedJsonString) as string;
   } catch (err) {
     throw new Error(`there was an error while decryptig a message ${err}`);
   }

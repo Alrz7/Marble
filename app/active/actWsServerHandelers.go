@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func HndlauthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
+func HndlAuthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 	_, msg, err := conn.ReadMessage()
 	if err != nil {
 		actBadRequestResponse(conn, err)

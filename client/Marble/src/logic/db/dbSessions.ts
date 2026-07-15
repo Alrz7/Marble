@@ -223,7 +223,7 @@ export async function InsertMessage(
     session.id,
     encryptData(message.content, masterKey),
     encryptData(message.senderId, masterKey),
-    encryptData(message.timestamp.toUTCString(), masterKey),
+    encryptData(message.createdAt.toUTCString(), masterKey),
     encryptData(message.status, masterKey),
   ]);
 
@@ -273,7 +273,8 @@ export async function GetMessages(
       sessionId: msg.session_id,
       content: await decryptDataFromDb<string>(msg.content, masterKey),
       senderId: await decryptDataFromDb<number>(msg.sender_id, masterKey),
-      timestamp: new Date(
+      profile: "openpgp",
+      createdAt: new Date(
         await decryptDataFromDb<string>(msg.timestamp, masterKey),
       ),
       status: (await decryptDataFromDb<string>(

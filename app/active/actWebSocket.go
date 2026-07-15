@@ -31,7 +31,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 
 	conn.SetReadLimit(4096)
 
-	err = HndlauthorizeConnection(conn, jwtSecretKey)
+	err = HndlAuthorizeConnection(conn, jwtSecretKey)
 	if err != nil {
 		return
 	}

@@ -14,11 +14,12 @@ type Session struct {
 }
 
 type Message struct {
-	Id        int
-	Seq       int
-	SessionId internal.SessionId
-	SenderId  internal.UserId
-	Content   string
-	Profile   string
-	CreatedAt time.Time
+	Id        int                `json:"id"`
+	Seq       int                `json:"seq"`
+	SessionId internal.SessionId `json:"sessionId"`
+	SenderId  internal.UserId    `json:"senderId"`
+	Content   string             `json:"content"`
+	Profile   string             `json:"profile"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Status    string             `json:"status"`
 }

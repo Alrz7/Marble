@@ -39,6 +39,12 @@ export default function SessionsList() {
   //   }
   // }, [sessions, states]);
 
+  useEffect(() => {
+    console.log(Messagelist);
+//     console.log(Messagelist.at(-1));
+// console.log(typeof Messagelist.at(-1)?.content);
+  }, [Messagelist]);
+
   // useEffect(() => {
   //   console.log(currentSessionId, sessions);
   // }, [currentSessionId, sessions]);
@@ -73,12 +79,12 @@ export default function SessionsList() {
                   {session.audience.name}
                 </h3>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  {Messagelist.at(-1)?.timestamp.toLocaleString()}
+                  {Messagelist.at(-1)?.createdAt.toLocaleString()}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {Messagelist.at(-1)
-                  ? Messagelist.at(-1)?.content.slice(0) + "..."
+                {Messagelist.length > 0 && Messagelist.at(-1)
+                  ? Messagelist.at(-1)?.content?.slice(0) + "..."
                   : ""}
               </p>
             </div>

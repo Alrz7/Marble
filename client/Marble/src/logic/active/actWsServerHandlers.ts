@@ -1,11 +1,12 @@
-import { Audience, Session } from "../internal/commonTypes";
+import { Audience, Message, Session, SessionId } from "../internal/commonTypes";
 import { notifState, searchResult } from "../states/appCommonStates";
 import { actAddSession, hndlAddSession } from "./actSessionHandlers";
 import { Request } from "./actTypes";
 import { stateCommon } from "../states/appCommonStates";
 import { MessageStatus } from "./actTypes";
-import { onSyncSession } from "./actWsClientHandelers";
+import { onSyncMessage, onSyncSession } from "./actWsClientHandelers";
 import { sessionsState } from "../states/sessionStates";
+import { actAddMessage, HndlAddMessage } from "./actMessageHandlers";
 
 export function HndlSessions(req: Request) {
   if (!req.headers) {
@@ -18,6 +19,20 @@ export function HndlSessions(req: Request) {
       break;
     case "sync":
       HndlSyncSession(req);
+      break;
+  }
+}
+export function HndlMessages(req: Request) {
+  if (!req.headers) {
+    console.error("request has no methods");
+    return;
+  }
+  switch (req.headers.task) {
+    case "add":
+      HndlAddMessage(req);
+      break;
+    case "sync":
+      hndlSyncMessage(req);
       break;
   }
 }
@@ -57,11 +72,35 @@ export async function HndlSyncSession(req: Request) {
   if (data.changes) {
     if (data.changes.add) {
       await actAddSession(data.changes.add);
-      console.log(data.changes.add);
+      // console.log(data.changes.add);
     }
-    if (data.hasMore) {
-      const { sessions } = sessionsState.getState();
-      onSyncSession(Object.values(sessions));
+  }
+  const { sessions } = sessionsState.getState();
+  if (data.hasMore) {
+    onSyncSession(Array.from(sessions.values()));
+  } else {
+    for (const session of sessions.values()) {
+      await onSyncMessage(session.sessionId, 0);
+    }
+  }
+}
+
+export async function hndlSyncMessage(req: Request) {
+  const data: {
+    sessionId: SessionId;
+    changes: Record<string, Message[]> | null;
+    hasMore: boolean;
+  } = JSON.parse(req.body);
+  if (data.changes) {
+    if (data.changes.add) {
+      console.log(data.changes.add)
+      const lastMessageSavedSeq = await actAddMessage(
+        data.sessionId,
+        data.changes.add,
+      );
+      if (data.hasMore) {
+        onSyncMessage(data.sessionId, lastMessageSavedSeq);
+      }
     }
   }
 }
