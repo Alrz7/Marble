@@ -3,12 +3,15 @@ import { Circle } from "lucide-react";
 import { messageState, sessionsState } from "../../logic/states/sessionStates";
 import { AppUser } from "../../logic/states/userMainStates";
 import { GetSessions } from "../../logic/db/dbSessions";
+// import { stateCommon } from "../../logic/states/appCommonStates";
+// import { onSyncSession } from "../../logic/active/actWsClientHandelers";
 
 export default function SessionsList() {
   const { currentUser } = AppUser();
   const { sessions, setSessions, currentSessionId, setCurrentSessionId } =
     sessionsState();
   const { Messagelist } = messageState();
+  // const { states, setState } = stateCommon();
 
   useEffect(() => {
     async function getSessions() {
@@ -22,6 +25,19 @@ export default function SessionsList() {
     }
     getSessions();
   }, [currentUser]);
+
+  // useEffect(() => {
+  //   const loadedSessions = sessions.size > 0;
+  //   if (
+  //     loadedSessions &&
+  //     states.get("authorized") &&
+  //     !states.get("syncedSession")
+  //   ) {
+  //     console.log(Array.from(sessions.values()));
+  //     onSyncSession(Array.from(sessions.values()));
+  //     setState("syncedSession", true);
+  //   }
+  // }, [sessions, states]);
 
   // useEffect(() => {
   //   console.log(currentSessionId, sessions);

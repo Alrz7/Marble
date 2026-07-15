@@ -28,7 +28,8 @@ then, when ever there was a need for update, the server pushes the changes
 automaticaly.
  */
 export async function onSyncSession(sessions: Session[]) {
-  const lastSessionSeq = Math.max(...sessions.map((session) => session.seq));
+  const lastSessionSeq =
+    sessions.length > 0 ? Math.max(...sessions.map((s) => s.seq)) : 0;
   const struct: {
     lastSessionEvent: number;
   } = {

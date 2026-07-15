@@ -6,7 +6,7 @@ import {
   HndlSessions,
 } from "../active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
-import { StateAuthorized } from "../states/appCommonStates";
+import { stateCommon } from "../states/appCommonStates";
 
 // ----* handlers *----
 let ws: WebSocket | null = null;
@@ -30,8 +30,8 @@ export function openConnection() {
   ws = new WebSocket("ws://localhost:6280/actv");
 
   ws.onopen = () => {
-    const {isComplete} = StateAuthorized.getState()
-    if (!isComplete) sendToken()
+    const {states} = stateCommon.getState()
+    if (!states.get("authorized")) sendToken()
   };
 
   ws.onmessage = (event) => {

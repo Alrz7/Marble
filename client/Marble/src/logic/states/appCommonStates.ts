@@ -12,17 +12,24 @@ export const AppState = create<AppState>((set) => ({
   setAppState: (newState: PAGES) => set({ appState: newState }),
 }));
 
+// ---- Common ----
+type sTypes = string | boolean | number;
 
-// ---- auth ----
-
-export const StateAuthorized = create<{
-  isComplete: boolean;
-  setState: (state: boolean) => void;
+export const stateCommon = create<{
+  states: Map<string, sTypes>;
+  setState: (key: string, val: sTypes) => void;
 }>((set) => ({
-  isComplete: false,
-  setState: (state: boolean) => set({ isComplete: state }),
+  states: new Map<string, sTypes>([
+    ["authorized", false],
+    ["syncedSession", false],
+  ]),
+  setState: (key: string, val: sTypes) =>
+    set((state) => {
+      const next = new Map<string, sTypes>(state.states);
+      next.set(key, val);
+      return { states: next };
+    }),
 }));
-
 
 //  -- Search State --
 interface SearchResult {

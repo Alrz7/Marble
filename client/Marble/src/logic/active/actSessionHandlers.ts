@@ -72,14 +72,21 @@ fucntion) it just alters the existing one and updates the datas, &
 if adding-session was new, it inserts it instead.
  */
 export async function hndlAddSession(req: Request) {
+  try {
+    const data: { sessions: Session[] } = JSON.parse(req.body);
+    if (data.sessions.length == 0) return;
+    actAddSession(data.sessions);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export async function actAddSession(sessions: Session[]) {
   const { currentUser } = AppUser.getState();
   const { addSession, updateSession } = sessionsState.getState();
   if (!currentUser) return;
-
   try {
-    const data: { sessions: Session[] } = JSON.parse(req.body);
-    if (!data.sessions) return;
-    for (let session of data.sessions) {
+    for (let session of sessions) {
       session.audience.ownerId = currentUser.config.id;
       session.ownerId = currentUser.config.id;
 

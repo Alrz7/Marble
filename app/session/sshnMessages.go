@@ -30,6 +30,8 @@ func (m *MessageModel) GetBySesionId(sessionId internal.SessionId) ([]*Message, 
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	var res []*Message
 	for rows.Next() {
 		var nxm Message
@@ -39,6 +41,10 @@ func (m *MessageModel) GetBySesionId(sessionId internal.SessionId) ([]*Message, 
 			return nil, err
 		}
 		res = append(res, &nxm)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }

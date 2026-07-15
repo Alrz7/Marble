@@ -9,16 +9,16 @@ import (
 // Sessions
 
 func HndlSyncSessions(req *Request) error {
-	DefaultLogger.Info("got sync request!")
 	var entry struct {
-		lastSessionEvent int
+		LastSessionEvent int `json:"lastSessionEvent"`
 	}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
 		DefaultLogger.Error(err)
 	}
-	if req.user.SessionLastSeq > entry.lastSessionEvent {
-		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.lastSessionEvent, 5)
+	Limit := 5
+	if req.user.SessionLastSeq > entry.LastSessionEvent {
+		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.LastSessionEvent, Limit)
 		if err != nil {
 			return err
 		}
@@ -35,12 +35,12 @@ func HndlSyncSessions(req *Request) error {
 				ArmedPubKey:   audience.PgpProfile.PublicKey,
 			}
 		}
-		Body := envelope{"sessions": sessions}
-		headers := RequestHeaders{"task": "add"}
-		DefaultLogger.Info(Body)
+		hasMore := len(sessions) == Limit
+		Body := envelope{"changes": envelope{"add": sessions}, "hasMore": hasMore}
+		headers := RequestHeaders{"task": "sync"}
+		// DefaultLogger.Info(Body)
 		sendHandlerResponse(req.conn, StatusPending, "sessions", headers, Body)
 	}
-
 	return nil
 }
 

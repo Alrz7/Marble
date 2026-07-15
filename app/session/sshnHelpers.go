@@ -53,6 +53,10 @@ func (m SessionModel) GetSessionsByEvent(userId internal.UserId, lastEventSeq in
 
 	var sessions []*internal.ClientSession
 	rows, err := m.Db.Query(query, userId, lastEventSeq, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var session internal.ClientSession
@@ -62,13 +66,9 @@ func (m SessionModel) GetSessionsByEvent(userId internal.UserId, lastEventSeq in
 		}
 		sessions = append(sessions, &session)
 	}
+	err = rows.Err()
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, internal.ErrRecordNotFound
-		default:
-			return nil, loggy.Sayr("there was an error while fetching the session Data", err)
-		}
+		return nil, loggy.Sayr("there was an error while fetching the session Data", err)
 	}
 	return sessions, nil
 }
