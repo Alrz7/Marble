@@ -16,10 +16,16 @@ func HndlSessions(req *Request) {
 	}
 	switch tesk {
 	case "create":
-		HndlCreateSession(req)
+		err := HndlCreateSession(req)
+		if err != nil {
+			DefaultLogger.Error(err)
+		}
 
 	case "sync":
-		HndlSyncSessions(req)
+		err := HndlSyncSessions(req)
+		if err != nil {
+			DefaultLogger.Error(err)
+		}
 	}
 }
 
@@ -62,6 +68,11 @@ func HndlMessages(req *Request) {
 		}
 	case "sync":
 		err := HndlSyncMessages(req)
+		if err != nil {
+			DefaultLogger.Error(err)
+		}
+	case "clear":
+		err := HndlClearSyncedMessage(req)
 		if err != nil {
 			DefaultLogger.Error(err)
 		}

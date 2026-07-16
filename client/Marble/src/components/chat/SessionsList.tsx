@@ -39,11 +39,9 @@ export default function SessionsList() {
   //   }
   // }, [sessions, states]);
 
-  useEffect(() => {
-    console.log(Messagelist);
-//     console.log(Messagelist.at(-1));
-// console.log(typeof Messagelist.at(-1)?.content);
-  }, [Messagelist]);
+  // useEffect(() => {
+  //   console.log(Messagelist);
+  // }, [Messagelist]);
 
   // useEffect(() => {
   //   console.log(currentSessionId, sessions);

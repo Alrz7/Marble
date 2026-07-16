@@ -44,18 +44,41 @@ export async function onSyncSession(sessions: Session[]) {
   sendRequest(req);
 }
 
-export async function onSyncMessage(sessionId: SessionId, lastMessageSeq: number) {
+export async function onSyncMessage(
+  sessionId: SessionId,
+  lastMessageSeq: number,
+) {
   const struct: {
     sessionId: number;
-    lastMessageSeq: number
+    lastMessageSeq: number;
   } = {
     sessionId: sessionId,
-    lastMessageSeq: lastMessageSeq
+    lastMessageSeq: lastMessageSeq,
   };
   const req: Request = {
     status: MessageStatus.Pending,
     channel: "messages",
     headers: { task: "sync" },
+    body: JSON.stringify(struct),
+  };
+  sendRequest(req);
+}
+
+export async function onCLearSyncedMessage(
+  sessionId: SessionId,
+  lastMessageSeq: number,
+) {
+  const struct: {
+    sessionId: number;
+    lastMessageSeq: number;
+  } = {
+    sessionId: sessionId,
+    lastMessageSeq: lastMessageSeq,
+  };
+  const req: Request = {
+    status: MessageStatus.Pending,
+    channel: "messages",
+    headers: { task: "clear" },
     body: JSON.stringify(struct),
   };
   sendRequest(req);

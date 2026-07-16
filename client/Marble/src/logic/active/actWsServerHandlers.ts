@@ -4,7 +4,11 @@ import { actAddSession, hndlAddSession } from "./actSessionHandlers";
 import { Request } from "./actTypes";
 import { stateCommon } from "../states/appCommonStates";
 import { MessageStatus } from "./actTypes";
-import { onSyncMessage, onSyncSession } from "./actWsClientHandelers";
+import {
+  onCLearSyncedMessage,
+  onSyncMessage,
+  onSyncSession,
+} from "./actWsClientHandelers";
 import { sessionsState } from "../states/sessionStates";
 import { actAddMessage, HndlAddMessage } from "./actMessageHandlers";
 
@@ -59,7 +63,6 @@ export async function HndlAuthStatus(request: any) {
     setState("authorized", true);
     const { sessions } = sessionsState.getState();
     if (!states.get("syncedSession")) {
-      // console.log(Array.from(sessions.values()));
       onSyncSession(Array.from(sessions.values()));
       setState("syncedSession", true);
     }
@@ -72,7 +75,6 @@ export async function HndlSyncSession(req: Request) {
   if (data.changes) {
     if (data.changes.add) {
       await actAddSession(data.changes.add);
-      // console.log(data.changes.add);
     }
   }
   const { sessions } = sessionsState.getState();
@@ -93,13 +95,16 @@ export async function hndlSyncMessage(req: Request) {
   } = JSON.parse(req.body);
   if (data.changes) {
     if (data.changes.add) {
-      console.log(data.changes.add)
+      console.log(data.changes.add);
       const lastMessageSavedSeq = await actAddMessage(
         data.sessionId,
         data.changes.add,
       );
       if (data.hasMore) {
+        console.log(lastMessageSavedSeq);
         onSyncMessage(data.sessionId, lastMessageSavedSeq);
+      } else {
+        onCLearSyncedMessage(data.sessionId, lastMessageSavedSeq);
       }
     }
   }

@@ -6,7 +6,10 @@ interface UserProfilePanelProps {
   onClose: () => void;
 }
 
-export default function UserProfilePanel({ audience, onClose }: UserProfilePanelProps) {
+export default function UserProfilePanel({
+  audience,
+  onClose,
+}: UserProfilePanelProps) {
   return (
     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
       <div className="glass-panel-strong rounded-2xl w-full max-w-sm mx-4 shadow-2xl animate-scale-in">
@@ -30,8 +33,12 @@ export default function UserProfilePanel({ audience, onClose }: UserProfilePanel
           </div>
 
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground">{audience.name}</h3>
-            <p className="text-sm text-muted-foreground">{audience.isOnline ? "Online" : "Offline"}</p>
+            <h3 className="text-lg font-semibold text-foreground">
+              {audience.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {audience.isOnline ? "Online" : "Offline"}
+            </p>
           </div>
 
           <div className="w-full space-y-2 mt-2">
@@ -44,8 +51,18 @@ export default function UserProfilePanel({ audience, onClose }: UserProfilePanel
               <KeyRound className="w-4 h-4 text-primary shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground mb-1">Encryption</p>
-                <p className="text-sm text-foreground truncate">Verified end-to-end key</p>
+                <p className="text-sm text-foreground truncate">
+                  Verified end-to-end key
+                </p>
               </div>
+            </div>
+            <div className="w-full mt-6">
+              <button
+                onClick={() => {}}
+                className="w-full rounded-xl bg-destructive/15 border border-destructive/30 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
+              >
+                Delete Session
+              </button>
             </div>
           </div>
         </div>

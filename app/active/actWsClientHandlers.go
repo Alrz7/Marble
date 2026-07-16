@@ -40,7 +40,6 @@ func HndlSyncSessions(req *Request) error {
 		hasMore := len(sessions) == limit
 		body := envelope{"changes": envelope{"add": sessions}, "hasMore": hasMore}
 		headers := RequestHeaders{"task": "sync"}
-		// DefaultLogger.Info(Body)
 		sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, body)
 	}
 	body := envelope{"changes": nil, "hasMore": false}
@@ -74,7 +73,6 @@ func HndlSyncMessages(req *Request) error {
 	default:
 		return loggy.Say("user is not a subscribed to the session")
 	}
-
 	if entry.LastMessageSeq != 0 {
 		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
 		if err != nil {
@@ -90,7 +88,38 @@ func HndlSyncMessages(req *Request) error {
 	hasMore := len(messages) == limit
 	body := envelope{"sessionId": entry.SessionId, "changes": envelope{"add": messages}, "hasMore": hasMore}
 	headers := RequestHeaders{"task": "sync"}
-	// DefaultLogger.Info(Body)
 	sendHandlerResponse(req.conn, StatusPending, "messages", headers, body)
+	return nil
+}
+
+func HndlClearSyncedMessage(req *Request) error {
+	var entry struct {
+		SessionId      internal.SessionId `json:"sessionId"`
+		LastMessageSeq int                `json:"lastMessageSeq"`
+	}
+	err := json.Unmarshal([]byte(req.Body), &entry)
+	if err != nil {
+		DefaultLogger.Error(err)
+		return err
+	}
+	session, err := req.user.GetSessionById(entry.SessionId)
+	if err != nil {
+		return err
+	}
+	var senderId internal.UserId
+	switch req.user.Id {
+	case session.Alpha:
+		senderId = session.Beta
+	case session.Beta:
+		senderId = session.Alpha
+	default:
+		return loggy.Say("user is not a subscribed to the session")
+	}
+	if entry.LastMessageSeq != 0 {
+		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

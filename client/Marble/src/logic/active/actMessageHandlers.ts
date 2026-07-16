@@ -84,7 +84,7 @@ export async function actAddMessage(
       console.error(err);
       decryptedContent = "*** Error While Decrypting Message ***";
     }
-    console.log(message)
+    console.log(message);
     message.content = decryptedContent;
     message.createdAt = new Date(message.createdAt);
     saveNewMessage(session, currentUser.MasterKey, message);
@@ -105,12 +105,12 @@ export async function saveNewMessage(
   message.id = id;
 }
 
-export async function loadSavedMessages() {
+export async function loadSavedMessages(): Promise<Message[] | null> {
   const { currentUser } = AppUser.getState();
-  if (!currentUser) return;
+  if (!currentUser) return null;
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
-  if (!curSession) return;
+  if (!curSession) return null;
 
   const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
   return existing;

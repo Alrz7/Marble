@@ -4,8 +4,6 @@ import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
-import { AppState } from "../../logic/states/appCommonStates";
-import { AppUser } from "../../logic/states/userMainStates";
 import { logOut } from "../../logic/auth/login";
 import { onSearchUser } from "../../logic/active/actWsClientHandelers";
 
@@ -13,17 +11,13 @@ export default function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const { setAppState } = AppState();
-  const { setUserData } = AppUser();
-
   const RequestForSearch = (query: string) => {
     setSearchQuery(query);
     onSearchUser(query);
   };
 
   const handleLogout = () => {
-    logOut(setUserData);
-    setAppState("login");
+    logOut();
   };
 
   return (

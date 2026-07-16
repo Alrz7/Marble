@@ -266,6 +266,7 @@ export async function GetMessages(
   );
   const existing: Message[] = [];
 
+  console.log(res)
   for (const msg of res) {
     existing.push({
       id: msg.id,

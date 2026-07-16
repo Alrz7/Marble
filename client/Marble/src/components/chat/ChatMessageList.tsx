@@ -3,14 +3,15 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { messageState, sessionsState } from "../../logic/states/sessionStates";
 import { loadSavedMessages } from "../../logic/active/actMessageHandlers";
+import { Message } from "../../logic/internal/commonTypes";
 
 export default function ChatMessageList() {
   const { currentSessionId, sessions } = sessionsState();
   const { Messagelist, setMessages } = messageState();
 
   async function loadMessages() {
-    const messages = (await loadSavedMessages()) ?? [];
-    setMessages(messages);
+    const messages: Message[] | null = await loadSavedMessages();
+    if (messages !== null) setMessages(messages);
   }
 
   useEffect(() => {
