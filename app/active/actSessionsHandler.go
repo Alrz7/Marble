@@ -43,26 +43,35 @@ func HndlCreateSession(req *Request) error {
 		loggy.DefaultLogger.Error(err)
 		return err
 	}
-	err = req.user.SendMessage(newSession, entry.Content)
+	sent, err := req.user.onDeliverSession(newSession, Beta, entry.Content)
 	if err != nil {
 		return err
 	}
+	if !sent {
+		err = req.user.SendMessage(newSession, entry.Content)
+		if err != nil {
+			return err
+		}
+	}
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
-	req.user.OnAddSession(req.conn, newSession, Beta)
-	req.user.onDeliverSession(newSession, Beta)
+	req.user.OnAddSession(req.conn, newSession, Beta, nil)
 	return nil
 }
 
-func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User) {
+func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User, content string) (bool, error) {
 	userOnlineConn, ok := GetConnByUserId(audience.Id)
 	if !ok {
-		return
+		return false, nil
 	}
-	u.OnAddSession(userOnlineConn, session, u.User)
+	newMessage, err := u.onGenerateNewMessage(session, content)
+	if err != nil {
+		return false, err
+	}
+	u.OnAddSession(userOnlineConn, session, u.User, newMessage)
+	return true, nil
 }
 
-func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, audience *users.User) {
-
+func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, audience *users.User, message *session.Message) {
 	sendingSession := envelope{"sessionId": session.Id, "seq": session.Seq, "audience": internal.Audience{Name: audience.UserName,
 		UserId:        audience.Id,
 		DisplayId:     audience.DisplayId,
@@ -70,12 +79,40 @@ func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, 
 		ArmedPubKey:   audience.PgpProfile.PublicKey}}
 
 	Body := envelope{"sessions": []*envelope{&sendingSession}}
+	if message != nil {
+		Body["message"] = message
+	}
 	headers := RequestHeaders{"task": "add"}
 	sendHandlerResponse(conn, StatusPending, "sessions", headers, Body)
 }
 
+func HndlDeleteSession(req *Request) error {
+	entry := struct {
+		SessionId uint64 `json:"sessionId"`
+	}{}
+	err := json.Unmarshal([]byte(req.Body), &entry)
+	if err != nil {
+		actBadRequestResponse(req.conn, err)
+		return err
+	}
+	session, err := req.user.GetSessionById(internal.SessionId(entry.SessionId))
+	if err != nil {
+		actNotFoundResponse(req.conn, err)
+		return err
+	}
+	if req.user.Id == session.Alpha || req.user.Id == session.Beta {
+		err = db.AppModels.SessionModel.Delete(session.Id)
+		if err != nil {
+			return err
+		}
+	} else {
+		return loggy.Say("this Client doesn't have permision for this operation")
+	}
+	return nil
+}
+
 // --- Messages ---
-func HndlSendMesage(req *Request) error {
+func HndlSendMessage(req *Request) error {
 	entry := struct {
 		AudienceId internal.UserId `json:"audienceId"`
 		SessionId  uint64          `json:"sessionId"`
@@ -94,31 +131,34 @@ func HndlSendMesage(req *Request) error {
 	return req.user.SendMessage(session, entry.Message)
 }
 
-func (u *ActvUser) SendMessage(S *session.Session, content string) error {
+func (u *ActvUser) onGenerateNewMessage(S *session.Session, content string) (*session.Message, error) {
 	var newMessage = session.Message{
 		SessionId: S.Id,
 		Content:   content,
 		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
 	}
-	if u.Id == S.Alpha || u.Id == S.Beta {
-		newMessage.SenderId = u.Id
-		newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
+	newMessage.SenderId = u.Id
+	newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
+	if err != nil {
+		return nil, err
+	}
+	newMessage.Seq = newSeq
+	return &newMessage, nil
+}
+
+func (u *ActvUser) SendMessage(S *session.Session, content string) error {
+	if u.Id != S.Alpha && u.Id != S.Beta {
+		return errors.New("user is Not subscribed to this session")
+	}
+	newMessage, err := u.onGenerateNewMessage(S, content)
+
+	sent := u.onDeliverMessage(S, newMessage)
+	if !sent {
+		err = db.AppModels.MessageModel.Insert(newMessage)
+		// err = db.AppModels.MessageModel.SendMessage(&newMessage)
 		if err != nil {
 			return err
 		}
-
-		newMessage.Seq = newSeq
-		sent := u.onDeliverMessage(S, &newMessage)
-		if !sent {
-			err = db.AppModels.MessageModel.Insert(&newMessage)
-			// err = db.AppModels.MessageModel.SendMessage(&newMessage)
-			if err != nil {
-				return err
-			}
-		}
-
-	} else {
-		return errors.New("There was a mismatch among audiences while sending message")
 	}
 	return nil
 }

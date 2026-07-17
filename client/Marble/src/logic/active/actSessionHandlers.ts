@@ -10,6 +10,7 @@ import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "../states/sessionStates";
 import { AppUser } from "../states/userMainStates";
+import { actAddMessage } from "./actMessageHandlers";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -73,15 +74,19 @@ if adding-session was new, it inserts it instead.
  */
 export async function hndlAddSession(req: Request) {
   try {
-    const data: { sessions: Session[] } = JSON.parse(req.body);
+    const data: { sessions: Session[]; message: Message | undefined } =
+      JSON.parse(req.body);
     if (data.sessions.length == 0) return;
-    await actAddSession(data.sessions);
+    await actAddSession(data.sessions, data.message ?? null);
   } catch (err) {
     console.error(err);
   }
 }
 
-export async function actAddSession(sessions: Session[]) {
+export async function actAddSession(
+  sessions: Session[],
+  message: Message | null,
+) {
   const { currentUser } = AppUser.getState();
   const { addSession, updateSession } = sessionsState.getState();
   if (!currentUser) return;
@@ -111,6 +116,7 @@ export async function actAddSession(sessions: Session[]) {
         id = await InsertSession(session, currentUser.MasterKey);
         session.id = id;
         addSession(session);
+        if (message) actAddMessage(session.sessionId, [message]);
       }
     }
   } catch (err) {

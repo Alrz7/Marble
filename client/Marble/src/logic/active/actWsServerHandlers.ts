@@ -74,7 +74,7 @@ export async function HndlSyncSession(req: Request) {
     JSON.parse(req.body);
   if (data.changes) {
     if (data.changes.add) {
-      await actAddSession(data.changes.add);
+      await actAddSession(data.changes.add, null);
     }
   }
   const { sessions } = sessionsState.getState();

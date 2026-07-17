@@ -1,13 +1,14 @@
 import { X, Circle, KeyRound } from "lucide-react";
-import { Audience } from "../../logic/internal/commonTypes";
+import { Session } from "../../logic/internal/commonTypes";
+import { onDeleteSession } from "../../logic/active/actWsClientHandelers";
 
 interface UserProfilePanelProps {
-  audience: Audience;
+  curSession: Session;
   onClose: () => void;
 }
 
 export default function UserProfilePanel({
-  audience,
+  curSession,
   onClose,
 }: UserProfilePanelProps) {
   return (
@@ -25,26 +26,28 @@ export default function UserProfilePanel({
         <div className="flex flex-col items-center gap-4 px-8 pb-8 -mt-4">
           <div className="relative">
             <div className="w-24 h-24 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-3xl font-bold text-primary-foreground">
-              {audience.name?.charAt(0)}
+              {curSession.audience.name?.charAt(0)}
             </div>
-            {audience.isOnline && (
+            {curSession.audience.isOnline && (
               <Circle className="absolute bottom-1 right-1 w-4 h-4 bg-accent text-accent rounded-full border-2 border-card" />
             )}
           </div>
 
           <div className="text-center">
             <h3 className="text-lg font-semibold text-foreground">
-              {audience.name}
+              {curSession.audience.name}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {audience.isOnline ? "Online" : "Offline"}
+              {curSession.audience.isOnline ? "Online" : "Offline"}
             </p>
           </div>
 
           <div className="w-full space-y-2 mt-2">
             <div className="rounded-xl bg-secondary px-4 py-3">
               <p className="text-xs text-muted-foreground mb-1">Username</p>
-              <p className="text-sm text-foreground">{audience.displayId}</p>
+              <p className="text-sm text-foreground">
+                {curSession.audience.displayId}
+              </p>
             </div>
 
             <div className="rounded-xl bg-secondary px-4 py-3 flex items-center gap-3">
@@ -58,7 +61,9 @@ export default function UserProfilePanel({
             </div>
             <div className="w-full mt-6">
               <button
-                onClick={() => {}}
+                onClick={() => {
+                  onDeleteSession(curSession);
+                }}
                 className="w-full rounded-xl bg-destructive/15 border border-destructive/30 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
               >
                 Delete Session

@@ -51,6 +51,7 @@ export async function HndlAddMessage(req: Request) {
     );
     if (data.messages.length == 0) return;
     if (!data.sessionId) throw new Error("sessionId was Not Valid");
+    console.log(data.sessionId, data.messages)
     await actAddMessage(data.sessionId, data.messages);
   } catch (err) {
     console.error(err);
@@ -71,7 +72,7 @@ export async function actAddMessage(
   if (!PrvKey) {
     throw new Error("there was an error while recovering Prv-Key");
   }
-  const session = getSessionBySessionId(sessionId);
+  let session = getSessionBySessionId(sessionId);
   if (!session) {
     console.warn("session does Not Exist");
     return messages.at(0)?.seq ?? 0;

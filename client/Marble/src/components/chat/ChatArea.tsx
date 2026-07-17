@@ -25,7 +25,7 @@ export default function ChatArea() {
           <ChatInput />
           {showProfile && curSession && (
             <UserProfilePanel
-              audience={curSession.audience}
+              curSession={curSession}
               onClose={() => setShowProfile(false)}
             />
           )}

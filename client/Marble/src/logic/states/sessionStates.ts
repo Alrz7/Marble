@@ -9,6 +9,7 @@ interface SessionsState {
   updateSession: (oldId: number, next: Session) => void;
   UpdateCurrentSession: (next: Session) => void;
   setCurrentSessionId: (id: number) => void;
+  deleteSession: (id: number) => void;
 }
 
 export const sessionsState = create<SessionsState>((set) => ({
@@ -52,6 +53,19 @@ export const sessionsState = create<SessionsState>((set) => ({
       };
     }),
   setCurrentSessionId: (id: number) => set({ currentSessionId: id }),
+  deleteSession: (id: number) =>
+    set((state) => {
+      const newGen = new Map(state.sessions);
+      newGen.delete(id);
+      let newCurId = state.currentSessionId;
+      if (id == state.currentSessionId) {
+        newCurId = 0;
+      }
+      return {
+        sessions: newGen,
+        currentSessionId: newCurId,
+      };
+    }),
 }));
 
 interface MessageStates {

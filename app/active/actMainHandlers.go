@@ -26,6 +26,12 @@ func HndlSessions(req *Request) {
 		if err != nil {
 			DefaultLogger.Error(err)
 		}
+
+	case "delete":
+		err := HndlDeleteSession(req)
+		if err != nil {
+			DefaultLogger.Error(err)
+		}
 	}
 }
 
@@ -62,7 +68,7 @@ func HndlMessages(req *Request) {
 	}
 	switch tesk {
 	case "send":
-		err := HndlSendMesage(req)
+		err := HndlSendMessage(req)
 		if err != nil {
 			DefaultLogger.Error(err)
 		}

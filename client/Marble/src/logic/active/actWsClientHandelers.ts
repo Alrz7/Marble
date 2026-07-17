@@ -1,6 +1,8 @@
 import { Session, SessionId } from "../internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
+import { sessionsState } from "../states/sessionStates";
+import { DeleteSessionFrmDb } from "../db/dbSessions";
 
 // --- Users ---
 export function onSearchUser(param: string) {
@@ -36,12 +38,25 @@ export async function onSyncSession(sessions: Session[]) {
     lastSessionEvent: lastSessionSeq,
   };
   const req: Request = {
-    status: MessageStatus.Pending,
+    status: MessageStatus.Request,
     channel: "sessions",
     headers: { task: "sync" },
     body: JSON.stringify(struct),
   };
   sendRequest(req);
+}
+
+export async function onDeleteSession(session: Session) {
+  const { deleteSession } = sessionsState.getState();
+  deleteSession(session.id);
+  const req: Request = {
+    status: MessageStatus.Request,
+    channel: "sessions",
+    headers: { task: "delete" },
+    body: JSON.stringify({ sessionId: session.sessionId }),
+  };
+  sendRequest(req);
+  DeleteSessionFrmDb(session.id);
 }
 
 export async function onSyncMessage(
@@ -56,7 +71,7 @@ export async function onSyncMessage(
     lastMessageSeq: lastMessageSeq,
   };
   const req: Request = {
-    status: MessageStatus.Pending,
+    status: MessageStatus.Request,
     channel: "messages",
     headers: { task: "sync" },
     body: JSON.stringify(struct),
@@ -76,7 +91,7 @@ export async function onCLearSyncedMessage(
     lastMessageSeq: lastMessageSeq,
   };
   const req: Request = {
-    status: MessageStatus.Pending,
+    status: MessageStatus.Request,
     channel: "messages",
     headers: { task: "clear" },
     body: JSON.stringify(struct),

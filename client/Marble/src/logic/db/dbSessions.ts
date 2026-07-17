@@ -121,6 +121,13 @@ export async function DoesSessionExist(
   return res[0]?.found == 1;
 }
 
+export async function DeleteSessionFrmDb(id: number) {
+  const query = `
+  DELETE FROM session
+  WHERE id = $1`;
+  db.execute(query, [id]);
+}
+
 // -------- Audience --------
 
 export async function InsertAudience(
@@ -266,7 +273,7 @@ export async function GetMessages(
   );
   const existing: Message[] = [];
 
-  console.log(res)
+  console.log(res);
   for (const msg of res) {
     existing.push({
       id: msg.id,
