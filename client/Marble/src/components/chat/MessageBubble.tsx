@@ -123,7 +123,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           >
             <Reply className="w-4 h-4" />
           </button> */}
-          {isMine && (
+          {true && (
             <>
               {/* <button
                 onClick={handleEdit}

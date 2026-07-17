@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"marble/app/session"
+	"marble/app/users"
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
@@ -47,26 +48,28 @@ func HndlCreateSession(req *Request) error {
 		return err
 	}
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
-	req.user.OnAddSession(req.conn, []*session.Session{newSession})
+	req.user.OnAddSession(req.conn, newSession, Beta)
+	req.user.onDeliverSession(newSession, Beta)
 	return nil
 }
 
-func (u *ActvUser) OnAddSession(conn *websocket.Conn, sessions []*session.Session) {
-	sendingSessions := []envelope{}
-	for _, session := range sessions {
-		audience, err := db.AppModels.UserModel.GetUserProfile(session.Beta)
-		if err != nil {
-			actNotFoundResponse(conn, err)
-		}
-
-		newSendingSession := envelope{"sessionId": session.Id, "seq": session.Seq, "audience": internal.Audience{Name: audience.UserName,
-			UserId:        audience.Id,
-			DisplayId:     audience.DisplayId,
-			ProfileAvatar: audience.ProfileAvatar,
-			ArmedPubKey:   audience.PgpProfile.PublicKey}}
-		sendingSessions = append(sendingSessions, newSendingSession)
+func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User) {
+	userOnlineConn, ok := GetConnByUserId(audience.Id)
+	if !ok {
+		return
 	}
-	Body := envelope{"sessions": sendingSessions}
+	u.OnAddSession(userOnlineConn, session, u.User)
+}
+
+func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, audience *users.User) {
+
+	sendingSession := envelope{"sessionId": session.Id, "seq": session.Seq, "audience": internal.Audience{Name: audience.UserName,
+		UserId:        audience.Id,
+		DisplayId:     audience.DisplayId,
+		ProfileAvatar: audience.ProfileAvatar,
+		ArmedPubKey:   audience.PgpProfile.PublicKey}}
+
+	Body := envelope{"sessions": []*envelope{&sendingSession}}
 	headers := RequestHeaders{"task": "add"}
 	sendHandlerResponse(conn, StatusPending, "sessions", headers, Body)
 }
@@ -91,10 +94,10 @@ func HndlSendMesage(req *Request) error {
 	return req.user.SendMessage(session, entry.Message)
 }
 
-func (u *ActvUser) SendMessage(S *session.Session, message string) error {
+func (u *ActvUser) SendMessage(S *session.Session, content string) error {
 	var newMessage = session.Message{
 		SessionId: S.Id,
-		Content:   message,
+		Content:   content,
 		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
 	}
 	if u.Id == S.Alpha || u.Id == S.Beta {
@@ -105,32 +108,38 @@ func (u *ActvUser) SendMessage(S *session.Session, message string) error {
 		}
 
 		newMessage.Seq = newSeq
-		err = db.AppModels.MessageModel.Insert(&newMessage)
-		// err = db.AppModels.MessageModel.SendMessage(&newMessage)
-		if err != nil {
-			return err
+		sent := u.onDeliverMessage(S, &newMessage)
+		if !sent {
+			err = db.AppModels.MessageModel.Insert(&newMessage)
+			// err = db.AppModels.MessageModel.SendMessage(&newMessage)
+			if err != nil {
+				return err
+			}
 		}
+
 	} else {
 		return errors.New("There was a mismatch among audiences while sending message")
 	}
 	return nil
 }
 
-// func (AU *ActvUser) ReadSessionMessage(beta internal.UserId, from, count int) (*[]string, int, error) {
-// 	Beta, err := users.GetUserProfile(beta)
-// 	if err != nil {
-// 		return nil, -1, loggy.Sayr("error while fetching beta for sending message", err)
-// 	}
-// 	session, err := AU.GetActiveSession(beta)
-// 	if err != nil {
-// 		return nil, -1, err
-// 	}
-// 	res, lastIndex, err := AU.User.PgpProfile.ReadMessage(&Beta.PgpProfile, session, from, count)
-// 	if err != nil {
-// 		return nil, -1, loggy.Sayr("an error while reading the message from session", err)
-// 	}
-// 	return res, lastIndex, nil
-// }
+func (u *ActvUser) onDeliverMessage(S *session.Session, message *session.Message) bool {
+	var audienceId internal.UserId
+	switch u.Id {
+	case S.Alpha:
+		audienceId = S.Beta
+	case S.Beta:
+		audienceId = S.Alpha
+	}
+	userOnlineConn, ok := GetConnByUserId(audienceId)
+	if !ok {
+		return false
+	}
+	body := envelope{"sessionId": S.Id, "messages": []*session.Message{message}}
+	headers := RequestHeaders{"task": "add"}
+	sendHandlerResponse(userOnlineConn, StatusPending, "messages", headers, body)
+	return true
+}
 
 // func (AU *ActvUser) DeleteSession(beta internal.UserId) error {
 // 	Beta, err := users.GetUserProfile(beta)
