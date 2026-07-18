@@ -53,9 +53,9 @@ export const searchResult = create<SearchResult>((set) => ({
 }));
 
 export function ResetSearchPrcs() {
-  const { setUsers, setSearchQuery, setShowSearchResults } =
+  const { setSearchQuery, setShowSearchResults } =
     searchResult.getState();
-  setUsers([]);
+  // setUsers([]);
   setSearchQuery("");
   setShowSearchResults(false);
 }

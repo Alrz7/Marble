@@ -90,21 +90,21 @@ func (m SessionModel) Update(session *Session) error {
 	return nil
 }
 
-func (m SessionModel) IncreaseMessageLastSeq(sessionId internal.SessionId) (int, error) {
-	var res int
-	query := `UPDATE session
-SET
-  message_last_seq = message_last_seq + 1
-WHERE
-  id = $1
-RETURNING
-  message_last_seq;`
-	err := m.Db.QueryRow(query, sessionId).Scan(&res)
-	if err != nil {
-		return -1, err
-	}
-	return res, nil
-}
+// func (m SessionModel) IncreaseMessageLastSeq(sessionId internal.SessionId) (int, error) {
+// 	var res int
+// 	query := `UPDATE session
+// SET
+//   message_last_seq = message_last_seq + 1
+// WHERE
+//   id = $1
+// RETURNING
+//   message_last_seq;`
+// 	err := m.Db.QueryRow(query, sessionId).Scan(&res)
+// 	if err != nil {
+// 		return -1, err
+// 	}
+// 	return res, nil
+// }
 
 func (m SessionModel) Delete(id int64) error {
 	query := `DELETE FROM session

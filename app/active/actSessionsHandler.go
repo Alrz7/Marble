@@ -43,32 +43,37 @@ func HndlCreateSession(req *Request) error {
 		loggy.DefaultLogger.Error(err)
 		return err
 	}
-	sent, err := req.user.onDeliverSession(newSession, Beta, entry.Content)
+	err = req.user.onDeliverSession(newSession, Beta, entry.Content)
 	if err != nil {
+		DefaultLogger.Info(err)
 		return err
 	}
-	if !sent {
-		err = req.user.SendMessage(newSession, entry.Content)
-		if err != nil {
-			return err
-		}
-	}
+	// if !sent {
+	// 	err = req.user.SendMessage(newSession, entry.Content)
+	// 	if err != nil {
+	// 		DefaultLogger.Info(err)
+	// 		return err
+	// 	}
+	// }
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
 	req.user.OnAddSession(req.conn, newSession, Beta, nil)
 	return nil
 }
 
-func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User, content string) (bool, error) {
-	userOnlineConn, ok := GetConnByUserId(audience.Id)
-	if !ok {
-		return false, nil
-	}
+func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User, content string) error {
+	userOnlineConn, isOnline := GetConnByUserId(audience.Id)
+
 	newMessage, err := u.onGenerateNewMessage(session, content)
 	if err != nil {
-		return false, err
+		DefaultLogger.Info(err)
+		return err
 	}
-	u.OnAddSession(userOnlineConn, session, u.User, newMessage)
-	return true, nil
+	if isOnline {
+		u.OnAddSession(userOnlineConn, session, u.User, newMessage)
+	} else {
+		err = db.AppModels.MessageModel.Insert(newMessage)
+	}
+	return err
 }
 
 func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, audience *users.User, message *session.Message) {
@@ -134,15 +139,15 @@ func HndlSendMessage(req *Request) error {
 func (u *ActvUser) onGenerateNewMessage(S *session.Session, content string) (*session.Message, error) {
 	var newMessage = session.Message{
 		SessionId: S.Id,
+		SenderId: u.Id,
 		Content:   content,
 		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
 	}
-	newMessage.SenderId = u.Id
-	newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
-	if err != nil {
-		return nil, err
-	}
-	newMessage.Seq = newSeq
+	// newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// newMessage.Seq = newSeq
 	return &newMessage, nil
 }
 
