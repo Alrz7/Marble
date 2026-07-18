@@ -60,7 +60,7 @@ export async function onCreateNewSession(message: Message) {
   UpdateCurrentSession(next);
 
   sendRequest(req);
-  ResetSearchPrcs();
+  // ResetSearchPrcs();
 }
 
 /** 
