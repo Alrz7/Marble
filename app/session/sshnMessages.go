@@ -11,11 +11,18 @@ type MessageModel struct {
 
 func (m *MessageModel) Insert(message *Message) error {
 	query := `--sql
+	WITH updated_session AS (
+		UPDATE session
+		SET message_last_seq = message_last_seq + 1
+		WHERE id = $1
+		RETURNING message_last_seq
+	)
 	INSERT INTO message (seq, session_id, sender_id, content, profile)
-	VALUES ($1, $2, $3, $4, $5)
-	RETURNING 	id`
-	args := []any{message.Seq, message.SessionId, message.SenderId, message.Content, message.Profile}
-	err := m.Db.QueryRow(query, args...).Scan(&message.Id)
+	VALUES ((SELECT message_last_seq FROM updated_session), $1, $2, $3, $4)
+	RETURNING id, seq;`
+
+	args := []any{message.SessionId, message.SenderId, message.Content, message.Profile}
+	err := m.Db.QueryRow(query, args...).Scan(&message.Id, &message.Seq)
 	if err != nil {
 		return err
 	}

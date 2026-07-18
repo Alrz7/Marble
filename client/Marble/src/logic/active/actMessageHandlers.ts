@@ -1,4 +1,4 @@
-import { DeleteMessge, GetMessages, InsertMessage } from "../db/dbSessions";
+import { DeleteMessge, GetMessages, InsertMessage } from "../db/dbMessages";
 import {
   decryptMessage,
   encryptMessage,
@@ -39,6 +39,7 @@ export async function onSendMessage(message: Message) {
     headers: { task: "send" },
     body: JSON.stringify(struct),
   };
+  console.log(req)
   sendRequest(req);
 
   saveNewMessage(curSession, currentUser.MasterKey, message);

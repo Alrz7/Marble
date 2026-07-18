@@ -33,16 +33,32 @@ export const stateCommon = create<{
 
 //  -- Search State --
 interface SearchResult {
+  searchQuery: string;
+  showSearchResults: boolean;
   Users: Audience[];
+  setSearchQuery: (query: string) => void;
+  setShowSearchResults: (val: boolean) => void;
   setUsers: (users: Audience[]) => void;
   addtoUsers: (newUsers: Audience[]) => void;
 }
 export const searchResult = create<SearchResult>((set) => ({
+  searchQuery: "",
+  showSearchResults: false,
   Users: [],
+  setSearchQuery: (query: string) => set({ searchQuery: query }),
+  setShowSearchResults: (val: boolean) => set({ showSearchResults: val }),
   setUsers: (users: Audience[]) => set({ Users: users }),
   addtoUsers: (newUsers: Audience[]) =>
     set((state) => ({ Users: [...state.Users, ...newUsers] })),
 }));
+
+export function ResetSearchPrcs() {
+  const { setUsers, setSearchQuery, setShowSearchResults } =
+    searchResult.getState();
+  setUsers([]);
+  setSearchQuery("");
+  setShowSearchResults(false);
+}
 
 // ---- Notifications ----
 
