@@ -6,11 +6,12 @@ import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
 import { logOut } from "../../logic/auth/login";
 import { onSearchUser } from "../../logic/active/actWsClientHandelers";
+import { searchResult } from "../../logic/states/appCommonStates";
 
 export default function Sidebar() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
+  const {searchQuery, setSearchQuery, showSearchResults, setShowSearchResults} = searchResult()
   const [showSettings, setShowSettings] = useState(false);
+
   const RequestForSearch = (query: string) => {
     setSearchQuery(query);
     onSearchUser(query);
@@ -41,7 +42,11 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto marble-scrollbar">
-        {showSearchResults && searchQuery ? <SearchPanel query={searchQuery} /> : <SessionsList />}
+        {showSearchResults && searchQuery ? (
+          <SearchPanel query={searchQuery} />
+        ) : (
+          <SessionsList />
+        )}
       </div>
 
       <div className="border-t border-border p-3 space-y-1">

@@ -3,6 +3,7 @@ import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "../states/sessionStates";
 import { DeleteSessionFrmDb } from "../db/dbSessions";
+import { DeleteAudienceFromDb } from "../db/dbAudience";
 
 // --- Users ---
 export function onSearchUser(param: string) {
@@ -48,15 +49,18 @@ export async function onSyncSession(sessions: Session[]) {
 
 export async function onDeleteSession(session: Session) {
   const { deleteSession } = sessionsState.getState();
-  deleteSession(session.id);
   const req: Request = {
     status: MessageStatus.Request,
     channel: "sessions",
     headers: { task: "delete" },
     body: JSON.stringify({ sessionId: session.sessionId }),
   };
-  sendRequest(req);
-  DeleteSessionFrmDb(session.id);
+  Promise.all([
+    sendRequest(req),
+    await DeleteSessionFrmDb(session.id),
+    await DeleteAudienceFromDb(session.audience),
+  ]);
+  deleteSession(session.id);
 }
 
 export async function onSyncMessage(

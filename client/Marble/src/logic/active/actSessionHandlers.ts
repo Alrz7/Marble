@@ -1,6 +1,4 @@
 import {
-  InsertAudience,
-  InsertMessage,
   InsertSession,
   UpdateSessionById,
 } from "../db/dbSessions";
@@ -11,6 +9,8 @@ import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "../states/sessionStates";
 import { AppUser } from "../states/userMainStates";
 import { actAddMessage } from "./actMessageHandlers";
+import { InsertAudience } from "../db/dbAudience";
+import { InsertMessage } from "../db/dbMessages";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
