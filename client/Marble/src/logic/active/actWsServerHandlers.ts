@@ -43,7 +43,6 @@ export function HndlMessages(req: Request) {
 
 export function HndlSearchResult(req: Request) {
   const { setUsers } = searchResult.getState();
-
   if (!req.body) return;
   const data: { results: Audience[] } = JSON.parse(req.body);
   if (data.results) {
@@ -76,6 +75,7 @@ export async function HndlSyncSession(req: Request) {
     if (data.changes.add) {
       await actAddSession(data.changes.add, null);
     }
+
   }
   const { sessions } = sessionsState.getState();
   if (data.hasMore) {
