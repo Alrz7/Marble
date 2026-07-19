@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { User } from "@internal/commonTypes";
+import { User } from "@internal/intrCmnTypes";
 
 interface userState {
   currentUser: User | null;

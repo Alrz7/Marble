@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Notification, NotifType } from "@internal/commonTypes";
+import { Notification, NotifType } from "@internal/intrCmnTypes";
 
 interface NotifState {
   notifQueue: Notification[];

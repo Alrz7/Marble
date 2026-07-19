@@ -1,4 +1,4 @@
-import { MAIN_KEY } from "@internal/commonTypes";
+import { MAIN_KEY } from "@internal/intrCmnTypes";
 import { getKeychainObject, setKeychainObject } from "./keyChain";
 import { generateMasterKey, GetKeyFromString, KeyToString } from "./encMaster";
 

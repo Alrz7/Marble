@@ -1,17 +1,10 @@
 import React from "react";
-import {
-  Audience,
-  Message,
-  Session,
-  User,
-} from "./commonTypes";
+import { Audience, Message, Session, User } from "./intrCmnTypes";
 
 // ----- Tsx Set* -----
 export type tpSetMessage = React.Dispatch<React.SetStateAction<Message[]>>;
 export type tpSetNewSession = (beta: Audience) => void;
-export type tpSetCurrnetSession = (
-  beta: Audience,
-) => void;
+export type tpSetCurrnetSession = (beta: Audience) => void;
 
 // ---- tsx Props ----
 export interface ChatLayoutProps {

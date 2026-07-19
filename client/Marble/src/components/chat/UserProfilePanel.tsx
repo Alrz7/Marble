@@ -1,5 +1,5 @@
 import { X, Circle, KeyRound } from "lucide-react";
-import { Session } from "@internal/commonTypes";
+import { Session } from "@internal/intrCmnTypes";
 import { onDeleteSession } from "@active/actWsClientHandelers";
 
 interface UserProfilePanelProps {

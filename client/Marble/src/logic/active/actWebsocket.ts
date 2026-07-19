@@ -1,4 +1,4 @@
-import { GetAuthToken } from "@internal/IntrAuth";
+import { GetAuthToken } from "@internal/intrAuthHelpers";
 import { Handelers, Request } from "./actTypes";
 import {
   HndlMessages,
@@ -8,6 +8,8 @@ import {
 } from "@active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
 import { stateCommon } from "@states/appCommonStates";
+import { addNewNotification } from "@states/stateNotif";
+import { AUTHORIZED } from "@internal/intrCmnVars";
 
 // ----* handlers *----
 let ws: WebSocket | null = null;
@@ -68,6 +70,11 @@ export function openConnection() {
     );
   };
   ws.onclose = () => {
+    addNewNotification(
+      "error",
+      "WebSocketCLosed",
+      "Lost connection!, Reconnecting...",
+    );
     console.warn("WebSocket closed. Reconnecting...");
     ws = null;
     ReconnectWS();
@@ -96,11 +103,27 @@ export function disconnectWS() {
   }
 }
 
-export function sendRequest(req: Request) {
+export function sendRequest(req: Request): boolean {
   if (ws && ws.readyState === WebSocket.OPEN) {
+    const { states } = stateCommon.getState();
+    if (states.get(AUTHORIZED) == false && req.channel != "auth") {
+      addNewNotification(
+        "error",
+        "connectionNotAuthorized",
+        "Connection is not authorized, reload and try again",
+      );
+      return false
+    }
     ws.send(JSON.stringify(req));
+    return true;
   } else {
+    addNewNotification(
+      "error",
+      "RequestNotSent",
+      "Request Not Sent, connection failed",
+    );
     console.warn("WebSocket not open. Message not sent.");
+    return false;
   }
 }
 

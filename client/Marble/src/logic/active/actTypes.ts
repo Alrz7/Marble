@@ -1,4 +1,4 @@
-import { Notification } from "@internal/commonTypes";
+import { Notification } from "@internal/intrCmnTypes";
 
 export type Request = {
   status: MessageStatus;

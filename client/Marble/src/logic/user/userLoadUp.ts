@@ -1,5 +1,5 @@
 import { signIn } from "@auth/login.ts";
-import { User } from "@internal/commonTypes.ts";
+import { User } from "@internal/intrCmnTypes";
 import { InitAndMigrate } from "@db/dbMain.ts";
 import { getActiveUserId, GetUser } from "@db/dbUsers.ts";
 import { GetOrCreateKeyChainKey } from "@enc/encMain.ts";

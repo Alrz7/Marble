@@ -1,5 +1,5 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
-import { Session, SessionId, UserId } from "@internal/commonTypes";
+import { Session, SessionId, UserId } from "@internal/intrCmnTypes";
 import { GetAudience } from "./dbAudience";
 import { db } from "./dbMain";
 

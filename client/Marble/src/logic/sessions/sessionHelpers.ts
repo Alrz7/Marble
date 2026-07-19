@@ -1,4 +1,4 @@
-import { Session } from "@internal/commonTypes";
+import { Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "./sessionStates";
 
 export function reserveSessionId(): number {

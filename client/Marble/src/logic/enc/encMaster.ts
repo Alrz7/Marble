@@ -1,5 +1,5 @@
-import { DefDecoder, DefEncoder } from "@internal/commonTypes";
-import { blobFromDb } from "@internal/helperfuncs";
+import { DefDecoder, DefEncoder } from "@internal/intrCmnTypes";
+import { blobFromDb } from "@internal/intrHelperfuncs";
 
 export async function generateMasterKey(): Promise<CryptoKey> {
   return await window.crypto.subtle.generateKey(

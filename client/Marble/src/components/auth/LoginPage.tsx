@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { login } from "@auth/login";
 import { PAGES } from "@states/appCommonStates";
-import { User } from "@internal/commonTypes";
+import { User } from "@internal/intrCmnTypes";
 
 interface LoginPageProps {
   setAppState: (state: PAGES) => void;

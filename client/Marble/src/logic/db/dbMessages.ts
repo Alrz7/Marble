@@ -1,5 +1,5 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
-import { Message, MessageStatus, Session } from "@internal/commonTypes";
+import { Message, MessageStatus, Session } from "@internal/intrCmnTypes";
 import { db } from "./dbMain";
 
 // ------- Messages --------

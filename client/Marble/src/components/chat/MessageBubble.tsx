@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Copy, Trash2, Check, CheckCheck } from "lucide-react";
-import { Message } from "@internal/commonTypes";
+import { Message } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/userMainStates";
 import { sessionsState } from "@sessions/sessionStates";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";

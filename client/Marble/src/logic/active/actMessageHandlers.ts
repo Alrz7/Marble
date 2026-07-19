@@ -4,7 +4,7 @@ import {
   encryptMessage,
   getKeyFromArmored,
 } from "@enc/encOpenpgp";
-import { Message, Session, SessionId, UserId } from "@internal/commonTypes";
+import { Message, Session, SessionId, UserId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";
@@ -12,6 +12,8 @@ import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "./actSessionHandlers";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { messageState } from "@messages/stateMessage";
+import { addNewNotification } from "@states/stateNotif";
+import { SESSION_NOT_VALID } from "@internal/intrCmnVars";
 
 // -----* messages *-----
 export async function onSendMessage(message: Message) {
@@ -20,6 +22,7 @@ export async function onSendMessage(message: Message) {
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
   const isLegit = isSessionLegit(curSession);
+  if (!isLegit) addNewNotification("error", SESSION_NOT_VALID, "session is not verified: Verifying...");
   if (!curSession || !isLegit) return;
 
   const MessageToJsonString: string = JSON.stringify(message.content);

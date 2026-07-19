@@ -1,4 +1,4 @@
-import { Session, SessionId } from "@internal/commonTypes";
+import { Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";

@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { searchResult } from "@states/appCommonStates";
-import { Audience, Session } from "@internal/commonTypes";
+import { Audience, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { SameOnStage } from "@active/actSessionHandlers";

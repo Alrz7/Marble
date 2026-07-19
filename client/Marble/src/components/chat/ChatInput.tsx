@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
-import { Message } from "@internal/commonTypes";
+import { Message } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/userMainStates";
 import { onCreateNewSession } from "@active/actSessionHandlers";
 import { messageState } from "@messages/stateMessage";

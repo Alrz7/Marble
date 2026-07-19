@@ -1,4 +1,4 @@
-import { Audience, Message, Session, SessionId } from "@internal/commonTypes";
+import { Audience, Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { searchResult } from "@states/appCommonStates";
 import { actAddSession, hndlAddSession } from "./actSessionHandlers";
 import { Request } from "./actTypes";

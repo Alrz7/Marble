@@ -3,7 +3,7 @@ import {
   setPassword,
   deletePassword,
 } from "tauri-plugin-keyring-api";
-import { KEYCHAIN_USER } from "@internal/commonTypes";
+import { KEYCHAIN_USER } from "@internal/intrCmnTypes";
 
 // Keychain Storage (OS keychain)
 export async function setKeychainObject(

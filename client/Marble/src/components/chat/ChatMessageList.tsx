@@ -3,7 +3,7 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { sessionsState } from "@sessions/sessionStates";
 import { loadSavedMessages } from "@active/actMessageHandlers";
-import { Message } from "@internal/commonTypes";
+import { Message } from "@internal/intrCmnTypes";
 import { messageState } from "@messages/stateMessage";
 
 export default function ChatMessageList() {

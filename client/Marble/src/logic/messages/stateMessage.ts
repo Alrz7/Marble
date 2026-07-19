@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Message } from "@internal/commonTypes";
+import { Message } from "@internal/intrCmnTypes";
 
 interface MessageStates {
   Messagelist: Message[];

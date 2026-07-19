@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { User as AppUser } from "@internal/commonTypes";
+import { User as AppUser } from "@internal/intrCmnTypes";
 import { createAccount } from "@auth/signUp";
 import { PAGES } from "@states/appCommonStates";
 

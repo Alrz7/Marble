@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Session } from "@internal/commonTypes";
+import { Session } from "@internal/intrCmnTypes";
 
 interface SessionsState {
   sessions: Map<number, Session>; // Map<session.id, session>

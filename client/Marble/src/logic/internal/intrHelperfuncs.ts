@@ -1,4 +1,4 @@
-import { StorageId } from "./commonTypes";
+import { StorageId } from "./intrCmnTypes";
 
 export const getInitials = (name: string) => {
   return name

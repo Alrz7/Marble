@@ -1,6 +1,6 @@
 import { InsertSession, UpdateSessionById } from "@db/dbSessions";
 import { encryptMessage } from "@enc/encOpenpgp";
-import { Message, Session, SessionId } from "@internal/commonTypes";
+import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";

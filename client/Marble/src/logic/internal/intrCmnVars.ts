@@ -1,4 +1,3 @@
-
 export interface application {
   name: string;
   stage: string;
@@ -22,9 +21,7 @@ export const app: application = {
   },
 };
 
-// -------StoreConfig & Deps---------
-export type strgSession = Record<string, string[]>;
-export type StoreConfig = {
-  sessions: strgSession;
-  //...
-};
+// --------- Notification Common Keys ---------
+export const SESSION_NOT_VALID = "sessionIsNotValid";
+export const AUTHORIZED = "authorized";
+export const SYNCED_SESSION = "syncedSession";

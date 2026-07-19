@@ -11,11 +11,11 @@ import {
   User,
   UserConfig,
   UserId,
-} from "@internal/commonTypes";
+} from "@internal/intrCmnTypes";
 import { db } from "./dbMain";
 import { getKeyFromArmored } from "@enc/encOpenpgp";
 import { SignWithHmac } from "@enc/encHelpers";
-import { blobFromDb } from "@internal/helperfuncs";
+import { blobFromDb } from "@internal/intrHelperfuncs";
 
 // ------- Users --------
 export async function InsertUser(
