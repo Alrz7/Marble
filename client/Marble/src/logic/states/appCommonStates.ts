@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Audience, Notification } from "../internal/commonTypes";
+import { Audience } from "@internal/commonTypes";
 
 export type PAGES = "loading" | "login" | "signup";
 interface AppState {
@@ -52,34 +52,9 @@ export const searchResult = create<SearchResult>((set) => ({
     set((state) => ({ Users: [...state.Users, ...newUsers] })),
 }));
 
-export function ResetSearchPrcs() {
+export async function ResetSearchPrcs() {
   const { setSearchQuery, setShowSearchResults } = searchResult.getState();
   // setUsers([]);
   setSearchQuery("");
   setShowSearchResults(false);
 }
-
-// ---- Notifications ----
-
-interface NotifState {
-  notifQueue: Notification[];
-  currentNotif: Notification | null;
-  setNotification: (notifList: Notification[]) => void;
-  setCurrentNotif: (notif: Notification | null) => void;
-  addNotification: (notif: Notification) => void;
-  popNotification: (notifQueue: Notification[]) => void;
-}
-
-export const notifState = create<NotifState>((set) => ({
-  notifQueue: [],
-  currentNotif: null,
-  setNotification: (notifList: Notification[]) =>
-    set({ notifQueue: notifList }),
-  setCurrentNotif: (notif: Notification | null) => set({ currentNotif: notif }),
-  addNotification: (notif: Notification) => {
-    set((state) => ({ notifQueue: [...state.notifQueue, notif] }));
-    return [...origin, notif];
-  },
-  popNotification: (notifQueue: Notification[]) =>
-    set({ notifQueue: notifQueue.slice(1) }),
-}));

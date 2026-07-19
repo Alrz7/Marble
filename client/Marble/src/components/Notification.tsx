@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from "lucide-react";
-import { notifState } from "../logic/states/appCommonStates";
+import { notifState } from "@states/stateNotif";
 
 export default function Notification() {
   const { notifQueue, currentNotif, setCurrentNotif, popNotification } =

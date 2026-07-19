@@ -1,13 +1,11 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { DefEncoder, User, UserConfig } from "../internal/commonTypes";
-import { setAuthToken } from "../internal/IntrAuth";
-import { disconnectWS, openConnection } from "../active/actWebsocket";
-import { GetUser, SetActiveUserId } from "../db/dbUsers";
-import { SignWithHmac } from "../enc/encHelpers";
-import { GetOrCreateKeyChainKey } from "../enc/encMain";
-import { AppUser } from "../states/userMainStates";
-import { sessionsState, messageState } from "../states/sessionStates";
-import { AppState, stateCommon } from "../states/appCommonStates";
+import { DefEncoder, User, UserConfig } from "@internal/commonTypes";
+import { setAuthToken } from "@internal/IntrAuth";
+import { openConnection } from "@active/actWebsocket";
+import { GetUser, SetActiveUserId } from "@db/dbUsers";
+import { SignWithHmac } from "@enc/encHelpers";
+import { GetOrCreateKeyChainKey } from "@enc/encMain";
+import { ResetStates } from "@states/stateMain";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
@@ -31,20 +29,7 @@ export async function login(
 }
 
 export async function logOut() {
-  const { setUserData } = AppUser.getState();
-  const { setCurrentSessionId, setSessions } = sessionsState.getState();
-  const { setMessages } = messageState.getState();
-  const { setState } = stateCommon.getState();
-  const { setAppState } = AppState.getState();
-  disconnectWS();
-  setUserData(null);
-  setCurrentSessionId(-1);
-  setSessions([]);
-  setMessages([]);
-  setState("authorized", false);
-  setState("syncedSession", false);
-  SetActiveUserId(-1);
-  setAppState("login");
+  await ResetStates();
 }
 
 export async function signIn(

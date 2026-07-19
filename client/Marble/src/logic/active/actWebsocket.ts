@@ -1,13 +1,13 @@
-import { GetAuthToken } from "../internal/IntrAuth";
+import { GetAuthToken } from "@internal/IntrAuth";
 import { Handelers, Request } from "./actTypes";
 import {
   HndlMessages,
   HndlNotifs,
   HndlSearchResult,
   HndlSessions,
-} from "../active/actWsServerHandlers";
+} from "@active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
-import { stateCommon } from "../states/appCommonStates";
+import { stateCommon } from "@states/appCommonStates";
 
 // ----* handlers *----
 let ws: WebSocket | null = null;

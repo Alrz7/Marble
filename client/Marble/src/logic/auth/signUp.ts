@@ -1,9 +1,9 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { pgpProfile, User, UserConfig } from "../internal/commonTypes";
-import { generateIdntKey, getKeyFromArmored } from "../enc/encOpenpgp";
-import { InsertUser, SetActiveUserId } from "../db/dbUsers";
-import { generateMasterKey } from "../enc/encMaster";
-import { GetOrCreateKeyChainKey } from "../enc/encMain";
+import { pgpProfile, User, UserConfig } from "@internal/commonTypes";
+import { generateIdntKey, getKeyFromArmored } from "@enc/encOpenpgp";
+import { InsertUser, SetActiveUserId } from "@db/dbUsers";
+import { generateMasterKey } from "@enc/encMaster";
+import { GetOrCreateKeyChainKey } from "@enc/encMain";
 
 // the openpgpKeyGroup & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too

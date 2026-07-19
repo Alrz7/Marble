@@ -4,12 +4,17 @@ import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
-import { logOut } from "../../logic/auth/login";
-import { onSearchUser } from "../../logic/active/actWsClientHandelers";
-import { searchResult } from "../../logic/states/appCommonStates";
+import { logOut } from "@auth/login";
+import { onSearchUser } from "@active/actWsClientHandelers";
+import { searchResult } from "@states/appCommonStates";
 
 export default function Sidebar() {
-  const {searchQuery, setSearchQuery, showSearchResults, setShowSearchResults} = searchResult()
+  const {
+    searchQuery,
+    setSearchQuery,
+    showSearchResults,
+    setShowSearchResults,
+  } = searchResult();
   const [showSettings, setShowSettings] = useState(false);
 
   const RequestForSearch = (query: string) => {
@@ -27,7 +32,7 @@ export default function Sidebar() {
 
       <div className="px-4 py-3 border-b border-border">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-1 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search conversations..."
@@ -36,7 +41,7 @@ export default function Sidebar() {
               RequestForSearch(e.target.value);
               setShowSearchResults(e.target.value.length > 0);
             }}
-            className="marble-input w-full pl-9 text-sm"
+            className="w-full bg-primary/15 text-[#ffffff] border border-border rounded-lg pl-6 pr-3 py-1"
           />
         </div>
       </div>

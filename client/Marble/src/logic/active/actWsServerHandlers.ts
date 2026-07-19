@@ -1,16 +1,17 @@
-import { Audience, Message, Session, SessionId } from "../internal/commonTypes";
-import { notifState, searchResult } from "../states/appCommonStates";
+import { Audience, Message, Session, SessionId } from "@internal/commonTypes";
+import { searchResult } from "@states/appCommonStates";
 import { actAddSession, hndlAddSession } from "./actSessionHandlers";
 import { Request } from "./actTypes";
-import { stateCommon } from "../states/appCommonStates";
+import { stateCommon } from "@states/appCommonStates";
 import { MessageStatus } from "./actTypes";
 import {
   onCLearSyncedMessage,
   onSyncMessage,
   onSyncSession,
 } from "./actWsClientHandelers";
-import { sessionsState } from "../states/sessionStates";
+import { sessionsState } from "@sessions/sessionStates";
 import { actAddMessage, HndlAddMessage } from "./actMessageHandlers";
+import { notifState } from "@states/stateNotif";
 
 export function HndlSessions(req: Request) {
   if (!req.headers) {
@@ -75,7 +76,6 @@ export async function HndlSyncSession(req: Request) {
     if (data.changes.add) {
       await actAddSession(data.changes.add, null);
     }
-
   }
   const { sessions } = sessionsState.getState();
   if (data.hasMore) {

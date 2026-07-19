@@ -4,18 +4,18 @@ import {
   decryptMasterKeyWithKEK,
   encryptData,
   encryptMasterKeyWithKEK,
-} from "../enc/encMaster";
+} from "@enc/encMaster";
 import {
   DefEncoder,
   pgpProfile,
   User,
   UserConfig,
   UserId,
-} from "../internal/commonTypes";
+} from "@internal/commonTypes";
 import { db } from "./dbMain";
-import { getKeyFromArmored } from "../enc/encOpenpgp";
-import { SignWithHmac } from "../enc/encHelpers";
-import { blobFromDb } from "../internal/helperfuncs";
+import { getKeyFromArmored } from "@enc/encOpenpgp";
+import { SignWithHmac } from "@enc/encHelpers";
+import { blobFromDb } from "@internal/helperfuncs";
 
 // ------- Users --------
 export async function InsertUser(

@@ -5,6 +5,18 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "paths": {
+      "@active/*": ["./src/logic/active/*"],
+      "@chat/*": ["./src/components/chat/*"],
+      "@auth/*": ["./src/logic/auth/*"],
+      "@db/*": ["./src/logic/db/*"],
+      "@enc/*": ["./src/logic/enc/*"],
+      "@internal/*": ["./src/logic/internal/*"],
+      "@messages/*": ["./src/logic/messages/*"],
+      "@sessions/*": ["./src/logic/sessions/*"],
+      "@states/*": ["./src/logic/states/*"],
+      "@user/*": ["./src/logic/user/*"],
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Message, Session } from "../internal/commonTypes";
+import { Session } from "@internal/commonTypes";
 
 interface SessionsState {
   sessions: Map<number, Session>; // Map<session.id, session>
@@ -67,29 +67,3 @@ export const sessionsState = create<SessionsState>((set) => ({
       };
     }),
 }));
-
-interface MessageStates {
-  Messagelist: Message[];
-  setMessages: (messages: Message[]) => void;
-  addMessage: (newMessage: Message) => void;
-  DeleteMessage: (indx: number) => void;
-}
-export const messageState = create<MessageStates>((set) => ({
-  Messagelist: [],
-  setMessages: (messages: Message[]) => set({ Messagelist: messages }),
-  addMessage: (newMessage: Message) =>
-    set((state) => ({ Messagelist: [...state.Messagelist, newMessage] })),
-  DeleteMessage: (indx: number) =>
-    set((state) => {
-      const newGen = state.Messagelist.toSpliced(indx, 1);
-      return { Messagelist: newGen };
-    }),
-}));
-
-export function reserveSessionId(): number {
-  const { sessions } = sessionsState.getState();
-  const existingIds = [...sessions.values()]
-    .filter((s) => s.id < 0)
-    .map((s) => s.id);
-  return (existingIds.length ? Math.min(...existingIds) : 0) - 1;
-}

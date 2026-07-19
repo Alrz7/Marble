@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
-import { messageState, sessionsState } from "../../logic/states/sessionStates";
-import { loadSavedMessages } from "../../logic/active/actMessageHandlers";
-import { Message } from "../../logic/internal/commonTypes";
+import { sessionsState } from "@sessions/sessionStates";
+import { loadSavedMessages } from "@active/actMessageHandlers";
+import { Message } from "@internal/commonTypes";
+import { messageState } from "@messages/stateMessage";
 
 export default function ChatMessageList() {
   const { currentSessionId, sessions } = sessionsState();

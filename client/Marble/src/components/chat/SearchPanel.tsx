@@ -1,12 +1,10 @@
 import { MessageCircle } from "lucide-react";
-import { searchResult } from "../../logic/states/appCommonStates";
-import { Audience, Session } from "../../logic/internal/commonTypes";
-import {
-  reserveSessionId,
-  sessionsState,
-} from "../../logic/states/sessionStates";
-import { AppUser } from "../../logic/states/userMainStates";
-import { SameOnStage } from "../../logic/active/actSessionHandlers";
+import { searchResult } from "@states/appCommonStates";
+import { Audience, Session } from "@internal/commonTypes";
+import { sessionsState } from "@sessions/sessionStates";
+import { AppUser } from "@states/userMainStates";
+import { SameOnStage } from "@active/actSessionHandlers";
+import { reserveSessionId } from "@sessions/sessionHelpers";
 
 interface SearchPanelProps {
   query: string;

@@ -24,8 +24,8 @@
   --color-ring: #7b86c9;
 
   --color-glow-indigo: #7b86c9;
-  --color-glow-sage: #6ea58f;
-  --color-glow-clay: #c48b7e;
+  --color-glow-sage: #577ea8;
+  --color-glow-clay: #233243;
   --color-glow-slate: #7e93b8;
 
   --color-night-bordeaux-50: #fce9ee;
@@ -102,7 +102,6 @@
   --animate-orbit: orbit 3s linear infinite;
   --animate-orbit-slow: orbit 6s linear infinite reverse;
 
-  /* تعریف کی‌فریم‌ها درون بلاک تم در نسخه ۴ فوق‌العاده تمیزتر اجرا می‌شود */
   @keyframes drift1 {
     0%,
     100% {
@@ -201,9 +200,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* در نسخه ۴ نیازی به @layer components نیست. 
-   کلاس‌های سفارشی شما مستقیماً و با استفاده از @apply کار خواهند کرد.
-*/
 .marble-button-primary {
   @apply px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 active:scale-[0.98] transition-all duration-200;
 }
@@ -213,7 +209,7 @@ body {
 }
 
 .marble-input {
-  @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200;
+  @apply bg-input border border-border rounded-lg px-9 py-2 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200;
 }
 
 .marble-card {

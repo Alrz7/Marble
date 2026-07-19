@@ -1,6 +1,6 @@
-import { decryptDataFromDb, encryptData } from "../enc/encMaster";
-import { Audience } from "../internal/commonTypes";
-import { sessionsState } from "../states/sessionStates";
+import { decryptDataFromDb, encryptData } from "@enc/encMaster";
+import { Audience } from "@internal/commonTypes";
+import { sessionsState } from "@sessions/sessionStates";
 import { db } from "./dbMain";
 
 export async function InsertAudience(
@@ -100,6 +100,6 @@ export async function DeleteAudienceFromDb(audience: Audience) {
   }
   if (ac >= 2) return;
 
-  const query = `DELETE FROM audience WHERE id = $1`
-  db.execute(query, [audience.id])
+  const query = `DELETE FROM audience WHERE id = $1`;
+  db.execute(query, [audience.id]);
 }

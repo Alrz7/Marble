@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { User } from "../../logic/internal/commonTypes";
-import { login } from "../../logic/auth/login";
-import { PAGES } from "../../logic/states/appCommonStates";
+import { login } from "@auth/login";
+import { PAGES } from "@states/appCommonStates";
+import { User } from "@internal/commonTypes";
 
 interface LoginPageProps {
   setAppState: (state: PAGES) => void;
   setUserData: (user: User) => void;
 }
 
-export default function LoginPage({ setAppState, setUserData }: LoginPageProps) {
+export default function LoginPage({
+  setAppState,
+  setUserData,
+}: LoginPageProps) {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +45,10 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
           <div className="mb-10 text-center">
             <h1
               className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-size-[200%_auto] animate-shimmer"
-              style={{ backgroundImage: "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)" }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)",
+              }}
             >
               Marble
             </h1>
@@ -50,7 +56,10 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="id" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="id"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Id
               </label>
               <div className="relative">
@@ -68,7 +77,10 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -87,7 +99,11 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -100,7 +116,10 @@ export default function LoginPage({ setAppState, setUserData }: LoginPageProps) 
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-border bg-input cursor-pointer accent-primary"
               />
-              <label htmlFor="remember" className="ml-2 text-sm text-muted-foreground cursor-pointer">
+              <label
+                htmlFor="remember"
+                className="ml-2 text-sm text-muted-foreground cursor-pointer"
+              >
                 Remember me
               </label>
             </div>

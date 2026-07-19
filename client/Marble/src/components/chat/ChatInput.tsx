@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
-import { messageState, sessionsState } from "../../logic/states/sessionStates";
-import { Message } from "../../logic/internal/commonTypes";
-import { AppUser } from "../../logic/states/userMainStates";
-import { onCreateNewSession } from "../../logic/active/actSessionHandlers";
-import { onSendMessage } from "../../logic/active/actMessageHandlers";
+import { sessionsState } from "@sessions/sessionStates";
+import { Message } from "@internal/commonTypes";
+import { AppUser } from "@states/userMainStates";
+import { onCreateNewSession } from "@active/actSessionHandlers";
+import { messageState } from "@messages/stateMessage";
+import { onSendMessage } from "@active/actMessageHandlers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");

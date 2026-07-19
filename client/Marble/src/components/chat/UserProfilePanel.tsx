@@ -1,6 +1,6 @@
 import { X, Circle, KeyRound } from "lucide-react";
-import { Session } from "../../logic/internal/commonTypes";
-import { onDeleteSession } from "../../logic/active/actWsClientHandelers";
+import { Session } from "@internal/commonTypes";
+import { onDeleteSession } from "@active/actWsClientHandelers";
 
 interface UserProfilePanelProps {
   curSession: Session;

@@ -1,15 +1,17 @@
-import { DeleteMessge, GetMessages, InsertMessage } from "../db/dbMessages";
+import { DeleteMessge, GetMessages, InsertMessage } from "@db/dbMessages";
 import {
   decryptMessage,
   encryptMessage,
   getKeyFromArmored,
-} from "../enc/encOpenpgp";
-import { Message, Session, SessionId, UserId } from "../internal/commonTypes";
+} from "@enc/encOpenpgp";
+import { Message, Session, SessionId, UserId } from "@internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
-import { messageState, sessionsState } from "../states/sessionStates";
-import { AppUser } from "../states/userMainStates";
+import { sessionsState } from "@sessions/sessionStates";
+import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "./actSessionHandlers";
+import { isSessionLegit } from "@sessions/sessionHelpers";
+import { messageState } from "@messages/stateMessage";
 
 // -----* messages *-----
 export async function onSendMessage(message: Message) {
@@ -17,7 +19,8 @@ export async function onSendMessage(message: Message) {
   if (!currentUser) return;
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
-  if (!curSession) return;
+  const isLegit = isSessionLegit(curSession);
+  if (!curSession || !isLegit) return;
 
   const MessageToJsonString: string = JSON.stringify(message.content);
   const encMessage = await encryptMessage(
@@ -39,7 +42,7 @@ export async function onSendMessage(message: Message) {
     headers: { task: "send" },
     body: JSON.stringify(struct),
   };
-  console.log(req)
+  console.log(req);
   sendRequest(req);
 
   saveNewMessage(curSession, currentUser.MasterKey, message);
@@ -52,7 +55,7 @@ export async function HndlAddMessage(req: Request) {
     );
     if (data.messages.length == 0) return;
     if (!data.sessionId) throw new Error("sessionId was Not Valid");
-    console.log(data.sessionId, data.messages)
+    console.log(data.sessionId, data.messages);
     await actAddMessage(data.sessionId, data.messages);
   } catch (err) {
     console.error(err);

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { User as AppUser } from "../../logic/internal/commonTypes";
-import { createAccount } from "../../logic/auth/signUp";
-import { PAGES } from "../../logic/states/appCommonStates";
+import { User as AppUser } from "@internal/commonTypes";
+import { createAccount } from "@auth/signUp";
+import { PAGES } from "@states/appCommonStates";
 
 interface SignupPageProps {
   setAppState: (state: PAGES) => void;
   setUserData: (user: AppUser) => void;
 }
 
-export default function SignupPage({ setAppState, setUserData }: SignupPageProps) {
+export default function SignupPage({
+  setAppState,
+  setUserData,
+}: SignupPageProps) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,7 +61,10 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
           <div className="mb-8 text-center">
             <h1
               className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-size-[200%_auto] animate-shimmer"
-              style={{ backgroundImage: "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)" }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, #7B86C9, #EDEDEF, #6EA58F, #7B86C9)",
+              }}
             >
               Marble
             </h1>
@@ -66,7 +72,10 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Username
               </label>
               <div className="relative">
@@ -84,7 +93,10 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -102,7 +114,10 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -121,13 +136,20 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -139,7 +161,9 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={`marble-input w-full pl-10 pr-10 ${
-                    confirmPassword && !passwordsMatch ? "border-destructive" : ""
+                    confirmPassword && !passwordsMatch
+                      ? "border-destructive"
+                      : ""
                   }`}
                   required
                 />
@@ -148,11 +172,17 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {confirmPassword && !passwordsMatch && (
-                <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+                <p className="text-xs text-destructive mt-1">
+                  Passwords do not match
+                </p>
               )}
             </div>
 
@@ -164,7 +194,10 @@ export default function SignupPage({ setAppState, setUserData }: SignupPageProps
                 onChange={(e) => setAcceptTerms(e.target.checked)}
                 className="w-4 h-4 mt-1 rounded border-border bg-input cursor-pointer accent-primary"
               />
-              <label htmlFor="terms" className="text-xs text-muted-foreground cursor-pointer">
+              <label
+                htmlFor="terms"
+                className="text-xs text-muted-foreground cursor-pointer"
+              >
                 I agree to the terms of service and privacy policy
               </label>
             </div>

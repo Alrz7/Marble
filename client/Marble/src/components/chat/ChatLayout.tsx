@@ -44,7 +44,7 @@ export default function ChatLayout() {
 
   return (
     <div ref={containerRef} className="flex w-full h-screen bg-background select-none">
-      <div style={{ width: `${sidebarWidth}px` }} className="flex flex-col bg-background border-r border-border shrink-0">
+      <div style={{ width: `${sidebarWidth}px` }} className="flex flex-col bg-linear-to-tr from-[#0d0f10] to-[#1F202C] border-r border-border shrink-0">
         <Sidebar />
       </div>
 

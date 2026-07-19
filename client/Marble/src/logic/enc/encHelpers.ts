@@ -1,4 +1,4 @@
-import { DefEncoder } from "../internal/commonTypes";
+import { DefEncoder } from "@internal/commonTypes";
 import { GetOrCreateKeyChainKey } from "./encMain";
 
 export async function SignWithHmac(data: ArrayBuffer, kek?: CryptoKey | null) {

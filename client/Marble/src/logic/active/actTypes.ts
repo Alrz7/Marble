@@ -1,11 +1,11 @@
-import { Notification } from "../internal/commonTypes";
+import { Notification } from "@internal/commonTypes";
 
 export type Request = {
   status: MessageStatus;
   channel: string;
   token?: string;
   headers?: Record<string, string>;
-  notif?: Notification | null
+  notif?: Notification | null;
   body?: any;
 };
 

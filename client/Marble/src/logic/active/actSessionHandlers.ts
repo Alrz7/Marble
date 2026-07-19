@@ -1,13 +1,14 @@
-import { InsertSession, UpdateSessionById } from "../db/dbSessions";
-import { encryptMessage } from "../enc/encOpenpgp";
-import { Message, Session, SessionId } from "../internal/commonTypes";
+import { InsertSession, UpdateSessionById } from "@db/dbSessions";
+import { encryptMessage } from "@enc/encOpenpgp";
+import { Message, Session, SessionId } from "@internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
-import { sessionsState } from "../states/sessionStates";
-import { AppUser } from "../states/userMainStates";
+import { sessionsState } from "@sessions/sessionStates";
+import { AppUser } from "@states/userMainStates";
 import { actAddMessage } from "./actMessageHandlers";
-import { InsertAudience } from "../db/dbAudience";
-import { InsertMessage } from "../db/dbMessages";
+import { InsertAudience } from "@db/dbAudience";
+import { InsertMessage } from "@db/dbMessages";
+import { ResetSearchPrcs } from "@states/appCommonStates";
 /** 
 onCreateNewSession trigers by sending the first message to the session,
 it saves the current-onStage-session & its audience & the first message
@@ -58,7 +59,7 @@ export async function onCreateNewSession(message: Message) {
   UpdateCurrentSession(next);
 
   sendRequest(req);
-  // ResetSearchPrcs();
+  ResetSearchPrcs();
 }
 
 /** 
@@ -73,7 +74,7 @@ export async function hndlAddSession(req: Request) {
   try {
     const data: { sessions: Session[]; message: Message | undefined } =
       JSON.parse(req.body);
-      console.log(data)
+    console.log(data);
     if (data.sessions.length == 0) return;
     await actAddSession(data.sessions, data.message ?? null);
   } catch (err) {
@@ -95,7 +96,7 @@ export async function actAddSession(
 
       const existing = await SameOnStage(session);
       if (existing !== null) {
-        console.log(session)
+        console.log(session);
         await UpdateSessionById(
           existing.id,
           session.sessionId,

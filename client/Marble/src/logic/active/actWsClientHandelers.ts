@@ -1,9 +1,9 @@
-import { Session, SessionId } from "../internal/commonTypes";
+import { Session, SessionId } from "@internal/commonTypes";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWebsocket";
-import { sessionsState } from "../states/sessionStates";
-import { DeleteSessionFrmDb } from "../db/dbSessions";
-import { DeleteAudienceFromDb } from "../db/dbAudience";
+import { sessionsState } from "@sessions/sessionStates";
+import { DeleteSessionFrmDb } from "@db/dbSessions";
+import { DeleteAudienceFromDb } from "@db/dbAudience";
 
 // --- Users ---
 export function onSearchUser(param: string) {

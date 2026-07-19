@@ -1,8 +1,5 @@
-import { MAIN_KEY } from "../internal/commonTypes";
-import {
-  getKeychainObject,
-  setKeychainObject,
-} from "./keyChain";
+import { MAIN_KEY } from "@internal/commonTypes";
+import { getKeychainObject, setKeychainObject } from "./keyChain";
 import { generateMasterKey, GetKeyFromString, KeyToString } from "./encMaster";
 
 export var KEYCHAIN_KEY: CryptoKey | null = null;

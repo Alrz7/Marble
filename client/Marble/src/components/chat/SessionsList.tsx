@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 import { Circle } from "lucide-react";
-import { messageState, sessionsState } from "../../logic/states/sessionStates";
-import { AppUser } from "../../logic/states/userMainStates";
-import { GetSessions } from "../../logic/db/dbSessions";
-// import { stateCommon } from "../../logic/states/appCommonStates";
-// import { onSyncSession } from "../../logic/active/actWsClientHandelers";
+import { sessionsState } from "@sessions/sessionStates";
+import { AppUser } from "@states/userMainStates";
+import { GetSessions } from "@db/dbSessions";
+import { messageState } from "@messages/stateMessage";
 
 export default function SessionsList() {
   const { currentUser } = AppUser();

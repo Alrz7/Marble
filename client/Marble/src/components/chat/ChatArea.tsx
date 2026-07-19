@@ -1,7 +1,7 @@
 import ChatHeader from "./ChatHeader";
 import ChatMessageList from "./ChatMessageList";
 import ChatInput from "./ChatInput";
-import { sessionsState } from "../../logic/states/sessionStates";
+import { sessionsState } from "@sessions/sessionStates";
 import { useState } from "react";
 import UserProfilePanel from "./UserProfilePanel";
 

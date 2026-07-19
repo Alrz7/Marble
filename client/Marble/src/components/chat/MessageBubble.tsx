@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Copy, Trash2, Check, CheckCheck } from "lucide-react";
-import { Message } from "../../logic/internal/commonTypes";
-import { AppUser } from "../../logic/states/userMainStates";
-import { sessionsState } from "../../logic/states/sessionStates";
+import { Message } from "@internal/commonTypes";
+import { AppUser } from "@states/userMainStates";
+import { sessionsState } from "@sessions/sessionStates";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { notifState } from "../../logic/states/appCommonStates";
-import { DeleteMessage } from "../../logic/active/actMessageHandlers";
+import { notifState } from "@states/stateNotif";
+import { DeleteMessage } from "@active/actMessageHandlers";
 
 interface MessageBubbleProps {
   message: Message;
