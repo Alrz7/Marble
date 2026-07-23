@@ -24,13 +24,14 @@ export async function InsertMessage(
     newSequence,
     session.id,
     encryptData(message.content, masterKey),
+    encryptData(message.profile, masterKey),
     encryptData(message.senderId, masterKey),
     encryptData(message.createdAt.toUTCString(), masterKey),
     encryptData(message.status, masterKey),
   ]);
 
   const res = await db.select<{ id: number }[]>(
-    `INSERT INTO message (seq, session_id, content, sender_id, timestamp, status) VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO message (seq, session_id, content, profile, sender_id, timestamp, status) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id`,
     encrypted,
   );
@@ -57,6 +58,7 @@ export async function GetMessages(
       seq: number;
       session_id: number;
       content: number[];
+      profile: number[];
       sender_id: number;
       timestamp: number[];
       status: number[];
@@ -68,7 +70,6 @@ export async function GetMessages(
   );
   const existing: Message[] = [];
 
-  console.log(res);
   for (const msg of res) {
     existing.push({
       id: msg.id,
@@ -76,7 +77,7 @@ export async function GetMessages(
       sessionId: msg.session_id,
       content: await decryptDataFromDb<string>(msg.content, masterKey),
       senderId: await decryptDataFromDb<number>(msg.sender_id, masterKey),
-      profile: "openpgp",
+      profile: await decryptDataFromDb<string>(msg.profile, masterKey),
       createdAt: new Date(
         await decryptDataFromDb<string>(msg.timestamp, masterKey),
       ),
@@ -93,4 +94,25 @@ export async function DeleteMessge(message: Message) {
   const query = `--sql
   DELETE FROM message where session_id = $1 AND seq = $2`;
   db.execute(query, [message.sessionId, message.seq]);
+}
+
+export async function dbUpdateMessageById(
+  id: number,
+  message: Message,
+  masterKey: CryptoKey,
+) {
+  const encrypted = await Promise.all([
+    encryptData(message.content, masterKey),
+    encryptData(message.profile, masterKey),
+    encryptData(message.status, masterKey),
+  ]);
+  try {
+    const query = `--sql
+  UPDATE message
+  SET content = $2, profile = $3, status = $4
+  WHERE id = $1`;
+    await db.execute(query, [id, ...encrypted]);
+  } catch (err) {
+    console.warn(err);
+  }
 }

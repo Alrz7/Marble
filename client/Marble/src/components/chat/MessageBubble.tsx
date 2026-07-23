@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { Copy, Trash2, Check, CheckCheck } from "lucide-react";
+import {
+  Copy,
+  Trash2,
+  Check,
+  CheckCheck,
+  CloudAlert,
+  RotateCcw,
+} from "lucide-react";
 import { Message } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/userMainStates";
 import { sessionsState } from "@sessions/sessionStates";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { notifState } from "@states/stateNotif";
-import { DeleteMessage } from "@active/actMessageHandlers";
+import { DeleteMessage } from "@messages/actMessageHandlers";
+import { onResendMessage } from "@messages/msgMain";
 
 interface MessageBubbleProps {
   message: Message;
@@ -43,6 +51,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         return <CheckCheck className="w-3.5 h-3.5 text-muted-foreground" />;
       case "read":
         return <CheckCheck className="w-3.5 h-3.5 text-primary" />;
+      case "notSend":
+        return <CloudAlert className="w-4 h-4 text-night-bordeaux-400" />;
       default:
         return null;
     }
@@ -123,6 +133,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           >
             <Reply className="w-4 h-4" />
           </button> */}
+          <button
+            onClick={handleDelete}
+            className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
           {true && (
             <>
               {/* <button
@@ -132,13 +149,15 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               >
                 <Edit2 className="w-4 h-4" />
               </button> */}
-              <button
-                onClick={handleDelete}
-                className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {message.status == "notSend" && (
+                <button
+                  onClick={()=>{onResendMessage(message)}}
+                  className="p-1.5 rounded-lg hover:bg-yale-blue-800/40 transition-colors text-muted-foreground hover:text-yale-blue-500"
+                  title="Resend"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
             </>
           )}
         </div>

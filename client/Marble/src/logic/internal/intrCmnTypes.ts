@@ -58,14 +58,19 @@ export type GroupSession = {
   sessionId: number;
 };
 
-export type MessageStatus = "sent" | "delivered" | "read";
+export type MessageStatus =
+  | "sent"
+  | "delivered"
+  | "read"
+  | "notSend"
+  | "notDefiend";
 
 export interface Message {
   id: number;
   seq: number;
   sessionId: SessionId;
   senderId: UserId;
-  profile: string
+  profile: string;
   content: string;
   createdAt: Date;
   status: MessageStatus;

@@ -31,6 +31,6 @@ CREATE TABLE message (
     session_id BIGINT NOT NULL REFERENCES session(id) ON DELETE CASCADE,
     sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    profile VARCHAR(15) NULL,
+    profile VARCHAR(15) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 );

@@ -1,14 +1,15 @@
 import { InsertSession, UpdateSessionById } from "@db/dbSessions";
 import { encryptMessage } from "@enc/encOpenpgp";
 import { Message, Session, SessionId } from "@internal/intrCmnTypes";
-import { MessageStatus, Request } from "./actTypes";
-import { sendRequest } from "./actWebsocket";
+import { MessageStatus, Request } from "@active/actTypes";
+import { sendRequest } from "@active/actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
-import { actAddMessage } from "./actMessageHandlers";
+import { actAddMessage } from "@messages/actMessageHandlers";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertMessage } from "@db/dbMessages";
 import { ResetSearchPrcs } from "@states/appCommonStates";
+
 /** 
 onCreateNewSession trigers by sending the first message to the session,
 it saves the current-onStage-session & its audience & the first message
@@ -56,6 +57,7 @@ export async function onCreateNewSession(message: Message) {
   next.id = sessionId;
 
   await InsertMessage(next, message, currentUser.MasterKey);
+  
   UpdateCurrentSession(next);
 
   sendRequest(req);

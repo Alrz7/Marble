@@ -15,7 +15,7 @@
       "@messages/*": ["./src/logic/messages/*"],
       "@sessions/*": ["./src/logic/sessions/*"],
       "@states/*": ["./src/logic/states/*"],
-      "@user/*": ["./src/logic/user/*"],
+      "@user/*": ["./src/logic/user/*"]
     },
 
     /* Bundler mode */
@@ -47,7 +47,7 @@
   },
   "include": [
     "src",
-    "src/logic/active/actSessionHandlers.ts",
+    "src/logic/sessions/actSessionHandlers.ts",
     "src/logic/active/actWsClientHandelers.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]

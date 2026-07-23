@@ -3,9 +3,9 @@ import { Send, Paperclip, Smile } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
 import { Message } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/userMainStates";
-import { onCreateNewSession } from "@active/actSessionHandlers";
+import { onCreateNewSession } from "@sessions/actSessionHandlers";
 import { messageState } from "@messages/stateMessage";
-import { onSendMessage } from "@active/actMessageHandlers";
+import { onSendNewMessage } from "@messages/actMessageHandlers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
@@ -26,13 +26,13 @@ export default function ChatInput() {
       senderId: currentUser?.config.id,
       createdAt: new Date(),
       profile: "openpgp",
-      status: "sent",
+      status: "notDefiend",
     };
 
     if (curSession?.onCreateStage) {
       onCreateNewSession(newMessage);
     } else {
-      onSendMessage(newMessage);
+      onSendNewMessage(newMessage);
     }
 
     addMessage(newMessage);

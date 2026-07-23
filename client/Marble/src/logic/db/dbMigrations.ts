@@ -41,6 +41,7 @@ CREATE TABLE message (
     seq INTEGER NOT NULL,
     session_id INTEGER NOT NULL REFERENCES session(id) ON DELETE CASCADE,
     content BLOB NOT NULL,
+    profile BLOB NOT NULL,
     sender_id BLOB NOT NULL,
     timestamp BLOB NOT NULL,
     status BLOB NOT NULL

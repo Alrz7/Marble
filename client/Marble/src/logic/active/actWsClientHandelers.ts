@@ -4,6 +4,7 @@ import { sendRequest } from "./actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";
 import { DeleteSessionFrmDb } from "@db/dbSessions";
 import { DeleteAudienceFromDb } from "@db/dbAudience";
+import { isSessionLegit } from "@sessions/sessionHelpers";
 
 // --- Users ---
 export function onSearchUser(param: string) {
@@ -22,6 +23,7 @@ export function onSearchUser(param: string) {
 }
 
 // --- Sessions ---
+
 /** 
 onSyncSession sends a sync request to pull any latest session changes
 we call this method once at the begining including the existing sessions
@@ -32,7 +34,20 @@ automaticaly.
  */
 export async function onSyncSession(sessions: Session[]) {
   const lastSessionSeq =
-    sessions.length > 0 ? Math.max(...sessions.map((s) => s.seq)) : 0;
+    sessions.length > 0
+      ? Math.max(
+          ...sessions.map((s) => {
+            /** 
+            we only need to send valid sessions for syncing process
+             */
+            if (isSessionLegit(s)) {
+              return s.seq;
+            } else {
+              return 0;
+            }
+          }),
+        )
+      : 0;
   const struct: {
     lastSessionEvent: number;
   } = {
@@ -49,16 +64,18 @@ export async function onSyncSession(sessions: Session[]) {
 
 export async function onDeleteSession(session: Session) {
   const { deleteSession } = sessionsState.getState();
-  const req: Request = {
-    status: MessageStatus.Request,
-    channel: "sessions",
-    headers: { task: "delete" },
-    body: JSON.stringify({ sessionId: session.sessionId }),
-  };
-  Promise.all([
-    sendRequest(req),
-    await DeleteSessionFrmDb(session.id),
-    await DeleteAudienceFromDb(session.audience),
+  if (isSessionLegit(session)) {
+    const req: Request = {
+      status: MessageStatus.Request,
+      channel: "sessions",
+      headers: { task: "delete" },
+      body: JSON.stringify({ sessionId: session.sessionId }),
+    };
+    sendRequest(req);
+  }
+  await Promise.all([
+    DeleteSessionFrmDb(session.id),
+    DeleteAudienceFromDb(session.audience),
   ]);
   deleteSession(session.id);
 }
@@ -68,7 +85,7 @@ export async function onSyncMessage(
   lastMessageSeq: number,
 ) {
   const struct: {
-    sessionId: number;
+    sessionId: SessionId;
     lastMessageSeq: number;
   } = {
     sessionId: sessionId,
