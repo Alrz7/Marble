@@ -90,6 +90,45 @@ export async function GetMessages(
   return existing.reverse();
 }
 
+export async function GetMessageById(masterKey: CryptoKey, id: number) {
+  const res = await db.select<
+    {
+      id: number;
+      seq: number;
+      session_id: number;
+      content: number[];
+      profile: number[];
+      sender_id: number;
+      timestamp: number[];
+      status: number[];
+    }[]
+  >(
+    `--sql
+    SELECT * FROM message WHERE id = $1`,
+    [id],
+  );
+  const existing: Message[] = [];
+
+  for (const msg of res) {
+    existing.push({
+      id: msg.id,
+      seq: msg.seq,
+      sessionId: msg.session_id,
+      content: await decryptDataFromDb<string>(msg.content, masterKey),
+      senderId: await decryptDataFromDb<number>(msg.sender_id, masterKey),
+      profile: await decryptDataFromDb<string>(msg.profile, masterKey),
+      createdAt: new Date(
+        await decryptDataFromDb<string>(msg.timestamp, masterKey),
+      ),
+      status: (await decryptDataFromDb<string>(
+        msg.status,
+        masterKey,
+      )) as MessageStatus,
+    });
+  }
+  return existing[0] ?? null;
+}
+
 export async function DeleteMessge(message: Message) {
   const query = `--sql
   DELETE FROM message where session_id = $1 AND seq = $2`;

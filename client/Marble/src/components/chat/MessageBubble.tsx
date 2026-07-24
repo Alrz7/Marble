@@ -5,6 +5,7 @@ import {
   Check,
   CheckCheck,
   CloudAlert,
+  LoaderCircle,
   RotateCcw,
 } from "lucide-react";
 import { Message } from "@internal/intrCmnTypes";
@@ -12,7 +13,7 @@ import { AppUser } from "@states/userMainStates";
 import { sessionsState } from "@sessions/sessionStates";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { notifState } from "@states/stateNotif";
-import { DeleteMessage } from "@messages/actMessageHandlers";
+import { DeleteMessage } from "@messages/msgMain";
 import { onResendMessage } from "@messages/msgMain";
 
 interface MessageBubbleProps {
@@ -41,16 +42,16 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   const getStatusIcon = () => {
-    if (!currentUser || !(message.senderId == currentUser.config.id))
+    if (!currentUser || !(message.senderId === currentUser.config.id))
       return null;
 
     switch (message.status) {
+      case "sending":
+        return <LoaderCircle className="w-3.5 h-3.5 text-muted-foreground" />;
       case "sent":
         return <Check className="w-3.5 h-3.5 text-muted-foreground" />;
-      case "delivered":
-        return <CheckCheck className="w-3.5 h-3.5 text-muted-foreground" />;
       case "read":
-        return <CheckCheck className="w-3.5 h-3.5 text-primary" />;
+        return <CheckCheck className="w-3.5 h-3.5 text-indigo-400" />;
       case "notSend":
         return <CloudAlert className="w-4 h-4 text-night-bordeaux-400" />;
       default:
@@ -58,7 +59,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     }
   };
 
-  const isMine = message.senderId == currentUser?.config.id;
+  const isMine = message.senderId === currentUser?.config.id;
   const audienceName = sessions.get(currentSessionId)?.audience.name;
 
   return (
@@ -149,9 +150,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               >
                 <Edit2 className="w-4 h-4" />
               </button> */}
-              {message.status == "notSend" && (
+              {message.status === "notSend" && (
                 <button
-                  onClick={()=>{onResendMessage(message)}}
+                  onClick={() => {
+                    onResendMessage(message);
+                  }}
                   className="p-1.5 rounded-lg hover:bg-yale-blue-800/40 transition-colors text-muted-foreground hover:text-yale-blue-500"
                   title="Resend"
                 >

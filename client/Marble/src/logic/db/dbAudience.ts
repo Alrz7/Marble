@@ -96,7 +96,7 @@ export async function DeleteAudienceFromDb(audience: Audience) {
   const { sessions } = sessionsState.getState();
   let ac = 0;
   for (const session of sessions.values()) {
-    if (session.audience.id == audience.id) ac++;
+    if (session.audience.id === audience.id) ac++;
   }
   if (ac >= 2) return;
 

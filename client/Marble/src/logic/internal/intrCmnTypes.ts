@@ -59,8 +59,8 @@ export type GroupSession = {
 };
 
 export type MessageStatus =
+  | "sending"
   | "sent"
-  | "delivered"
   | "read"
   | "notSend"
   | "notDefiend";

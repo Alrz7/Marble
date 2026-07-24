@@ -16,7 +16,8 @@ import (
 func HndlCreateSession(req *Request) error {
 	entry := struct {
 		AudienceId int    `json:"audienceId"`
-		Content    string `json:"content"`
+		Message    string `json:"message"`
+		MessageId  int    `json:"messageId"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
@@ -43,7 +44,7 @@ func HndlCreateSession(req *Request) error {
 		loggy.DefaultLogger.Error(err)
 		return err
 	}
-	err = req.user.onDeliverSession(newSession, Beta, entry.Content)
+	err = req.user.onDeliverSession(newSession, Beta, entry.Message)
 	if err != nil {
 		DefaultLogger.Info(err)
 		return err
@@ -57,6 +58,7 @@ func HndlCreateSession(req *Request) error {
 	// }
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
 	req.user.OnAddSession(req.conn, newSession, Beta, nil)
+	req.onSendMessageEventResponce(newSession.Id, entry.MessageId, "sent")
 	return nil
 }
 
@@ -122,6 +124,7 @@ func HndlSendMessage(req *Request) error {
 		AudienceId internal.UserId `json:"audienceId"`
 		SessionId  uint64          `json:"sessionId"`
 		Message    string          `json:"message"`
+		MessageId  int             `json:"messageId"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
@@ -133,13 +136,19 @@ func HndlSendMessage(req *Request) error {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	return req.user.SendMessage(session, entry.Message)
+	err = req.user.SendMessage(session, entry.Message)
+	if err != nil {
+		actServerErrorResponse(req.conn, err)
+		return err
+	}
+	req.onSendMessageEventResponce(session.Id, entry.MessageId, "sent")
+	return nil
 }
 
 func (u *ActvUser) onGenerateNewMessage(S *session.Session, content string) (*session.Message, error) {
 	var newMessage = session.Message{
 		SessionId: S.Id,
-		SenderId: u.Id,
+		SenderId:  u.Id,
 		Content:   content,
 		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
 	}
@@ -184,6 +193,12 @@ func (u *ActvUser) onDeliverMessage(S *session.Session, message *session.Message
 	headers := RequestHeaders{"task": "add"}
 	sendHandlerResponse(userOnlineConn, StatusPending, "messages", headers, body)
 	return true
+}
+
+func (req *Request) onSendMessageEventResponce(sessionId internal.SessionId, messageId int, status string) {
+	resp := envelope{"sessionId": sessionId, "messageId": messageId, "status": status}
+	headers := RequestHeaders{"task": "event"}
+	sendHandlerResponse(req.conn, StatusApproved, "messages", headers, resp)
 }
 
 // func (AU *ActvUser) DeleteSession(beta internal.UserId) error {

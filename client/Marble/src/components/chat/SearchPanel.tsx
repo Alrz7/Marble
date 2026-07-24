@@ -28,7 +28,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
       audience: audience,
     };
     const existing = await SameOnStage(preReservedSession);
-    if (existing == null) {
+    if (existing === null) {
       addSession(preReservedSession);
       setCurrentSessionId(newReservedId);
     } else {

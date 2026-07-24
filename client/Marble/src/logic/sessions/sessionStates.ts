@@ -58,7 +58,7 @@ export const sessionsState = create<SessionsState>((set) => ({
       const newGen = new Map(state.sessions);
       newGen.delete(id);
       let newCurId = state.currentSessionId;
-      if (id == state.currentSessionId) {
+      if (id === state.currentSessionId) {
         newCurId = 0;
       }
       return {

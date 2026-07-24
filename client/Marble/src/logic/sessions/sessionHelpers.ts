@@ -1,5 +1,5 @@
+import { sessionsState } from "@sessions/sessionStates";
 import { Session } from "@internal/intrCmnTypes";
-import { sessionsState } from "./sessionStates";
 
 export function reserveSessionId(): number {
   const { sessions } = sessionsState.getState();

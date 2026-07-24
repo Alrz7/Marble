@@ -10,7 +10,11 @@ import {
   onSyncSession,
 } from "./actWsClientHandelers";
 import { sessionsState } from "@sessions/sessionStates";
-import { actAddMessage, HndlAddMessage } from "../messages/actMessageHandlers";
+import {
+  actAddMessage,
+  HandleMsgEventResponse,
+  HndlAddMessage,
+} from "../messages/actMessageHandlers";
 import { notifState } from "@states/stateNotif";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 
@@ -40,6 +44,9 @@ export function HndlMessages(req: Request) {
     case "sync":
       hndlSyncMessage(req);
       break;
+    case "event":
+      HandleMsgEventResponse(req);
+      break;
   }
 }
 
@@ -60,7 +67,7 @@ export function HndlNotifs(req: Request) {
 
 export async function HndlAuthStatus(request: any) {
   const { states, setState } = stateCommon.getState();
-  if (request.status == MessageStatus.Approved) {
+  if (request.status === MessageStatus.Approved) {
     setState("authorized", true);
     const { sessions } = sessionsState.getState();
     if (!states.get("syncedSession")) {

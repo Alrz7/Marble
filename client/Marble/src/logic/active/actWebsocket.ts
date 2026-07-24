@@ -106,7 +106,7 @@ export function disconnectWS() {
 export function sendRequest(req: Request): boolean {
   if (ws && ws.readyState === WebSocket.OPEN) {
     const { states } = stateCommon.getState();
-    if (states.get(AUTHORIZED) == false && req.channel != "auth") {
+    if (states.get(AUTHORIZED) === false && req.channel != "auth") {
       addNewNotification(
         "error",
         "connectionNotAuthorized",
