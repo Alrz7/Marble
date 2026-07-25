@@ -66,7 +66,11 @@ export async function onCreateNewSession(message: Message) {
     headers: { task: "create" },
     body: JSON.stringify(struct),
   };
-  sendRequest(req);
+
+  const sent = sendRequest(req);
+  if (!sent) {
+    message.status = "notSend";
+  }
 
   const { addMessage } = messageState.getState();
   addMessage(message);

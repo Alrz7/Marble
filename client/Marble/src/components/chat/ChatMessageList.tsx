@@ -8,7 +8,9 @@ import { messageState } from "@messages/stateMessage";
 
 export default function ChatMessageList() {
   const { currentSessionId, sessions } = sessionsState();
-  const { Messagelist, setMessages } = messageState();
+  const { messages, setMessages } = messageState();
+
+  const messagesArray = Array.from(messages.values());
 
   async function loadMessages() {
     const messages: Message[] | null = await loadSavedMessages();
@@ -30,14 +32,14 @@ export default function ChatMessageList() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [Messagelist]);
+  }, [messages]);
 
   return (
     <div
       ref={scrollContainerRef}
       className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 pt-24 pb-6 space-y-3 marble-scrollbar"
     >
-      {Messagelist.length === 0 ? (
+      {messages.size === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center gap-1">
           <p className="text-muted-foreground text-sm">No messages yet</p>
           <p className="text-xs text-muted-foreground/60">
@@ -45,7 +47,7 @@ export default function ChatMessageList() {
           </p>
         </div>
       ) : (
-        Messagelist.map((message) => (
+        messagesArray.map((message) => (
           <MessageBubble key={message.seq} message={message} />
         ))
       )}

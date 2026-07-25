@@ -1,6 +1,8 @@
 import { X, Circle, KeyRound } from "lucide-react";
 import { Session } from "@internal/intrCmnTypes";
 import { onDeleteSession } from "@active/actWsClientHandelers";
+import { stateCommon } from "@states/appCommonStates";
+import { StateVariables } from "@internal/intrCmnVars";
 
 interface UserProfilePanelProps {
   curSession: Session;
@@ -11,6 +13,8 @@ export default function UserProfilePanel({
   curSession,
   onClose,
 }: UserProfilePanelProps) {
+  const { setState } = stateCommon();
+
   return (
     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
       <div className="glass-panel-strong rounded-2xl w-full max-w-sm mx-4 shadow-2xl animate-scale-in">
@@ -63,6 +67,7 @@ export default function UserProfilePanel({
               <button
                 onClick={() => {
                   onDeleteSession(curSession);
+                  setState(StateVariables.SHOW_PROFILE_PANEL, false);
                 }}
                 className="w-full rounded-xl bg-destructive/15 border border-destructive/30 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
               >

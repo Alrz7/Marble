@@ -1,6 +1,6 @@
+import { StateVariables } from "./../internal/intrCmnVars";
 import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
-import { AUTHORIZED, SYNCED_SESSION } from "@internal/intrCmnVars";
 
 export type PAGES = "loading" | "login" | "signup";
 interface AppState {
@@ -21,8 +21,9 @@ export const stateCommon = create<{
   setState: (key: string, val: sTypes) => void;
 }>((set) => ({
   states: new Map<string, sTypes>([
-    [AUTHORIZED, false],
-    [SYNCED_SESSION, false],
+    [StateVariables.AUTHORIZED, false],
+    [StateVariables.SYNCED_SESSION, false],
+    [StateVariables.SHOW_PROFILE_PANEL, false],
   ]),
   setState: (key: string, val: sTypes) =>
     set((state) => {

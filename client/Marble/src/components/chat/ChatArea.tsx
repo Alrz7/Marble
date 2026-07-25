@@ -2,11 +2,12 @@ import ChatHeader from "./ChatHeader";
 import ChatMessageList from "./ChatMessageList";
 import ChatInput from "./ChatInput";
 import { sessionsState } from "@sessions/sessionStates";
-import { useState } from "react";
 import UserProfilePanel from "./UserProfilePanel";
+import { stateCommon } from "@states/appCommonStates";
+import { StateVariables } from "@internal/intrCmnVars";
 
 export default function ChatArea() {
-  const [showProfile, setShowProfile] = useState(false);
+  const {states, setState}  = stateCommon()
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
   return (
@@ -20,13 +21,13 @@ export default function ChatArea() {
 
       {curSession ? (
         <div className="relative z-10 flex flex-col h-full">
-          <ChatHeader setShowProfile={setShowProfile} />
+          <ChatHeader/>
           <ChatMessageList />
           <ChatInput />
-          {showProfile && curSession && (
+          {states.get(StateVariables.SHOW_PROFILE_PANEL) && curSession && (
             <UserProfilePanel
               curSession={curSession}
-              onClose={() => setShowProfile(false)}
+              onClose={() => setState(StateVariables.SHOW_PROFILE_PANEL, false)}
             />
           )}
         </div>

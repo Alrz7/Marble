@@ -76,6 +76,12 @@ export interface Message {
   status: MessageStatus;
 }
 
+export type MessageEventResponse = {
+  sessionId: SessionId;
+  messageEventId: number;
+  status: MessageStatus;
+};
+
 // --- Notification ---
 export type NotifType = "info" | "error" | "success" | "warning";
 export type Notification = {

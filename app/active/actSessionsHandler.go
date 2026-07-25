@@ -52,8 +52,8 @@ func HndlCreateSession(req *Request) error {
 	}
 
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
-	req.onSendSessionEventResponce(entry.SessionEventId, newSession, Beta, true)
-	req.onSendMessageEventResponce(entry.SessionEventId, entry.MessageEventId, "sent")
+	messageEventResponse := createNewMessageResponse(entry.SessionEventId, entry.MessageEventId, "sent")
+	req.onSendSessionEventResponce(entry.SessionEventId, newSession, Beta, true, messageEventResponse)
 	return nil
 }
 
@@ -190,20 +190,24 @@ func (u *ActvUser) onDeliverMessage(S *session.Session, message *session.Message
 	return true
 }
 
+func createNewMessageResponse(sessionId internal.SessionId, messageEventId int, status string) envelope {
+	return envelope{"sessionId": sessionId, "messageEventId": messageEventId, "status": status}
+}
+
 func (req *Request) onSendMessageEventResponce(sessionId internal.SessionId, messageEventId int, status string) {
-	resp := envelope{"sessionId": sessionId, "messageEventId": messageEventId, "status": status}
+	resp := createNewMessageResponse(sessionId, messageEventId, status)
 	headers := RequestHeaders{"task": "event"}
 	sendHandlerResponse(req.conn, StatusApproved, "messages", headers, resp)
 }
 
-func (req *Request) onSendSessionEventResponce(sessionEventId internal.SessionId, registeredSession *session.Session, audience *users.User, verified bool) {
+func (req *Request) onSendSessionEventResponce(sessionEventId internal.SessionId, registeredSession *session.Session, audience *users.User, verified bool, messageEventResponse envelope) {
 	sendingSession := envelope{"sessionId": registeredSession.Id, "seq": registeredSession.Seq, "audience": internal.Audience{Name: audience.UserName,
 		UserId:        audience.Id,
 		DisplayId:     audience.DisplayId,
 		ProfileAvatar: audience.ProfileAvatar,
 		ArmedPubKey:   audience.PgpProfile.PublicKey}}
 
-	resp := envelope{"sessionEventId": sessionEventId, "registeredSession": sendingSession, "verified": verified}
+	resp := envelope{"sessionEventId": sessionEventId, "registeredSession": sendingSession, "verified": verified, "messageEventResponse": messageEventResponse}
 	headers := RequestHeaders{"task": "event"}
 	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, resp)
 }

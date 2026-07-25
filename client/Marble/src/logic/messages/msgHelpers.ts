@@ -10,10 +10,13 @@ export async function saveNewMessage(
   message.id = id;
 }
 
-export function getMessageFromListById(
-  list: Message[],
-  id: number,
-): { indx: number; message: Message | null } {
-  const targetIndx = list.findIndex((m) => m.id === id) ?? null;
-  return { indx: targetIndx, message: list[targetIndx] ?? null };
-}
+// i'll deploy it later
+
+// async function setAsFailed() {
+//   setTimeout(()=>{
+//     addNewNotification("error", NotificationKeys.MESSAGE_REQUEAST_TIMEDOUT, "Request TimedOut! check your connection and try again.")
+
+//   }, 20_000)
+// }
+
+// export const pendingTimeouts = new Map<number, ReturnType<typeof setTimeout>>()

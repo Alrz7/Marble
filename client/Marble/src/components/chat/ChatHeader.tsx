@@ -1,17 +1,16 @@
 import { Circle } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
+import { stateCommon } from "@states/appCommonStates";
+import { StateVariables } from "@internal/intrCmnVars";
 
-export default function ChatHeader({
-  setShowProfile,
-}: {
-  setShowProfile: (b: boolean) => void;
-}) {
+export default function ChatHeader({}: {}) {
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
+  const { setState } = stateCommon();
 
   return (
     <button
-      onClick={() => setShowProfile(true)}
+      onClick={() => setState(StateVariables.SHOW_PROFILE_PANEL, true)}
       className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-5/6 flex items-center gap-3 rounded-xl px-4 py-2.5 border border-gray-700 bg-[#42424212] hover:bg-[#5a5a5a21] transition-colors"
     >
       <div className="relative">

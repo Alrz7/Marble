@@ -9,7 +9,7 @@ import {
 import { HndlAuthStatus } from "./actWsServerHandlers";
 import { stateCommon } from "@states/appCommonStates";
 import { addNewNotification } from "@states/stateNotif";
-import { AUTHORIZED } from "@internal/intrCmnVars";
+import { StateVariables } from "@internal/intrCmnVars";
 
 // ----* handlers *----
 let ws: WebSocket | null = null;
@@ -106,13 +106,16 @@ export function disconnectWS() {
 export function sendRequest(req: Request): boolean {
   if (ws && ws.readyState === WebSocket.OPEN) {
     const { states } = stateCommon.getState();
-    if (states.get(AUTHORIZED) === false && req.channel != "auth") {
+    if (
+      states.get(StateVariables.AUTHORIZED) === false &&
+      req.channel != "auth"
+    ) {
       addNewNotification(
         "error",
         "connectionNotAuthorized",
         "Connection is not authorized, reload and try again",
       );
-      return false
+      return false;
     }
     ws.send(JSON.stringify(req));
     return true;

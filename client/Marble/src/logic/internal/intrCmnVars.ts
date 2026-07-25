@@ -21,9 +21,18 @@ export const app: application = {
   },
 };
 
+// ----------   State Variables   -----------
+
+export const StateVariables = {
+  SYNCED_SESSION: "syncedSession",
+  AUTHORIZED: "authorized",
+  SHOW_PROFILE_PANEL: "showProfilePanel"
+};
+
 // --------- Notification Common Keys ---------
-export const SESSION_NOT_VALID = "sessionIsNotValid";
-export const SESSION_REJECTED_BY_SERVER = "sessionBeenRejected"
-export const REQUEST_NOT_SENT = "requestNotSent";
-export const AUTHORIZED = "authorized";
-export const SYNCED_SESSION = "syncedSession";
+export const NotificationKeys = {
+  SESSION_NOT_VALID: "sessionIsNotValid",
+  SESSION_REJECTED_BY_SERVER: "sessionBeenRejected",
+  REQUEST_NOT_SENT: "requestNotSent",
+  MESSAGE_REQUEAST_TIMEDOUT: "MessageRequestTimedOut",
+};

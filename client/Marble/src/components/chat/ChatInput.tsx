@@ -13,11 +13,12 @@ export default function ChatInput() {
   const { currentUser } = AppUser();
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
-  const { Messagelist } = messageState();
+  const { messages } = messageState();
+  const messagesArray = Array.from(messages.values());
 
   const PrepareNewMessage = (content: string) => {
     if (!curSession || !currentUser) return;
-    let lastId = Messagelist.at(-1)?.id;
+    let lastId = messagesArray.at(-1)?.id;
     const newMessage: Message = {
       id: lastId ? lastId++ : 0,
       seq: -1,

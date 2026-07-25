@@ -1,11 +1,17 @@
 import { messageState } from "./stateMessage";
 import { decryptMessage, getKeyFromArmored } from "@enc/encOpenpgp";
-import { Message, MessageStatus, SessionId } from "@internal/intrCmnTypes";
+import {
+  Message,
+  MessageEventResponse,
+  Session,
+  SessionId,
+  User,
+} from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
-import { getMessageFromListById, saveNewMessage } from "./msgHelpers";
+import { saveNewMessage } from "./msgHelpers";
 import { dbUpdateMessageById, GetMessageById } from "@db/dbMessages";
 
 export async function HndlAddMessage(req: Request) {
@@ -64,68 +70,64 @@ export async function actAddMessage(
 }
 
 export async function HandleMsgEventResponse(req: Request) {
+  const { currentUser } = AppUser.getState();
+  if (!currentUser) return;
+  const resp: MessageEventResponse = JSON.parse(req.body);
+  const { sessions, currentSessionId } = sessionsState.getState();
+  const curSession = sessions.get(currentSessionId);
+
+  HandleMsgEvent(currentUser, curSession, resp);
+}
+
+export async function HandleMsgEvent(
+  currentUser: User,
+  curSession: Session | undefined,
+  resp: MessageEventResponse,
+) {
   let targetMessage: Message | null = null;
-  try {
-    const resp: {
-      sessionId: SessionId;
-      messageEventId: number;
-      status: MessageStatus;
-    } = JSON.parse(req.body);
-
-    const { currentUser } = AppUser.getState();
-    if (!currentUser) return;
-    const { sessions, currentSessionId } = sessionsState.getState();
-    const curSession = sessions.get(currentSessionId);
-
-    if (
-      curSession &&
-      (curSession.id == resp.sessionId ||
-        curSession.sessionId == resp.sessionId)
-    ) {
-      /** 
+  if (
+    curSession &&
+    (curSession.id == resp.sessionId || curSession.sessionId == resp.sessionId)
+  ) {
+    /** 
       we need to hotReload the message status if it's session was pointed as
       current session; first we search in session's onboeard messages, if it was there we
       update and reload its info,
       otherwise we fetch the message from Db to do the same modification
        */
-      const { Messagelist } = messageState.getState();
+    const { messages, updateMessage } = messageState.getState();
 
-      let target = getMessageFromListById(Messagelist, resp.messageEventId);
-      if (target.message) {
-        /** 
+    let existing = messages.get(resp.messageEventId);
+    if (existing) {
+      /** 
         this method is also caled for first `Init-Messages` < first message while creating
         the session > so in that situation the message-Request was sent to server with out any
         registered-SessionId attached, so if existingMessage's sesionId was on-stage we need to
         modify that with currect id
          */
-        if (target.message.senderId <= 0) {
-          target.message.sessionId = resp.sessionId;
-        }
-        targetMessage = { ...target.message };
-      }
 
-      // fetch from Db if neccecery...
-      if (!targetMessage) {
-        targetMessage = await GetMessageById(
-          currentUser?.MasterKey,
-          resp.messageEventId,
-        );
-      }
-
-      if (targetMessage) {
-        const { updateMessage } = messageState.getState();
-        targetMessage.status = resp.status;
-        updateMessage(target.indx, targetMessage);
-      }
+      targetMessage = {
+        ...existing,
+        sessionId: resp.sessionId,
+        status: resp.status,
+      };
     }
-
-    if (targetMessage)
-      dbUpdateMessageById(
+    // fetch from Db if neccecery...
+    if (!targetMessage) {
+      targetMessage = await GetMessageById(
+        currentUser?.MasterKey,
         resp.messageEventId,
-        targetMessage,
-        currentUser.MasterKey,
       );
-  } catch (err) {
-    console.error(err);
+    }
+    if (targetMessage) {
+      updateMessage(targetMessage.id, targetMessage);
+    }
   }
+
+  if (targetMessage)
+    await dbUpdateMessageById(
+      resp.messageEventId,
+      targetMessage,
+      currentUser.MasterKey,
+    );
 }

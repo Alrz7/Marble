@@ -7,10 +7,10 @@ import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { addNewNotification } from "@states/stateNotif";
-import { REQUEST_NOT_SENT, SESSION_NOT_VALID } from "@internal/intrCmnVars";
 import { saveNewMessage } from "./msgHelpers";
-import { DeleteMessge, GetMessages } from "@db/dbMessages";
+import { dbDeleteMessge, GetMessages } from "@db/dbMessages";
 import { messageState } from "./stateMessage";
+import { NotificationKeys } from "@internal/intrCmnVars";
 
 // -----* messages *-----
 export async function onSendNewMessage(message: Message) {
@@ -23,7 +23,7 @@ export async function onSendNewMessage(message: Message) {
   const throwMessage = await onSendMessage(message, curSession);
   if (!throwMessage) saveNewMessage(curSession, currentUser.MasterKey, message);
 
-  const {addMessage} = messageState.getState()
+  const { addMessage } = messageState.getState();
   addMessage(message);
 }
 
@@ -39,17 +39,16 @@ export async function onSendMessage(
       message.status = "notSend";
       addNewNotification(
         "error",
-        REQUEST_NOT_SENT,
+        NotificationKeys.REQUEST_NOT_SENT,
         "Message not send!, failed to send request!",
       );
     }
     return sent;
-    
   } else {
     message.status = "notSend";
     addNewNotification(
       "error",
-      SESSION_NOT_VALID,
+      NotificationKeys.SESSION_NOT_VALID,
       "Message not send!, session is not verified by server",
     );
     return false;
@@ -109,10 +108,7 @@ export async function loadSavedMessages(): Promise<Message[] | null> {
 }
 
 export async function DeleteMessage(message: Message) {
-  const { Messagelist, DeleteMessage } = messageState.getState();
-  const indx = Messagelist.indexOf(message);
-  if (indx !== -1) {
-    DeleteMessage(indx);
-    await DeleteMessge(message);
-  }
+  const { deleteMessage } = messageState.getState();
+  deleteMessage(message.id);
+  await dbDeleteMessge(message);
 }

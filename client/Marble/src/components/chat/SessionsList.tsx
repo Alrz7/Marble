@@ -9,7 +9,8 @@ export default function SessionsList() {
   const { currentUser } = AppUser();
   const { sessions, setSessions, currentSessionId, setCurrentSessionId } =
     sessionsState();
-  const { Messagelist } = messageState();
+  const { messages } = messageState();
+  const messagesArray = Array.from(messages.values());
   // const { states, setState } = stateCommon();
 
   useEffect(() => {
@@ -76,12 +77,12 @@ export default function SessionsList() {
                   {session.audience.name}
                 </h3>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  {Messagelist.at(-1)?.createdAt.toLocaleString()}
+                  {messagesArray.at(-1)?.createdAt.toLocaleString()}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {Messagelist.length > 0 && Messagelist.at(-1)
-                  ? Messagelist.at(-1)?.content?.slice(0) + "..."
+                {messagesArray.length > 0 && messagesArray.at(-1)
+                  ? messagesArray.at(-1)?.content?.slice(0) + "..."
                   : ""}
               </p>
             </div>
