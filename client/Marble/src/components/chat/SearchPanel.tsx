@@ -3,7 +3,7 @@ import { searchResult } from "@states/appCommonStates";
 import { Audience, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
-import { SameOnStage } from "@sessions/actSessionHandlers";
+import { SameOnStage } from "@sessions/sessionHelpers";
 import { reserveSessionId } from "@sessions/sessionHelpers";
 
 interface SearchPanelProps {

@@ -13,7 +13,7 @@ export default function ChatInput() {
   const { currentUser } = AppUser();
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
-  const { Messagelist, addMessage } = messageState();
+  const { Messagelist } = messageState();
 
   const PrepareNewMessage = (content: string) => {
     if (!curSession || !currentUser) return;
@@ -35,7 +35,7 @@ export default function ChatInput() {
       onSendNewMessage(newMessage);
     }
 
-    addMessage(newMessage);
+    // addMessage(newMessage);
   };
 
   const onSend = () => {

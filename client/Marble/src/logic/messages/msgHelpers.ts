@@ -13,7 +13,7 @@ export async function saveNewMessage(
 export function getMessageFromListById(
   list: Message[],
   id: number,
-): { indx: number; target: Message | null } {
+): { indx: number; message: Message | null } {
   const targetIndx = list.findIndex((m) => m.id === id) ?? null;
-  return { indx: targetIndx, target: list[targetIndx] ?? null };
+  return { indx: targetIndx, message: list[targetIndx] ?? null };
 }

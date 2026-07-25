@@ -34,10 +34,7 @@ export const sessionsState = create<SessionsState>((set) => ({
   updateSession: (oldId: number, next: Session) =>
     set((state) => {
       const newGen = new Map(state.sessions);
-      const old = newGen.get(oldId);
-      if (!old) return state;
-      newGen.delete(oldId);
-      newGen.set(next.id, next);
+      newGen.set(oldId, next);
       return {
         sessions: newGen,
       };

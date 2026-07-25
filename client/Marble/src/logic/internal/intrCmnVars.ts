@@ -23,6 +23,7 @@ export const app: application = {
 
 // --------- Notification Common Keys ---------
 export const SESSION_NOT_VALID = "sessionIsNotValid";
+export const SESSION_REJECTED_BY_SERVER = "sessionBeenRejected"
 export const REQUEST_NOT_SENT = "requestNotSent";
 export const AUTHORIZED = "authorized";
 export const SYNCED_SESSION = "syncedSession";

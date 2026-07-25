@@ -20,6 +20,7 @@ export async function InsertMessage(
     throw new Error("session Not Found");
   }
   const newSequence = updateRes[0]?.last_sequence;
+  if (newSequence) message.seq = newSequence;
   const encrypted = await Promise.all([
     newSequence,
     session.id,

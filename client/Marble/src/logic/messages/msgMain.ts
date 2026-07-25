@@ -22,6 +22,9 @@ export async function onSendNewMessage(message: Message) {
   await saveNewMessage(curSession, currentUser.MasterKey, message);
   const throwMessage = await onSendMessage(message, curSession);
   if (!throwMessage) saveNewMessage(curSession, currentUser.MasterKey, message);
+
+  const {addMessage} = messageState.getState()
+  addMessage(message);
 }
 
 export async function onSendMessage(
@@ -66,12 +69,12 @@ export async function onRequestSendMessage(
     audienceId: UserId;
     sessionId: SessionId;
     message: String;
-    messageId: number;
+    messageEventId: number;
   } = {
     audienceId: curSession.audience.userId,
     sessionId: curSession.sessionId,
     message: encMessage,
-    messageId: message.id,
+    messageEventId: message.id,
   };
   const req: Request = {
     status: MessageStatus.Pending,

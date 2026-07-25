@@ -1,6 +1,10 @@
 import { Audience, Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { searchResult } from "@states/appCommonStates";
-import { actAddSession, hndlAddSession } from "../sessions/actSessionHandlers";
+import {
+  actAddSession,
+  HandlSessionEventResponse,
+  hndlAddSession,
+} from "../sessions/actSessionHandlers";
 import { Request } from "./actTypes";
 import { stateCommon } from "@states/appCommonStates";
 import { MessageStatus } from "./actTypes";
@@ -29,6 +33,9 @@ export function HndlSessions(req: Request) {
       break;
     case "sync":
       HndlSyncSession(req);
+      break;
+    case "event":
+      HandlSessionEventResponse(req);
       break;
   }
 }
@@ -82,7 +89,7 @@ export async function HndlSyncSession(req: Request) {
     JSON.parse(req.body);
   if (data.changes) {
     if (data.changes.add) {
-      await actAddSession(data.changes.add, null);
+      await actAddSession(data.changes.add);
     }
   }
   const { sessions } = sessionsState.getState();
@@ -118,13 +125,11 @@ export async function hndlSyncMessage(req: Request) {
   } = JSON.parse(req.body);
   if (data.changes) {
     if (data.changes.add) {
-      // console.log(data.changes.add);
       const lastMessageSavedSeq = await actAddMessage(
         data.sessionId,
         data.changes.add,
       );
       if (data.hasMore) {
-        // console.log(lastMessageSavedSeq);
         onSyncMessage(data.sessionId, lastMessageSavedSeq);
       } else {
         onCLearSyncedMessage(data.sessionId, lastMessageSavedSeq);

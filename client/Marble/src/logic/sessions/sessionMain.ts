@@ -1,13 +1,13 @@
 import { InsertSession } from "@db/dbSessions";
 import { encryptMessage } from "@enc/encOpenpgp";
-import { Message, Session } from "@internal/intrCmnTypes";
+import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
 import { sendRequest } from "@active/actWebsocket";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertMessage } from "@db/dbMessages";
-import { ResetSearchPrcs } from "@states/appCommonStates";
+import { messageState } from "@messages/stateMessage";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -32,11 +32,13 @@ export async function onCreateNewSession(message: Message) {
   const struct: {
     audienceId: number;
     message: string;
-    messageId: number;
+    MessageEventId: number;
+    sessionEventId: SessionId;
   } = {
     audienceId: curSession.audience.userId,
     message: encMessage,
-    messageId: 0,
+    MessageEventId: -1,
+    sessionEventId: -1,
   };
 
   // preSaving in database
@@ -50,10 +52,11 @@ export async function onCreateNewSession(message: Message) {
 
   const sessionId = await InsertSession(next, currentUser.MasterKey);
   next.id = sessionId;
+  struct.sessionEventId = sessionId;
 
-  const id = await InsertMessage(next, message, currentUser.MasterKey);
-  message.id = id;
-  struct.messageId = id;
+  const MessageId = await InsertMessage(next, message, currentUser.MasterKey);
+  message.id = MessageId;
+  struct.MessageEventId = MessageId;
 
   UpdateCurrentSession(next);
 
@@ -65,5 +68,8 @@ export async function onCreateNewSession(message: Message) {
   };
   sendRequest(req);
 
-  ResetSearchPrcs();
+  const { addMessage } = messageState.getState();
+  addMessage(message);
+
+  //   ResetSearchPrcs();
 }

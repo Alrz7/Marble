@@ -15,9 +15,10 @@ import (
 // --------- session ---------
 func HndlCreateSession(req *Request) error {
 	entry := struct {
-		AudienceId int    `json:"audienceId"`
-		Message    string `json:"message"`
-		MessageId  int    `json:"messageId"`
+		AudienceId     int                `json:"audienceId"`
+		Message        string             `json:"message"`
+		MessageEventId int                `json:"messageEventId"`
+		SessionEventId internal.SessionId `json:"sessionEventId"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
@@ -49,16 +50,10 @@ func HndlCreateSession(req *Request) error {
 		DefaultLogger.Info(err)
 		return err
 	}
-	// if !sent {
-	// 	err = req.user.SendMessage(newSession, entry.Content)
-	// 	if err != nil {
-	// 		DefaultLogger.Info(err)
-	// 		return err
-	// 	}
-	// }
+
 	// we can add a notif for reading the sgined messages on beta's Reading message side...
-	req.user.OnAddSession(req.conn, newSession, Beta, nil)
-	req.onSendMessageEventResponce(newSession.Id, entry.MessageId, "sent")
+	req.onSendSessionEventResponce(entry.SessionEventId, newSession, Beta, true)
+	req.onSendMessageEventResponce(entry.SessionEventId, entry.MessageEventId, "sent")
 	return nil
 }
 
@@ -121,10 +116,10 @@ func HndlDeleteSession(req *Request) error {
 // --- Messages ---
 func HndlSendMessage(req *Request) error {
 	entry := struct {
-		AudienceId internal.UserId `json:"audienceId"`
-		SessionId  uint64          `json:"sessionId"`
-		Message    string          `json:"message"`
-		MessageId  int             `json:"messageId"`
+		AudienceId     internal.UserId `json:"audienceId"`
+		SessionId      uint64          `json:"sessionId"`
+		Message        string          `json:"message"`
+		MessageEventId int             `json:"messageEventId"`
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
@@ -141,7 +136,7 @@ func HndlSendMessage(req *Request) error {
 		actServerErrorResponse(req.conn, err)
 		return err
 	}
-	req.onSendMessageEventResponce(session.Id, entry.MessageId, "sent")
+	req.onSendMessageEventResponce(session.Id, entry.MessageEventId, "sent")
 	return nil
 }
 
@@ -195,10 +190,22 @@ func (u *ActvUser) onDeliverMessage(S *session.Session, message *session.Message
 	return true
 }
 
-func (req *Request) onSendMessageEventResponce(sessionId internal.SessionId, messageId int, status string) {
-	resp := envelope{"sessionId": sessionId, "messageId": messageId, "status": status}
+func (req *Request) onSendMessageEventResponce(sessionId internal.SessionId, messageEventId int, status string) {
+	resp := envelope{"sessionId": sessionId, "messageEventId": messageEventId, "status": status}
 	headers := RequestHeaders{"task": "event"}
 	sendHandlerResponse(req.conn, StatusApproved, "messages", headers, resp)
+}
+
+func (req *Request) onSendSessionEventResponce(sessionEventId internal.SessionId, registeredSession *session.Session, audience *users.User, verified bool) {
+	sendingSession := envelope{"sessionId": registeredSession.Id, "seq": registeredSession.Seq, "audience": internal.Audience{Name: audience.UserName,
+		UserId:        audience.Id,
+		DisplayId:     audience.DisplayId,
+		ProfileAvatar: audience.ProfileAvatar,
+		ArmedPubKey:   audience.PgpProfile.PublicKey}}
+
+	resp := envelope{"sessionEventId": sessionEventId, "registeredSession": sendingSession, "verified": verified}
+	headers := RequestHeaders{"task": "event"}
+	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, resp)
 }
 
 // func (AU *ActvUser) DeleteSession(beta internal.UserId) error {
