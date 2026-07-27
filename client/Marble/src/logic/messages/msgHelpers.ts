@@ -1,5 +1,8 @@
 import { InsertMessage } from "@db/dbMessages";
 import { Message, Session } from "@internal/intrCmnTypes";
+import { sessionsState } from "@sessions/sessionStates";
+import { AppUser } from "@states/userMainStates";
+import { messageState } from "./stateMessage";
 
 export async function saveNewMessage(
   session: Session,
@@ -11,8 +14,7 @@ export async function saveNewMessage(
 }
 
 // ----- Resend Queue ------
-export const ResendQueue : Map<number, Message> = new Map<number, Message>()
-
+export const ResendQueue: Map<number, Message> = new Map<number, Message>();
 
 // i'll deploy it later
 
@@ -24,3 +26,17 @@ export const ResendQueue : Map<number, Message> = new Map<number, Message>()
 // }
 
 // export const pendingTimeouts = new Map<number, ReturnType<typeof setTimeout>>()
+
+// ----- saved messages -----
+export async function onSendNewSavedMessage(message: Message) {
+  const { currentUser } = AppUser.getState();
+  const { currentSessionId, sessions } = sessionsState.getState();
+  const curSession = sessions.get(currentSessionId);
+  if (!curSession || !currentUser) return;
+  
+  message.status = "read"
+  await saveNewMessage(curSession, currentUser.MasterKey, message);
+
+  const { addMessage } = messageState.getState();
+  addMessage(message);
+}

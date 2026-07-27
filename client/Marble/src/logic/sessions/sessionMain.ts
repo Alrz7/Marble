@@ -71,7 +71,7 @@ export async function onCreateNewSession(message: Message) {
   const sent = sendRequest(req);
   if (!sent) {
     message.status = "notSend";
-    dbUpdateMessageById(message.id, message, currentUser.MasterKey)
+    dbUpdateMessageById(message.id, message, currentUser.MasterKey);
   }
   const { addMessage } = messageState.getState();
   addMessage(message);
@@ -117,8 +117,8 @@ export async function onSyncSession(sessions: Session[]) {
 
 export async function onDeleteSession(session: Session) {
   const { deleteSession } = sessionsState.getState();
-  const {setMessages} = messageState.getState()
-  if (isSessionLegit(session)) {
+  const { setMessages } = messageState.getState();
+  if (isSessionLegit(session) && !session.isSavedMessages) {
     const req: Request = {
       status: MessageStatus.Request,
       channel: "sessions",
@@ -134,5 +134,5 @@ export async function onDeleteSession(session: Session) {
     DeleteAudienceFromDb(session.audience),
   ]);
   deleteSession(session.id);
-  setMessages([])
+  setMessages([]);
 }

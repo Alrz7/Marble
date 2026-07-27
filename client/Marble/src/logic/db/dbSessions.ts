@@ -1,8 +1,9 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
-import { Session, SessionId, UserId } from "@internal/intrCmnTypes";
+import { Audience, Session, SessionId, UserId } from "@internal/intrCmnTypes";
 import { GetAudience } from "./dbAudience";
 import { db } from "./dbMain";
-
+import { isItSavedMessages } from "@internal/intrHelperfuncs";
+import { savedMessagesAudience } from "@internal/intrCmnVars";
 // ----- Sessions -----
 export async function InsertSession(
   session: Session,
@@ -46,20 +47,29 @@ export async function GetSessions(
   );
   const existing: Session[] = [];
   for (const val of res) {
-    const audience = await GetAudience(null, ownerId, masterKey);
     const decSessionId = await decryptDataFromDb<SessionId>(
       val.session_id,
       masterKey,
     );
+
+    let audience: Audience | null;
+    if (isItSavedMessages(decSessionId)) {
+      audience = { ...savedMessagesAudience, ownerId: ownerId };
+    } else {
+      audience = await GetAudience(null, ownerId, masterKey);
+    }
+
     if (!audience) throw Error("audiece-data was not valid");
-    existing.push({
+    const newExistingSession: Session = {
       id: val.id,
       seq: val.seq,
       sessionId: decSessionId,
       audience: audience,
       ownerId: ownerId,
       message_sequence: val.message_sequence,
-    });
+    };
+    if (audience.isSavedMessages) newExistingSession.isSavedMessages = true;
+    existing.push(newExistingSession);
   }
   return existing;
 }

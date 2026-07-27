@@ -6,6 +6,8 @@ import { AppUser } from "@states/userMainStates";
 import { onCreateNewSession } from "@sessions/sessionMain";
 import { messageState } from "@messages/stateMessage";
 import { onSendNewMessage } from "@messages/msgMain";
+import { onCreateSessionSavedMessages } from "@sessions/sessionHelpers";
+import { onSendNewSavedMessage } from "@messages/msgHelpers";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
@@ -30,14 +32,21 @@ export default function ChatInput() {
       status: "sending",
     };
 
-    if (curSession?.onCreateStage) {
-      onCreateNewSession(newMessage);
-      curSession.onCreateStage = false;
+    if (curSession.isSavedMessages) {
+      if (curSession?.onCreateStage) {
+        onCreateSessionSavedMessages(newMessage);
+        curSession.onCreateStage = false;
+      } else {
+        onSendNewSavedMessage(newMessage);
+      }
     } else {
-      onSendNewMessage(newMessage);
+      if (curSession?.onCreateStage) {
+        onCreateNewSession(newMessage);
+        curSession.onCreateStage = false;
+      } else {
+        onSendNewMessage(newMessage);
+      }
     }
-
-    // addMessage(newMessage);
   };
 
   const onSend = () => {

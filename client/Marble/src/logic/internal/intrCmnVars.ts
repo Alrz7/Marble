@@ -1,3 +1,5 @@
+import { Audience, SessionId } from "./intrCmnTypes";
+
 export interface application {
   name: string;
   stage: string;
@@ -36,3 +38,17 @@ export const NotificationKeys = {
   REQUEST_NOT_SENT: "requestNotSent",
   MESSAGE_REQUEAST_TIMEDOUT: "MessageRequestTimedOut",
 };
+
+//-----------
+export const SavedMessagesSesionId: SessionId = -1
+export const savedMessagesAudience: Audience = {
+      id: -1,
+      userId: -1,
+      displayId: "SavedMessages",
+      ownerId: -1,
+      name: "Saved Messages",
+      armedPubKey: "",
+      isOnline: true,
+      profileAvatar: "",
+      isSavedMessages: true,
+    };

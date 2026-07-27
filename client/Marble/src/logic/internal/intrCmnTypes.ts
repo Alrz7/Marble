@@ -43,6 +43,7 @@ export type Audience = {
   armedPubKey: string;
   isOnline: boolean;
   profileAvatar: string;
+  isSavedMessages?: boolean;
 };
 
 export type Session = {
@@ -51,8 +52,9 @@ export type Session = {
   sessionId: SessionId;
   ownerId: UserId;
   audience: Audience;
-  message_sequence: number
+  message_sequence: number;
   onCreateStage?: boolean;
+  isSavedMessages?: boolean;
 };
 
 export type GroupSession = {

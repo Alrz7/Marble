@@ -5,6 +5,7 @@ import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { SameOnStage } from "@sessions/sessionHelpers";
 import { reserveSessionId } from "@sessions/sessionHelpers";
+import { SavedMessagesSesionId } from "@internal/intrCmnVars";
 
 interface SearchPanelProps {
   query: string;
@@ -28,6 +29,11 @@ export default function SearchPanel({ query }: SearchPanelProps) {
       audience: audience,
       message_sequence: 0,
     };
+    if (audience.isSavedMessages) {
+      preReservedSession.sessionId = SavedMessagesSesionId;
+      preReservedSession.isSavedMessages = true;
+    }
+
     const existing = await SameOnStage(preReservedSession);
     if (existing === null) {
       addSession(preReservedSession);

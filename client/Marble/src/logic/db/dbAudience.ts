@@ -7,8 +7,8 @@ export async function InsertAudience(
   audience: Audience,
   masterKey: CryptoKey,
 ): Promise<number> {
-  const alreadyThere = doesAlreadyExist(audience);
-  if (alreadyThere) return alreadyThere;
+  // const alreadyThere = doesAlreadyExist(audience);
+  // if (alreadyThere) return alreadyThere;
   const encrypted = await Promise.all([
     encryptData(audience.userId, masterKey),
     encryptData(audience.displayId, masterKey),
@@ -26,15 +26,16 @@ export async function InsertAudience(
   return res[0].id;
 }
 
-function doesAlreadyExist(audiece: Audience): number | null {
-  const { sessions } = sessionsState.getState();
-  for (const session of sessions.values()) {
-    if (session.audience.userId === audiece.userId && session.id != -1) {
-      return session.audience.id;
-    }
-  }
-  return null;
-}
+// function doesAlreadyExist(audiece: Audience): number | null {
+//   const { sessions } = sessionsState.getState();
+//   console.log(sessions)
+//   for (const session of sessions.values()) {
+//     if (session.audience.userId === audiece.userId && session.id != -1) {
+//       return session.audience.id;
+//     }
+//   }
+//   return null;
+// }
 
 // export async function InsertMocingAudience(
 //   audience: Audience,

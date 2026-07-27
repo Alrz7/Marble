@@ -1,4 +1,5 @@
-import { StorageId } from "./intrCmnTypes";
+import { SessionId, StorageId } from "./intrCmnTypes";
+import { SavedMessagesSesionId } from "./intrCmnVars";
 
 export const getInitials = (name: string) => {
   return name
@@ -53,4 +54,8 @@ export function blobFromDb(value: unknown): Uint8Array {
   }
 
   throw new TypeError(`blobFromDb: unsupported blob type: ${typeof value}`);
+}
+
+export function isItSavedMessages(sessionId: SessionId): boolean{
+  return sessionId === SavedMessagesSesionId
 }
