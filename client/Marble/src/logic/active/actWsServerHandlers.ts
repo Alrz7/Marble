@@ -8,11 +8,6 @@ import {
 import { Request } from "./actTypes";
 import { stateCommon } from "@states/appCommonStates";
 import { MessageStatus } from "./actTypes";
-import {
-  onCLearSyncedMessage,
-  onSyncMessage,
-  onSyncSession,
-} from "./actWsClientHandelers";
 import { sessionsState } from "@sessions/sessionStates";
 import {
   actAddMessage,
@@ -21,6 +16,8 @@ import {
 } from "../messages/actMessageHandlers";
 import { notifState } from "@states/stateNotif";
 import { isSessionLegit } from "@sessions/sessionHelpers";
+import { onSyncSession } from "@sessions/sessionMain";
+import { onCLearSyncedMessage, onSyncMessage } from "@messages/msgMain";
 
 export function HndlSessions(req: Request) {
   if (!req.headers) {

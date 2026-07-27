@@ -51,6 +51,7 @@ export type Session = {
   sessionId: SessionId;
   ownerId: UserId;
   audience: Audience;
+  message_sequence: number
   onCreateStage?: boolean;
 };
 

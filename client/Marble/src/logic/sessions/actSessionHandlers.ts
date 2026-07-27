@@ -11,6 +11,7 @@ import { InsertAudience } from "@db/dbAudience";
 import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";
 import { HandleMsgEvent } from "@messages/actMessageHandlers";
+import { ResetSearchPrcs } from "@states/appCommonStates";
 
 /** 
 hndlAddSession is trigerd by server when ever it needs to add a session
@@ -91,6 +92,7 @@ export async function HandlSessionEventResponse(req: Request) {
       if (resp.messageEventResponse) {
         await HandleMsgEvent(currentUser, next, resp.messageEventResponse);
       }
+      ResetSearchPrcs();
     }
   } catch (err) {
     console.error(err);

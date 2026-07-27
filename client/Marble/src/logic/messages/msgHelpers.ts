@@ -10,6 +10,10 @@ export async function saveNewMessage(
   message.id = id;
 }
 
+// ----- Resend Queue ------
+export const ResendQueue : Map<number, Message> = new Map<number, Message>()
+
+
 // i'll deploy it later
 
 // async function setAsFailed() {

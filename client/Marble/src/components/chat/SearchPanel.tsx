@@ -26,6 +26,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
       sessionId: newReservedId,
       onCreateStage: true,
       audience: audience,
+      message_sequence: 0,
     };
     const existing = await SameOnStage(preReservedSession);
     if (existing === null) {

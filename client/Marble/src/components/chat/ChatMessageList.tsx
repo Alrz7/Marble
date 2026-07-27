@@ -32,6 +32,7 @@ export default function ChatMessageList() {
 
   useEffect(() => {
     scrollToBottom();
+    // console.log(messages) // LOG
   }, [messages]);
 
   return (

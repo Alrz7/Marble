@@ -1,6 +1,6 @@
 import { X, Circle, KeyRound } from "lucide-react";
 import { Session } from "@internal/intrCmnTypes";
-import { onDeleteSession } from "@active/actWsClientHandelers";
+import { onDeleteSession } from "@sessions/sessionMain";
 import { stateCommon } from "@states/appCommonStates";
 import { StateVariables } from "@internal/intrCmnVars";
 

@@ -33,7 +33,7 @@ CREATE TABLE session (
     session_id BLOB NOT NULL,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     audience_id INTEGER NOT NULL REFERENCES audience(id) ON DELETE CASCADE,
-    last_sequence INTEGER NOT NULL DEFAULT 0
+    message_sequence INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE message (

@@ -11,7 +11,7 @@ export async function InsertSession(
   const encSessionId = await encryptData(session.sessionId, masterKey);
 
   const res = await db.select<{ id: number }[]>(
-    `INSERT INTO session (session_id, seq, owner_id, audience_id, last_sequence) VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO session (session_id, seq, owner_id, audience_id, message_sequence) VALUES ($1, $2, $3, $4, $5)
     RETURNING id`,
     [encSessionId, session.seq, session.ownerId, session.audience.id, 0],
   );
@@ -32,10 +32,16 @@ export async function GetSessions(
   masterKey: CryptoKey,
 ): Promise<Session[]> {
   const res = await db.select<
-    { id: number; seq: number; session_id: number[]; audience_id: number }[]
+    {
+      id: number;
+      seq: number;
+      session_id: number[];
+      audience_id: number;
+      message_sequence: number;
+    }[]
   >(
     `--sql
-    SELECT id, seq, session_id, audience_id FROM Session WHERE owner_id = $1`,
+    SELECT id, seq, session_id, audience_id, message_sequence FROM Session WHERE owner_id = $1`,
     [ownerId],
   );
   const existing: Session[] = [];
@@ -52,6 +58,7 @@ export async function GetSessions(
       sessionId: decSessionId,
       audience: audience,
       ownerId: ownerId,
+      message_sequence: val.message_sequence,
     });
   }
   return existing;
@@ -62,13 +69,13 @@ export async function UpdateSessionById(
   sessionId?: SessionId,
   masterKey?: CryptoKey,
   seq?: number,
-  lastSeq?: number,
+  message_sequence?: number,
 ) {
   if (
     !(
       (sessionId !== undefined && masterKey) ||
       seq !== undefined ||
-      lastSeq !== undefined
+      message_sequence !== undefined
     )
   )
     return;
@@ -86,9 +93,9 @@ export async function UpdateSessionById(
     queryComb.push(`seq = $${queryComb.length + 2}`);
     valueComb.push(seq);
   }
-  if (lastSeq !== undefined) {
-    queryComb.push(`last_sequence = $${queryComb.length + 2}`);
-    valueComb.push(lastSeq);
+  if (message_sequence !== undefined) {
+    queryComb.push(`message_sequence = $${queryComb.length + 2}`);
+    valueComb.push(message_sequence);
   }
   try {
     const query = `--sql

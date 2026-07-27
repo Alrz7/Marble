@@ -8,18 +8,18 @@ export async function InsertMessage(
   message: Message,
   masterKey: CryptoKey,
 ): Promise<number> {
-  const updateRes = await db.select<{ last_sequence: number }[]>(
+  const updateRes = await db.select<{ message_sequence: number }[]>(
     `UPDATE session 
-     SET last_sequence = last_sequence + 1 
+     SET message_sequence = message_sequence + 1 
      WHERE id = $1 
-     RETURNING last_sequence`,
+     RETURNING message_sequence`,
     [session.id],
   );
 
   if (!updateRes || updateRes.length === 0) {
     throw new Error("session Not Found");
   }
-  const newSequence = updateRes[0]?.last_sequence;
+  const newSequence = updateRes[0]?.message_sequence;
   if (newSequence) message.seq = newSequence;
   const encrypted = await Promise.all([
     newSequence,

@@ -1,7 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { DefEncoder, User, UserConfig } from "@internal/intrCmnTypes";
 import { setAuthToken } from "@internal/intrAuthHelpers";
-import { openConnection } from "@active/actWebsocket";
+import { openConnection } from "@active/actWsRouter";
 import { GetUser, SetActiveUserId } from "@db/dbUsers";
 import { SignWithHmac } from "@enc/encHelpers";
 import { GetOrCreateKeyChainKey } from "@enc/encMain";

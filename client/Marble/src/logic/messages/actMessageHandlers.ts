@@ -11,7 +11,7 @@ import { Request } from "@active/actTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
-import { saveNewMessage } from "./msgHelpers";
+import { ResendQueue, saveNewMessage } from "./msgHelpers";
 import { dbUpdateMessageById, GetMessageById } from "@db/dbMessages";
 
 export async function HndlAddMessage(req: Request) {
@@ -124,10 +124,12 @@ export async function HandleMsgEvent(
     }
   }
 
-  if (targetMessage)
+  if (targetMessage) {
     await dbUpdateMessageById(
       resp.messageEventId,
       targetMessage,
       currentUser.MasterKey,
     );
+    ResendQueue.delete(resp.messageEventId)
+  }
 }

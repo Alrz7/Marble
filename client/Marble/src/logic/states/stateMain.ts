@@ -1,4 +1,4 @@
-import { disconnectWS } from "@active/actWebsocket";
+import { disconnectWS } from "@active/actWsRouter";
 import { SetActiveUserId } from "@db/dbUsers";
 import { AppState, stateCommon } from "./appCommonStates";
 import { sessionsState } from "@sessions/sessionStates";

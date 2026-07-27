@@ -32,6 +32,7 @@ export default function ChatInput() {
 
     if (curSession?.onCreateStage) {
       onCreateNewSession(newMessage);
+      curSession.onCreateStage = false;
     } else {
       onSendNewMessage(newMessage);
     }

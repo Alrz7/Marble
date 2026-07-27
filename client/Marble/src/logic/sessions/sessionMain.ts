@@ -1,13 +1,14 @@
-import { InsertSession } from "@db/dbSessions";
+import { DeleteSessionFrmDb, InsertSession } from "@db/dbSessions";
 import { encryptMessage } from "@enc/encOpenpgp";
 import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
-import { sendRequest } from "@active/actWebsocket";
+import { sendRequest } from "@active/actWsCore";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
-import { InsertAudience } from "@db/dbAudience";
-import { InsertMessage } from "@db/dbMessages";
+import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
+import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
+import { isSessionLegit } from "./sessionHelpers";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -37,8 +38,8 @@ export async function onCreateNewSession(message: Message) {
   } = {
     audienceId: curSession.audience.userId,
     message: encMessage,
-    MessageEventId: -1,
-    sessionEventId: -1,
+    sessionEventId: -1, // going to be modified below
+    MessageEventId: -1, // going to be modified below
   };
 
   // preSaving in database
@@ -70,10 +71,68 @@ export async function onCreateNewSession(message: Message) {
   const sent = sendRequest(req);
   if (!sent) {
     message.status = "notSend";
+    dbUpdateMessageById(message.id, message, currentUser.MasterKey)
   }
-
   const { addMessage } = messageState.getState();
   addMessage(message);
+}
 
-  //   ResetSearchPrcs();
+/** 
+onSyncSession sends a sync request to pull any latest session changes
+we call this method once at the begining including the existing sessions
+then server will send update orders to client to update and sync changes
+to the latest version in server.
+then, when ever there was a need for update, the server pushes the changes
+automaticaly.
+ */
+export async function onSyncSession(sessions: Session[]) {
+  const lastSessionSeq =
+    sessions.length > 0
+      ? Math.max(
+          ...sessions.map((s) => {
+            /** 
+            we only need to send valid sessions for syncing process
+             */
+            if (isSessionLegit(s)) {
+              return s.seq;
+            } else {
+              return 0;
+            }
+          }),
+        )
+      : 0;
+  const struct: {
+    lastSessionEvent: number;
+  } = {
+    lastSessionEvent: lastSessionSeq,
+  };
+  const req: Request = {
+    status: MessageStatus.Request,
+    channel: "sessions",
+    headers: { task: "sync" },
+    body: JSON.stringify(struct),
+  };
+  sendRequest(req);
+}
+
+export async function onDeleteSession(session: Session) {
+  const { deleteSession } = sessionsState.getState();
+  const {setMessages} = messageState.getState()
+  if (isSessionLegit(session)) {
+    const req: Request = {
+      status: MessageStatus.Request,
+      channel: "sessions",
+      headers: { task: "delete" },
+      body: JSON.stringify({ sessionId: session.sessionId }),
+    };
+    sendRequest(req);
+    // const sentRequest = sendRequest(req);
+    // if (!sentRequest) return;             // No Connection No session Deleting
+  }
+  await Promise.all([
+    DeleteSessionFrmDb(session.id),
+    DeleteAudienceFromDb(session.audience),
+  ]);
+  deleteSession(session.id);
+  setMessages([])
 }
