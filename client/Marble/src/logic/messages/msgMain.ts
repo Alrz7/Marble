@@ -146,7 +146,7 @@ export async function loadSavedMessages(): Promise<Message[] | null> {
   const { currentSessionId, sessions } = sessionsState.getState();
 
   const curSession = sessions.get(currentSessionId);
-  if (!curSession || curSession.message_sequence < 1) return null;
+  if (!curSession) return null;
 
   const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
   return existing;

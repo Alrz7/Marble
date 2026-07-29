@@ -81,9 +81,11 @@ export default function SessionsList() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {messagesArray.length > 0 && messagesArray.at(-1)
+                {/* {session.id == currentSessionId &&
+                messagesArray.length > 0 &&
+                messagesArray.at(-1)
                   ? messagesArray.at(-1)?.content?.slice(0) + "..."
-                  : ""}
+                  : ""} */}
               </p>
             </div>
           </button>

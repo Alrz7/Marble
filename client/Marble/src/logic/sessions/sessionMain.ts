@@ -55,11 +55,11 @@ export async function onCreateNewSession(message: Message) {
   next.id = sessionId;
   struct.sessionEventId = sessionId;
 
+  UpdateCurrentSession(next);
+
   const MessageId = await InsertMessage(next, message, currentUser.MasterKey);
   message.id = MessageId;
   struct.MessageEventId = MessageId;
-
-  UpdateCurrentSession(next);
 
   const req: Request = {
     status: MessageStatus.Pending,
@@ -91,9 +91,9 @@ export async function onSyncSession(sessions: Session[]) {
       ? Math.max(
           ...sessions.map((s) => {
             /** 
-            we only need to send valid sessions for syncing process
+            we only need to send valid sessions for syncing process & not saved-messages
              */
-            if (isSessionLegit(s)) {
+            if (isSessionLegit(s) && !s.isSavedMessages) {
               return s.seq;
             } else {
               return 0;

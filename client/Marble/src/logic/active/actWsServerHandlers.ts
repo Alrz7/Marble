@@ -18,6 +18,7 @@ import { notifState } from "@states/stateNotif";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { onSyncSession } from "@sessions/sessionMain";
 import { onCLearSyncedMessage, onSyncMessage } from "@messages/msgMain";
+import { AppUser } from "@states/userMainStates";
 
 export function HndlSessions(req: Request) {
   if (!req.headers) {
@@ -55,11 +56,14 @@ export function HndlMessages(req: Request) {
 }
 
 export function HndlSearchResult(req: Request) {
+  const { currentUser } = AppUser.getState();
   const { setUsers } = searchResult.getState();
-  if (!req.body) return;
+  if (!currentUser || !req.body) return;
   const data: { results: Audience[] } = JSON.parse(req.body);
   if (data.results) {
-    setUsers(data.results);
+    setUsers(
+      data.results.filter((aud) => aud.userId !== currentUser.config.userId),
+    );
   }
 }
 
@@ -107,7 +111,7 @@ export async function HndlSyncSession(req: Request) {
         if session was not valid, it would get verifyed simultaneously then it's
         messages get synced.
        */
-      if (isSessionLegit(session)) {
+      if (isSessionLegit(session) && !session.isSavedMessages) {
         await onSyncMessage(session.sessionId, 0);
       }
     }

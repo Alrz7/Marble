@@ -10,14 +10,19 @@ import { searchResult } from "@states/appCommonStates";
 
 export default function Sidebar() {
   const {
+    setUsers,
     searchQuery,
     setSearchQuery,
     showSearchResults,
     setShowSearchResults,
   } = searchResult();
+
   const [showSettings, setShowSettings] = useState(false);
 
   const RequestForSearch = (query: string) => {
+    if(searchQuery.length > 0 && query.length == 0){
+      setUsers([])
+    }
     setSearchQuery(query);
     onSearchUser(query);
   };
