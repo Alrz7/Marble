@@ -28,7 +28,7 @@ export const app: application = {
 export const StateVariables = {
   SYNCED_SESSION: "syncedSession",
   AUTHORIZED: "authorized",
-  SHOW_PROFILE_PANEL: "showProfilePanel"
+  SHOW_PROFILE_PANEL: "showProfilePanel",
 };
 
 // --------- Notification Common Keys ---------
@@ -40,15 +40,15 @@ export const NotificationKeys = {
 };
 
 //-----------
-export const SavedMessagesSesionId: SessionId = -1
+export const SavedMessagesSesionId: SessionId = -1;
 export const savedMessagesAudience: Audience = {
-      id: -1,
-      userId: -1,
-      displayId: "SavedMessages",
-      ownerId: -1,
-      name: "Saved Messages",
-      armedPubKey: "",
-      isOnline: true,
-      profileAvatar: "",
-      isSavedMessages: true,
-    };
+  id: -1,
+  userId: -1,
+  displayId: "SavedMessages",
+  ownerId: -1,
+  name: "Saved Messages",
+  armedPubKey: "",
+  isOnline: true,
+  profileAvatar: "",
+  isSavedMessages: true,
+};

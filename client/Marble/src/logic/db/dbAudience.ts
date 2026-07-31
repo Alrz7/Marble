@@ -49,7 +49,7 @@ export async function GetAudience(
   ownerId: number | null,
   masterKey: CryptoKey,
 ): Promise<Audience | null> {
-  var selectBy: string;
+  let selectBy: string;
   if (id) {
     selectBy = "id";
   } else if (ownerId) {

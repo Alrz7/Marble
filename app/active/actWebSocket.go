@@ -33,6 +33,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 
 	err = HndlAuthorizeConnection(conn, jwtSecretKey)
 	if err != nil {
+		DefaultLogger.Info(err)
 		return
 	}
 	for {

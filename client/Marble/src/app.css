@@ -3,7 +3,7 @@
 @plugin "tailwind-scrollbar";
 
 @theme {
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Comfortaa", "Inter", system-ui, sans-serif;
 
   --color-background: #131316;
   --color-foreground: #ededef;
@@ -173,6 +173,13 @@
   }
 }
 
+@font-face {
+  font-family: "Comfortaa";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/Comfortaa-VariableFont_wght.ttf") format("truetype");
+}
 @layer base {
   *,
   *::before,

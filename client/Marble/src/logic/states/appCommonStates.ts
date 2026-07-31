@@ -3,19 +3,23 @@ import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
 
 export type PAGES = "loading" | "login" | "signup";
+type connectionTitles = "waiting for network..." | "connecting..." | "Marble";
 interface AppState {
   appState: PAGES;
+  connTitle: connectionTitles;
   setAppState: (newState: PAGES) => void;
+  setConnTitle: (newTitle: connectionTitles) => void;
 }
 
 export const AppState = create<AppState>((set) => ({
   appState: "loading",
+  connTitle: "waiting for network...",
   setAppState: (newState: PAGES) => set({ appState: newState }),
+  setConnTitle: (newTitle: connectionTitles) => set({ connTitle: newTitle }),
 }));
 
 // ---- Common ----
 type sTypes = string | boolean | number;
-
 export const stateCommon = create<{
   states: Map<string, sTypes>;
   setState: (key: string, val: sTypes) => void;

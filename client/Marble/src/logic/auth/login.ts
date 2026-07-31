@@ -22,7 +22,7 @@ export async function login(
 
   if (!existingUser) throw new Error(`${DisplayId} is not found in UserList`);
 
-  signIn(DisplayId, password); // this is gonna be replaced with userSignIn() later
+  userSignIn(DisplayId, password); // this is gonna be replaced with userSignIn() later
 
   SetActiveUserId(existingUser.config.id);
   return existingUser;
@@ -32,7 +32,7 @@ export async function logOut() {
   await ResetStates();
 }
 
-export async function signIn(
+export async function userSignIn(
   DisplayId: string,
   password: string,
 ): Promise<UserConfig | null> {

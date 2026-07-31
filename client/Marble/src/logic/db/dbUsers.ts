@@ -48,14 +48,19 @@ export async function GetUser(
   id: number | null,
   display_id: ArrayBuffer | null,
 ): Promise<User | null> {
-  var selectBy: string;
-  if (id) {
+  let selectBy: string;
+  let targetVal: number | ArrayBuffer;
+
+  if (id !== null) {
     selectBy = "id";
-  } else if (display_id) {
+    targetVal = id;
+  } else if (display_id !== null) {
     selectBy = "hmac_display_id";
+    targetVal = display_id;
   } else {
     return null;
   }
+
   const res = await db.select<
     {
       id: number;
@@ -68,13 +73,10 @@ export async function GetUser(
     }[]
   >(
     `SELECT id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
-    [id ?? display_id],
+    [targetVal],
   );
 
-  if (res.length == 0) return null;
-  if (!res[0]) {
-    throw new Error("User-Data is Invalid");
-  }
+  if (!res || res.length === 0 || !res[0]) return null;
 
   const config: UserConfig = {
     id: res[0].id,
@@ -95,13 +97,11 @@ export async function GetUser(
 
   const pgpProfile: pgpProfile = await GetPgpProfile(config.id, masterKey);
 
-  const user: User = {
-    config: config,
+  return {
+    config,
     MasterKey: masterKey,
     Pgp: pgpProfile,
   };
-
-  return user;
 }
 
 export async function getActiveUserId(): Promise<UserId> {

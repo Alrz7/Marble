@@ -1,5 +1,5 @@
 import { Audience, Message, Session, SessionId } from "@internal/intrCmnTypes";
-import { searchResult } from "@states/appCommonStates";
+import { AppState, searchResult } from "@states/appCommonStates";
 import {
   actAddSession,
   HandlSessionEventResponse,
@@ -69,11 +69,12 @@ export function HndlSearchResult(req: Request) {
 
 export function HndlNotifs(req: Request) {
   const { addNotification } = notifState.getState();
-  if (!req.notif) return;
+  if (!req.notif || !req.notif.shouldRender) return;
   addNotification(req.notif);
 }
 
 export async function HndlAuthStatus(request: any) {
+  const { setConnTitle } = AppState.getState();
   const { states, setState } = stateCommon.getState();
   if (request.status === MessageStatus.Approved) {
     setState("authorized", true);
@@ -81,6 +82,7 @@ export async function HndlAuthStatus(request: any) {
     if (!states.get("syncedSession")) {
       onSyncSession(Array.from(sessions.values()));
       setState("syncedSession", true);
+      setConnTitle("Marble");
     }
   }
 }

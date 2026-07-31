@@ -1,6 +1,6 @@
 import { GetAuthToken } from "@internal/intrAuthHelpers";
 import {  Request } from "./actTypes";
-import { stateCommon } from "@states/appCommonStates";
+import { AppState, stateCommon } from "@states/appCommonStates";
 import { addNewNotification } from "@states/stateNotif";
 import { StateVariables } from "@internal/intrCmnVars";
 
@@ -44,6 +44,7 @@ export function sendRequest(req: Request): boolean {
 }
 
 export function sendToken() {
+  const {setConnTitle} = AppState.getState()
   const token = GetAuthToken();
   if (token) {
     const req: Request = {
@@ -51,6 +52,8 @@ export function sendToken() {
       channel: "auth",
       token: token,
     };
-    sendRequest(req);
+    const res = sendRequest(req);
+    console.log("s'ssss");
+    if(res)setConnTitle("connecting...")
   }
 }

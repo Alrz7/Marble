@@ -25,7 +25,6 @@ const (
 	StatusRetry
 )
 
-
 type Request struct {
 	conn    *websocket.Conn
 	user    *ActvUser
@@ -47,7 +46,8 @@ type Claims struct {
 // ------------------------------------------
 
 type Notification struct {
-	Type    string `json:"type"`
-	Key     string `json:"key"`
-	Message string `json:"message"`
+	Type         string `json:"type"`
+	Key          string `json:"key"`
+	Message      string `json:"message"`
+	ShouldRender bool   `json:"shouldRender"`
 }

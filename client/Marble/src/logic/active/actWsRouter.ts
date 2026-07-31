@@ -1,4 +1,10 @@
-import { reconnectTimeout, sendToken, setReconnectTimeout, setWs, ws } from "./actWsCore";
+import {
+  reconnectTimeout,
+  sendToken,
+  setReconnectTimeout,
+  setWs,
+  ws,
+} from "./actWsCore";
 import { Handelers, Request } from "./actTypes";
 import {
   HndlMessages,
@@ -7,10 +13,9 @@ import {
   HndlSessions,
 } from "@active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
-import { stateCommon } from "@states/appCommonStates";
-import { addNewNotification } from "@states/stateNotif";
+import { AppState, stateCommon } from "@states/appCommonStates";
 
-let handlers: Handelers = {
+const handlers: Handelers = {
   auth: HndlAuthStatus,
   sessions: HndlSessions,
   messages: HndlMessages,
@@ -18,9 +23,13 @@ let handlers: Handelers = {
   notif: HndlNotifs,
 };
 
- export function openConnection() {
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-  
+export function openConnection() {
+  if (
+    ws &&
+    (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+  )
+    return;
+
   const newWs = new WebSocket("ws://localhost:6280/actv");
   setWs(newWs);
 
@@ -29,7 +38,6 @@ let handlers: Handelers = {
     if (!states.get("authorized")) sendToken();
   };
 
-  
   newWs.onmessage = (event) => {
     let request: Request;
     try {
@@ -62,24 +70,31 @@ let handlers: Handelers = {
     );
   };
   newWs.onclose = () => {
-    addNewNotification(
-      "error",
-      "WebSocketCLosed",
-      "Lost connection!, Reconnecting...",
-    );
-    console.warn("WebSocket closed. Reconnecting...");
+    // addNewNotification(
+    //   "error",
+    //   "WebSocketCLosed",
+    //   "Lost connection!, Reconnecting...",
+    // );
     setWs(null);
+
+    const { setState } = stateCommon.getState();
+    setState("authorized", false);
     ReconnectWS();
   };
 }
 
 function ReconnectWS() {
+  const { setConnTitle } = AppState.getState();
+  setConnTitle("connecting...");
   if (reconnectTimeout) clearTimeout(reconnectTimeout);
   setReconnectTimeout(
     setTimeout(() => {
       openConnection();
-      setReconnectTimeout(null);
-    }, 500000),
+      console.log("opennnning");
+      if (ws?.OPEN) {
+        // ReconnectWS();
+      }
+    }, 5000),
   );
 }
 

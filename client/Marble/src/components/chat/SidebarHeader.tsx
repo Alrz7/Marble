@@ -1,6 +1,8 @@
+import { AppState } from "@states/appCommonStates";
 import { MessageCircle } from "lucide-react";
 
 export default function SidebarHeader() {
+  const { connTitle } = AppState();
   return (
     <div className="px-5 py-4 border-b border-border">
       <div className="flex items-center gap-3">
@@ -8,8 +10,9 @@ export default function SidebarHeader() {
           <MessageCircle className="w-5 h-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-foreground tracking-tight">Marble</h1>
-          <p className="text-xs text-muted-foreground">Messages</p>
+          <h1 className="text-md font-sans font-bold text-foreground tracking-tight">
+            {connTitle}
+          </h1>
         </div>
       </div>
     </div>
