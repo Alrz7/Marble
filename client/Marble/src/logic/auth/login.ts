@@ -6,6 +6,7 @@ import { GetUser, SetActiveUserId } from "@db/dbUsers";
 import { SignWithHmac } from "@enc/encHelpers";
 import { GetOrCreateKeyChainKey } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
+import { addAppErrNotif } from "@internal/golog";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
@@ -19,13 +20,14 @@ export async function login(
     DefEncoder.encode(DisplayId).buffer,
   );
   const existingUser = await GetUser(kek, null, signedDIsplayId);
-
-  if (!existingUser) throw new Error(`${DisplayId} is not found in UserList`);
-
+  if (!existingUser.ok) {
+    addAppErrNotif(existingUser.error);
+    return null;
+  }
   userSignIn(DisplayId, password); // this is gonna be replaced with userSignIn() later
 
-  SetActiveUserId(existingUser.config.id);
-  return existingUser;
+  SetActiveUserId(existingUser.value.config.id);
+  return existingUser.value;
 }
 
 export async function logOut() {

@@ -4,6 +4,7 @@ import { generateIdntKey, getKeyFromArmored } from "@enc/encOpenpgp";
 import { InsertUser, SetActiveUserId } from "@db/dbUsers";
 import { generateMasterKey } from "@enc/encMaster";
 import { GetOrCreateKeyChainKey } from "@enc/encMain";
+import { addAppErrNotif } from "@internal/golog";
 
 // the openpgpKeyGroup & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too
@@ -59,7 +60,12 @@ export async function createAccount(
     Pgp: pgpProfile,
   };
 
-  newUser.config.id = await InsertUser(newUser, Kek);
+  const res = await InsertUser(newUser, Kek);
+  if (!res.ok) {
+    addAppErrNotif(res.error);
+    return null;
+  }
+  newUser.config.id = res.value;
   await SetActiveUserId(newUser.config.id);
   return newUser;
 }

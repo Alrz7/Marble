@@ -12,6 +12,7 @@ import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";
 import { HandleMsgEvent } from "@messages/actMessageHandlers";
 import { ResetSearchPrcs } from "@states/appCommonStates";
+import { addAppErrNotif } from "@internal/golog";
 
 /** 
 hndlAddSession is trigerd by server when ever it needs to add a session
@@ -36,14 +37,25 @@ export async function actAddSession(sessions: Session[]) {
   if (!currentUser) return;
 
   try {
-    for (let session of sessions) {
+    for (const session of sessions) {
       session.audience.ownerId = currentUser.config.id;
       session.ownerId = currentUser.config.id;
 
-      var id = await InsertAudience(session.audience, currentUser.MasterKey);
-      session.audience.id = id;
-      id = await InsertSession(session, currentUser.MasterKey);
-      session.id = id;
+      const audience_id = await InsertAudience(
+        session.audience,
+        currentUser.MasterKey,
+      );
+      if (!audience_id.ok) {
+        addAppErrNotif(audience_id.error);
+        return;
+      }
+      session.audience.id = audience_id.value;
+      const session_id = await InsertSession(session, currentUser.MasterKey);
+      if (!session_id.ok) {
+        addAppErrNotif(session_id.error);
+        return;
+      }
+      session.id = session_id.value;
       addSession(session);
     }
   } catch (err) {

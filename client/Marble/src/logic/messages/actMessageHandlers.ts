@@ -13,6 +13,8 @@ import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
 import { ResendQueue, saveNewMessage } from "./msgHelpers";
 import { dbUpdateMessageById, GetMessageById } from "@db/dbMessages";
+import { addNewNotification } from "@states/stateNotif";
+import { addAppErrNotif, commonErrors } from "@internal/golog";
 
 export async function HndlAddMessage(req: Request) {
   try {
@@ -43,9 +45,14 @@ export async function actAddMessage(
     throw new Error("there was an error while recovering Prv-Key");
   }
 
-  let session = getSessionBySessionId(sessionId);
+  const session = getSessionBySessionId(sessionId);
+
   if (!session) {
-    console.warn("session does Not Exist");
+    addNewNotification(
+      "error",
+      commonErrors.sessionNotFound.reason,
+      "session does Not Exist",
+    );
     return messages.at(0)?.seq ?? 0;
   }
 
@@ -97,7 +104,7 @@ export async function HandleMsgEvent(
        */
     const { messages, updateMessage } = messageState.getState();
 
-    let existing = messages.get(resp.messageEventId);
+    const existing = messages.get(resp.messageEventId);
     if (existing) {
       /** 
         this method is also caled for first `Init-Messages` < first message while creating
@@ -114,10 +121,15 @@ export async function HandleMsgEvent(
     }
     // fetch from Db if neccecery...
     if (!targetMessage) {
-      targetMessage = await GetMessageById(
+      const res = await GetMessageById(
         currentUser?.MasterKey,
         resp.messageEventId,
       );
+      if (res.ok) {
+        targetMessage = res.value;
+      } else {
+        addAppErrNotif(res.error, "error");
+      }
     }
     if (targetMessage) {
       updateMessage(targetMessage.id, targetMessage);
@@ -130,6 +142,6 @@ export async function HandleMsgEvent(
       targetMessage,
       currentUser.MasterKey,
     );
-    ResendQueue.delete(resp.messageEventId)
+    ResendQueue.delete(resp.messageEventId);
   }
 }

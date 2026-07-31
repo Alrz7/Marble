@@ -11,6 +11,7 @@ import { ResendQueue, saveNewMessage } from "./msgHelpers";
 import { dbDeleteMessge, GetMessages } from "@db/dbMessages";
 import { messageState } from "./stateMessage";
 import { NotificationKeys } from "@internal/intrCmnVars";
+import { addAppErrNotif } from "@internal/golog";
 
 export async function onSendNewMessage(message: Message) {
   const { currentUser } = AppUser.getState();
@@ -123,7 +124,7 @@ export async function onRequestSendMessage(
   const struct: {
     audienceId: UserId;
     sessionId: SessionId;
-    message: String;
+    message: string;
     messageEventId: number;
   } = {
     audienceId: curSession.audience.userId,
@@ -149,7 +150,12 @@ export async function loadSavedMessages(): Promise<Message[] | null> {
   if (!curSession) return null;
 
   const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
-  return existing;
+  if (existing.ok) {
+    return existing.value;
+  }else{
+    addAppErrNotif(existing.error)
+  }
+  return null
 }
 
 export async function DeleteMessage(message: Message) {

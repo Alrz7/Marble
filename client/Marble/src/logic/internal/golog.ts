@@ -36,8 +36,36 @@ export const fromPromise = async <T, E = AppError>(
   }
 };
 
+export const newAppErr = (
+  reason: string,
+  message: string,
+  detail?: string,
+): AppError => {
+  return { reason: reason, message: message, details: detail };
+};
+
+export const errEdtMessage = (appErr: AppError, message: string): AppError => {
+  return { ...appErr, message: message };
+};
+
+export const errEdtReason = (appErr: AppError, reason: string): AppError => {
+  return { ...appErr, reason: reason };
+};
+
 export const addOnErr = (cmnErr: AppError, err: unknown): AppError => {
   return { reason: cmnErr.reason, message: `${cmnErr.message}: ${err}` };
+};
+
+export const fromPromiseErr = async <T>(
+  promise: Promise<T>,
+  appErr: AppError,
+): Promise<Result<T, AppError>> => {
+  try {
+    const value = await promise;
+    return ok(value);
+  } catch (e) {
+    return err(addOnErr(appErr, e));
+  }
 };
 
 export const addAppErrNotif = (
@@ -105,9 +133,21 @@ export const commonErrors = {
     reason: "dbConnectionFailed",
     message: "Failed to connect to database",
   },
-  insertFailed: {
-    reason: "insertFailed",
-    message: "Error while inserting record",
+  dbfailedToGetData: {
+    reason: "dbfailedToGetData",
+    message: "Failed to Get Data from database",
+  },
+  dbfailedToInsertData: {
+    reason: "dbfailedToInserData",
+    message: "Failed to Insert Data in database",
+  },
+  dbfailedToUpdateData: {
+    reason: "dbfailedToUpdateData",
+    message: "Failed to Update Data in database",
+  },
+  dbfailedToDeleteData: {
+    reason: "dbfailedToDeleteData",
+    message: "Failed to Delete Data from database",
   },
   noRecordFound: {
     reason: "noRecordFound",

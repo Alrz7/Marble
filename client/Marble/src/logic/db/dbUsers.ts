@@ -16,38 +16,70 @@ import { db } from "./dbMain";
 import { getKeyFromArmored } from "@enc/encOpenpgp";
 import { SignWithHmac } from "@enc/encHelpers";
 import { blobFromDb } from "@internal/intrHelperfuncs";
+import {
+  commonErrors,
+  err,
+  errEdtMessage,
+  fromPromiseErr,
+  ok,
+  Result,
+} from "@internal/golog";
 
 // ------- Users --------
 export async function InsertUser(
   user: User,
   keychainKey: CryptoKey,
-): Promise<number> {
-  const encrypted = await Promise.all([
-    encryptData(user.config.userId, keychainKey),
-    encryptData(user.config.displayId, keychainKey),
-    SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
-    encryptData(user.config.name, keychainKey),
-    encryptData(user.config.email, keychainKey),
-    encryptMasterKeyWithKEK(user.MasterKey, keychainKey),
-    encryptData(user.config.profile_avatar, keychainKey),
-  ]);
-
-  const ids = await db.select<{ id: number }[]>(
-    `INSERT INTO users (user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING id`,
-    encrypted,
+): Promise<Result<number>> {
+  const encrypted = await fromPromiseErr(
+    Promise.all([
+      encryptData(user.config.userId, keychainKey),
+      encryptData(user.config.displayId, keychainKey),
+      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
+      encryptData(user.config.name, keychainKey),
+      encryptData(user.config.email, keychainKey),
+      encryptMasterKeyWithKEK(user.MasterKey, keychainKey),
+      encryptData(user.config.profile_avatar, keychainKey),
+    ]),
+    commonErrors.encryptionFailed,
   );
-  if (!ids[0]) throw new Error("there was an error while Inserting User");
+  if (!encrypted.ok) return err(encrypted.error);
 
-  await InsertPgpProfile(user.Pgp, ids[0].id, user.MasterKey);
-  return ids[0].id;
+  const res = await fromPromiseErr(
+    db.select<{ id: number }[]>(
+      `INSERT INTO users (user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id`,
+      encrypted.value,
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToInsertData,
+      "error while inserting User in Db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+
+  if (!res.value[0])
+    return err(
+      errEdtMessage(
+        commonErrors.dbfailedToInsertData,
+        "error while inserting audience, id was not found",
+      ),
+    );
+
+  const pgpinsert = await InsertPgpProfile(
+    user.Pgp,
+    res.value[0].id,
+    user.MasterKey,
+  );
+  if (!pgpinsert.ok) return err(pgpinsert.error);
+
+  return ok(res.value[0].id);
 }
 
 export async function GetUser(
   keychainKey: CryptoKey,
   id: number | null,
   display_id: ArrayBuffer | null,
-): Promise<User | null> {
+): Promise<Result<User>> {
   let selectBy: string;
   let targetVal: number | ArrayBuffer;
 
@@ -58,57 +90,89 @@ export async function GetUser(
     selectBy = "hmac_display_id";
     targetVal = display_id;
   } else {
-    return null;
+    return err(
+      errEdtMessage(
+        commonErrors.unexpectedInput,
+        "error while geting user from db: either id or display_id is expected",
+      ),
+    );
   }
 
-  const res = await db.select<
-    {
-      id: number;
-      user_id: string;
-      display_id: string;
-      name: string;
-      email: string;
-      encrypted_master_key: string;
-      profile_avatar: string;
-    }[]
-  >(
-    `SELECT id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
-    [targetVal],
+  const res = await fromPromiseErr(
+    db.select<
+      {
+        id: number;
+        user_id: string;
+        display_id: string;
+        name: string;
+        email: string;
+        encrypted_master_key: string;
+        profile_avatar: string;
+      }[]
+    >(
+      `SELECT id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
+      [targetVal],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching user from db",
+    ),
   );
+  if (!res.ok) return err(res.error);
 
-  if (!res || res.length === 0 || !res[0]) return null;
+  if (res.value.length === 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
+  }
+
+  const decrypred = await fromPromiseErr(
+    Promise.all([
+      decryptDataFromDb<number>(res.value[0].user_id, keychainKey),
+      decryptDataFromDb<string>(res.value[0].display_id, keychainKey),
+      decryptDataFromDb<string>(res.value[0].name, keychainKey),
+      decryptDataFromDb<string>(res.value[0].email, keychainKey),
+      decryptDataFromDb<string>(res.value[0].profile_avatar, keychainKey),
+    ]),
+    commonErrors.encryptionFailed,
+  );
+  if (!decrypred.ok) return err(decrypred.error);
 
   const config: UserConfig = {
-    id: res[0].id,
-    userId: await decryptDataFromDb<number>(res[0].user_id, keychainKey),
-    displayId: await decryptDataFromDb<string>(res[0].display_id, keychainKey),
-    name: await decryptDataFromDb<string>(res[0].name, keychainKey),
-    email: await decryptDataFromDb<string>(res[0].email, keychainKey),
-    profile_avatar: await decryptDataFromDb<string>(
-      res[0].profile_avatar,
-      keychainKey,
-    ),
+    id: res.value[0].id,
+    userId: decrypred.value[0],
+    displayId: decrypred.value[1],
+    name: decrypred.value[2],
+    email: decrypred.value[3],
+    profile_avatar: decrypred.value[4],
   };
 
   const masterKey: CryptoKey = await decryptMasterKeyWithKEK(
-    blobFromDb(res[0].encrypted_master_key),
+    blobFromDb(res.value[0].encrypted_master_key),
     keychainKey,
   );
 
-  const pgpProfile: pgpProfile = await GetPgpProfile(config.id, masterKey);
+  const pgpProfile = await GetPgpProfile(config.id, masterKey);
+  if (!pgpProfile.ok) return err(pgpProfile.error);
 
-  return {
+  return ok({
     config,
     MasterKey: masterKey,
-    Pgp: pgpProfile,
-  };
+    Pgp: pgpProfile.value,
+  });
 }
 
-export async function getActiveUserId(): Promise<UserId> {
-  const result = await db.select<{ value: number }[]>(
-    "SELECT value FROM app_settings WHERE key = 'active_user_id'",
+export async function getActiveUserId(): Promise<Result<UserId>> {
+  const res = await fromPromiseErr(
+    db.select<{ value: number }[]>(
+      "SELECT value FROM app_settings WHERE key = 'active_user_id'",
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "failed to get active-User-Id from Db",
+    ),
   );
-  return result[0]?.value ?? -1;
+  if (!res.ok) return err(res.error);
+
+  return ok(res.value[0]?.value ?? -1);
 }
 
 export async function SetActiveUserId(userId: UserId): Promise<void> {
@@ -124,39 +188,61 @@ export async function InsertPgpProfile(
   pgpProfile: pgpProfile,
   userId: UserId,
   masterKey: CryptoKey,
-) {
-  const encrypted = await Promise.all([
-    userId,
-    encryptData(pgpProfile.PrivateKey, masterKey),
-    encryptData(pgpProfile.PublicKey, masterKey),
-    encryptData(pgpProfile.RevocationCertificate, masterKey),
-  ]);
-  await db.execute(
-    `INSERT INTO pgp_profile (user_id, private_key, public_key, revocation_certificate) VALUES ($1, $2, $3, $4)`,
-    encrypted,
+): Promise<Result<void>> {
+  const encrypted = await fromPromiseErr(
+    Promise.all([
+      userId,
+      encryptData(pgpProfile.PrivateKey, masterKey),
+      encryptData(pgpProfile.PublicKey, masterKey),
+      encryptData(pgpProfile.RevocationCertificate, masterKey),
+    ]),
+    commonErrors.encryptionFailed,
   );
+  if (!encrypted.ok) return err(encrypted.error);
+
+  const res = await fromPromiseErr(
+    db.execute(
+      `INSERT INTO pgp_profile (user_id, private_key, public_key, revocation_certificate) VALUES ($1, $2, $3, $4)`,
+      encrypted.value,
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToInsertData,
+      "error while inserting PgpProfile to Db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+  return ok(undefined);
 }
 
 export async function GetPgpProfile(
   userId: UserId,
   masterKey: CryptoKey,
-): Promise<pgpProfile> {
-  const res = await db.select<
-    {
-      private_key: string;
-      public_key: string;
-      revocation_certificate: string;
-    }[]
-  >(
-    `--sql
+): Promise<Result<pgpProfile>> {
+  const res = await fromPromiseErr(
+    db.select<
+      {
+        private_key: string;
+        public_key: string;
+        revocation_certificate: string;
+      }[]
+    >(
+      `--sql
     SELECT private_key, public_key, revocation_certificate FROM pgp_profile WHERE user_id = $1`,
-    [userId],
+      [userId],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching user's PgpProfile from db",
+    ),
   );
-  if (!res || !res[0]) {
-    throw new Error("User Not Found");
+  if (!res.ok) return err(res.error);
+
+  if (res.value.length === 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
   }
+
   const prvKey: string = await decryptDataFromDb<string>(
-    res[0].private_key,
+    res.value[0].private_key,
     masterKey,
   );
 
@@ -165,15 +251,21 @@ export async function GetPgpProfile(
     null,
   );
 
+  const decrypted = await fromPromiseErr(
+    Promise.all([
+      decryptDataFromDb<string>(res.value[0].public_key, masterKey),
+      decryptDataFromDb<string>(res.value[0].revocation_certificate, masterKey),
+    ]),
+    commonErrors.decryptionFailed,
+  );
+  if (!decrypted.ok) return err(decrypted.error);
+
   const existing: pgpProfile = {
     PrivateKey: prvKey,
-    PublicKey: await decryptDataFromDb<string>(res[0].public_key, masterKey),
-    RevocationCertificate: await decryptDataFromDb<string>(
-      res[0].revocation_certificate,
-      masterKey,
-    ),
+    PublicKey: decrypted.value[0],
+    RevocationCertificate: decrypted.value[1],
     ActivePrvKey: actvPrvKey,
   };
 
-  return existing;
+  return ok(existing);
 }

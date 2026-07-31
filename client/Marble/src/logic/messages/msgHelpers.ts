@@ -3,14 +3,19 @@ import { Message, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { messageState } from "./stateMessage";
+import { err, ok } from "@internal/golog";
 
 export async function saveNewMessage(
   session: Session,
   masterKey: CryptoKey,
   message: Message,
 ) {
-  const id = await InsertMessage(session, message, masterKey);
-  message.id = id;
+  const res = await InsertMessage(session, message, masterKey);
+  if (res.ok) {
+    message.id = res.value;
+    return ok(res.value);
+  }
+  return err(res.error);
 }
 
 // ----- Resend Queue ------
@@ -33,8 +38,8 @@ export async function onSendNewSavedMessage(message: Message) {
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
   if (!curSession || !currentUser) return;
-  
-  message.status = "read"
+
+  message.status = "read";
   await saveNewMessage(curSession, currentUser.MasterKey, message);
 
   const { addMessage } = messageState.getState();

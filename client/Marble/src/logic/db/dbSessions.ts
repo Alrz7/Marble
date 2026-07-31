@@ -4,21 +4,41 @@ import { GetAudience } from "./dbAudience";
 import { db } from "./dbMain";
 import { isItSavedMessages } from "@internal/intrHelperfuncs";
 import { savedMessagesAudience } from "@internal/intrCmnVars";
+import {
+  commonErrors,
+  err,
+  errEdtMessage,
+  fromPromiseErr,
+  ok,
+  Result,
+} from "@internal/golog";
 // ----- Sessions -----
 export async function InsertSession(
   session: Session,
   masterKey: CryptoKey,
-): Promise<number> {
-  const encSessionId = await encryptData(session.sessionId, masterKey);
-
-  const res = await db.select<{ id: number }[]>(
-    `INSERT INTO session (session_id, seq, owner_id, audience_id, message_sequence) VALUES ($1, $2, $3, $4, $5)
-    RETURNING id`,
-    [encSessionId, session.seq, session.ownerId, session.audience.id, 0],
+): Promise<Result<number>> {
+  const encSessionId = await fromPromiseErr(
+    encryptData(session.sessionId, masterKey),
+    commonErrors.encryptionFailed,
   );
+  if (!encSessionId.ok) return err(encSessionId.error);
 
-  if (!res[0]) throw new Error("there was an error while inserting session");
-  return res[0].id;
+  const res = await fromPromiseErr(
+    db.select<{ id: number }[]>(
+      `INSERT INTO session (session_id, seq, owner_id, audience_id, message_sequence) VALUES ($1, $2, $3, $4, $5)
+    RETURNING id`,
+      [encSessionId, session.seq, session.ownerId, session.audience.id, 0],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToInsertData,
+      "error while inserting session",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+  if (res.value.length == 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
+  }
+  return ok(res.value[0].id);
 }
 
 // export async function InsertMocingSession(
@@ -31,39 +51,50 @@ export async function InsertSession(
 export async function GetSessions(
   ownerId: UserId,
   masterKey: CryptoKey,
-): Promise<Session[]> {
-  const res = await db.select<
-    {
-      id: number;
-      seq: number;
-      session_id: number[];
-      audience_id: number;
-      message_sequence: number;
-    }[]
-  >(
-    `--sql
+): Promise<Result<Session[]>> {
+  const res = await fromPromiseErr(
+    db.select<
+      {
+        id: number;
+        seq: number;
+        session_id: number[];
+        audience_id: number;
+        message_sequence: number;
+      }[]
+    >(
+      `--sql
     SELECT id, seq, session_id, audience_id, message_sequence FROM Session WHERE owner_id = $1`,
-    [ownerId],
+      [ownerId],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching session from db",
+    ),
   );
+  if (!res.ok) return err(res.error);
+
   const existing: Session[] = [];
-  for (const val of res) {
-    const decSessionId = await decryptDataFromDb<SessionId>(
-      val.session_id,
-      masterKey,
+
+  for (const val of res.value) {
+    const decSessionId = await fromPromiseErr(
+      decryptDataFromDb<SessionId>(val.session_id, masterKey),
+      commonErrors.decryptionFailed,
     );
+    if (!decSessionId.ok) return err(decSessionId.error);
 
     let audience: Audience | null;
-    if (isItSavedMessages(decSessionId)) {
+    if (isItSavedMessages(decSessionId.value)) {
       audience = { ...savedMessagesAudience, ownerId: ownerId };
     } else {
-      audience = await GetAudience(null, ownerId, masterKey);
+      const audByDb = await GetAudience(null, ownerId, masterKey);
+      if (!audByDb.ok) return err(audByDb.error);
+      audience = audByDb.value;
     }
 
-    if (!audience) throw Error("audiece-data was not valid");
     const newExistingSession: Session = {
       id: val.id,
       seq: val.seq,
-      sessionId: decSessionId,
+      sessionId: decSessionId.value,
       audience: audience,
       ownerId: ownerId,
       message_sequence: val.message_sequence,
@@ -71,7 +102,7 @@ export async function GetSessions(
     if (audience.isSavedMessages) newExistingSession.isSavedMessages = true;
     existing.push(newExistingSession);
   }
-  return existing;
+  return ok(existing);
 }
 
 export async function UpdateSessionById(
@@ -80,15 +111,16 @@ export async function UpdateSessionById(
   masterKey?: CryptoKey,
   seq?: number,
   message_sequence?: number,
-) {
+): Promise<Result<void>> {
   if (
     !(
       (sessionId !== undefined && masterKey) ||
       seq !== undefined ||
       message_sequence !== undefined
     )
-  )
-    return;
+  ) {
+    return ok(undefined);
+  }
 
   const queryComb: string[] = [];
   type comb = Uint8Array<ArrayBufferLike> | number;
@@ -96,45 +128,69 @@ export async function UpdateSessionById(
 
   if (sessionId !== undefined && masterKey) {
     queryComb.push(`session_id = $${queryComb.length + 2}`);
-    const encSessionId = await encryptData(sessionId, masterKey);
-    valueComb.push(encSessionId);
+    const encSessionId = await fromPromiseErr(
+      encryptData(sessionId, masterKey),
+      commonErrors.encryptionFailed,
+    );
+    if (!encSessionId.ok) return err(encSessionId.error);
+    valueComb.push(encSessionId.value);
   }
+
   if (seq !== undefined) {
     queryComb.push(`seq = $${queryComb.length + 2}`);
     valueComb.push(seq);
   }
+
   if (message_sequence !== undefined) {
     queryComb.push(`message_sequence = $${queryComb.length + 2}`);
     valueComb.push(message_sequence);
   }
-  try {
-    const query = `--sql
+
+  const query = `--sql
   UPDATE session
   SET ${queryComb.join(",")}
   WHERE id = $1`;
-    await db.execute(query, [id, ...valueComb]);
-  } catch (err) {
-    console.warn(err);
-  }
+  const res = await fromPromiseErr(
+    db.execute(query, [id, ...valueComb]),
+    errEdtMessage(
+      commonErrors.dbfailedToUpdateData,
+      "error while updating session data",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+  return ok(undefined);
 }
 
 export async function DoesSessionExist(
   ownerId: number,
   audieceId: number,
-): Promise<boolean> {
+): Promise<Result<boolean>> {
   const query = `--sql
   SELECT EXISTS(
     SELECT 1
     FROM session
     WHERE owner_id = $1 AND audience_id = $2
   ) AS found`;
-  const res = await db.select<{ found: number }[]>(query, [ownerId, audieceId]);
-  return res[0]?.found == 1;
+  const res = await fromPromiseErr(
+    db.select<{ found: number }[]>(query, [ownerId, audieceId]),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching session from db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+  return ok(res.value[0]?.found == 1);
 }
 
 export async function DeleteSessionFrmDb(id: number) {
   const query = `
   DELETE FROM session
   WHERE id = $1`;
-  db.execute(query, [id]);
+  const res = await fromPromiseErr(
+    db.execute(query, [id]),
+    commonErrors.dbfailedToDeleteData,
+  );
+  if (!res.ok) return err(res.error);
+
+  return ok(undefined);
 }

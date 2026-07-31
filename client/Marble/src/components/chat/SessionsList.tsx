@@ -4,6 +4,7 @@ import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { GetSessions } from "@db/dbSessions";
 import { messageState } from "@messages/stateMessage";
+import { addAppErrNotif } from "@internal/golog";
 
 export default function SessionsList() {
   const { currentUser } = AppUser();
@@ -20,7 +21,11 @@ export default function SessionsList() {
           currentUser.config.id,
           currentUser.MasterKey,
         );
-        setSessions(sessions);
+        if (!sessions.ok) {
+          addAppErrNotif(sessions.error);
+        } else {
+          setSessions(sessions.value);
+        }
       }
     }
     getSessions();

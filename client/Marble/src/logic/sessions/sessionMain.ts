@@ -9,6 +9,7 @@ import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
 import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
 import { isSessionLegit } from "./sessionHelpers";
+import { addAppErrNotif } from "@internal/golog";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -45,21 +46,33 @@ export async function onCreateNewSession(message: Message) {
   // preSaving in database
   const next: Session = { ...curSession, audience: { ...curSession.audience } };
 
-  var audieceId = await InsertAudience(
+  const audience_id = await InsertAudience(
     curSession.audience,
     currentUser.MasterKey,
   );
-  next.audience.id = audieceId;
+  if (!audience_id.ok) {
+    addAppErrNotif(audience_id.error);
+    return;
+  }
+  next.audience.id = audience_id.value;
 
-  const sessionId = await InsertSession(next, currentUser.MasterKey);
-  next.id = sessionId;
-  struct.sessionEventId = sessionId;
+  const session_id = await InsertSession(next, currentUser.MasterKey);
+  if (!session_id.ok) {
+    addAppErrNotif(session_id.error);
+    return;
+  }
+  next.id = session_id.value;
+  struct.sessionEventId = session_id.value;
 
   UpdateCurrentSession(next);
 
-  const MessageId = await InsertMessage(next, message, currentUser.MasterKey);
-  message.id = MessageId;
-  struct.MessageEventId = MessageId;
+  const message_id = await InsertMessage(next, message, currentUser.MasterKey);
+  if (!message_id.ok) {
+    addAppErrNotif(message_id.error);
+    return;
+  }
+  message.id = message_id.value;
+  struct.MessageEventId = message_id.value;
 
   const req: Request = {
     status: MessageStatus.Pending,

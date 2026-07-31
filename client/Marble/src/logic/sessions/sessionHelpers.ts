@@ -6,6 +6,7 @@ import { InsertSession } from "@db/dbSessions";
 import { InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
 import { ResetSearchPrcs } from "@states/appCommonStates";
+import { addAppErrNotif } from "@internal/golog";
 
 export function reserveSessionId(): number {
   const { sessions } = sessionsState.getState();
@@ -56,23 +57,35 @@ export async function onCreateSessionSavedMessages(message: Message) {
 
   const next: Session = { ...curSession, audience: { ...curSession.audience } };
 
-  var audieceId = await InsertAudience(
+  const audience_id = await InsertAudience(
     curSession.audience,
     currentUser.MasterKey,
   );
-  next.audience.id = audieceId;
+  if (!audience_id.ok) {
+    addAppErrNotif(audience_id.error);
+    return;
+  }
+  next.audience.id = audience_id.value;
 
-  const sessionId = await InsertSession(next, currentUser.MasterKey);
-  next.id = sessionId;
+  const session_id = await InsertSession(next, currentUser.MasterKey);
+  if (!session_id.ok) {
+    addAppErrNotif(session_id.error);
+    return;
+  }
+  next.id = session_id.value;
 
   message.status = "read";
-  const MessageId = await InsertMessage(next, message, currentUser.MasterKey);
-  message.id = MessageId;
+  const message_id = await InsertMessage(next, message, currentUser.MasterKey);
+  if (!message_id.ok) {
+    addAppErrNotif(message_id.error);
+    return;
+  }
+  message.id = message_id.value;
 
   UpdateCurrentSession(next);
 
   const { addMessage } = messageState.getState();
   addMessage(message);
-  
+
   ResetSearchPrcs();
 }

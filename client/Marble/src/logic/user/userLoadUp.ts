@@ -1,8 +1,9 @@
-import { signIn } from "@auth/login.ts";
+import { userSignIn } from "@auth/login.ts";
 import { User } from "@internal/intrCmnTypes";
 import { InitAndMigrate } from "@db/dbMain.ts";
 import { getActiveUserId, GetUser } from "@db/dbUsers.ts";
 import { GetOrCreateKeyChainKey } from "@enc/encMain.ts";
+import { addAppErrNotif } from "@internal/golog";
 
 export async function loadConfig(): Promise<User | null> {
   const kek = await GetOrCreateKeyChainKey();
@@ -10,8 +11,15 @@ export async function loadConfig(): Promise<User | null> {
 
   InitAndMigrate();
   const actvUserId = await getActiveUserId();
-  const currentUser = await GetUser(kek, actvUserId, null);
-  if (!currentUser) return null;
-  signIn(currentUser.config.displayId, "testingg!"); // this is gonna be replaced with autoSignIn() later
-  return currentUser;
+  if (!actvUserId.ok) {
+    addAppErrNotif(actvUserId.error);
+    return null;
+  }
+  const currentUser = await GetUser(kek, actvUserId.value, null);
+  if (!currentUser.ok) {
+    addAppErrNotif(currentUser.error);
+    return null;
+  }
+  userSignIn(currentUser.value.config.displayId, "testingg!"); // this is gonna be replaced with autoSignIn() later
+  return currentUser.value;
 }
