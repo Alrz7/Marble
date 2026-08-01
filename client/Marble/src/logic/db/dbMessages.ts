@@ -44,21 +44,23 @@ export async function InsertMessage(
     message.seq = newSequence;
     session.message_sequence = newSequence;
   }
-  const encrypted = await Promise.all([
-    newSequence,
-    session.id,
-    encryptData(message.content, masterKey),
-    encryptData(message.profile, masterKey),
-    encryptData(message.senderId, masterKey),
-    encryptData(message.createdAt.toUTCString(), masterKey),
-    encryptData(message.status, masterKey),
-  ]);
+  const encrypted = await fromPromiseAllErr(
+    [
+      encryptData(message.content, masterKey),
+      encryptData(message.profile, masterKey),
+      encryptData(message.senderId, masterKey),
+      encryptData(message.createdAt.toUTCString(), masterKey),
+      encryptData(message.status, masterKey),
+    ],
+    errEdtMessage(commonErrors.encryptionFailed, "error while Inserting Data"),
+  );
+  if (!encrypted.ok) return err(encrypted.error);
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
       `INSERT INTO message (seq, session_id, content, profile, sender_id, timestamp, status) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id`,
-      encrypted,
+      [newSequence, session.id, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -166,14 +168,14 @@ export async function dbUpdateMessageById(
   message: Message,
   masterKey: CryptoKey,
 ) {
-  const encrypted = await fromPromiseErr(
-    Promise.all([
+  const encrypted = await fromPromiseAllErr(
+    [
       encryptData(message.content, masterKey),
       encryptData(message.profile, masterKey),
       encryptData(message.status, masterKey),
-    ]),
+    ],
     errEdtMessage(
-      commonErrors.dbfailedToUpdateData,
+      commonErrors.encryptionFailed,
       "error while updating message in db",
     ),
   );
@@ -209,7 +211,10 @@ export async function decryptAllMessages(
         decryptDataFromDb<string>(msg.timestamp, masterKey),
         decryptDataFromDb<string>(msg.status, masterKey),
       ],
-      commonErrors.decryptionFailed,
+      errEdtMessage(
+        commonErrors.decryptionFailed,
+        "failed to decrypt message data",
+      ),
     );
     if (!decrypted.ok) return err(decrypted.error);
     const [content, senderId, profile, createdAt, status] = decrypted.value;

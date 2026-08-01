@@ -17,17 +17,14 @@ export async function InsertSession(
   session: Session,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
-  const encSessionId = await fromPromiseErr(
-    encryptData(session.sessionId, masterKey),
-    commonErrors.encryptionFailed,
-  );
+  const encSessionId = await encryptData(session.sessionId, masterKey)
   if (!encSessionId.ok) return err(encSessionId.error);
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
       `INSERT INTO session (session_id, seq, owner_id, audience_id, message_sequence) VALUES ($1, $2, $3, $4, $5)
     RETURNING id`,
-      [encSessionId, session.seq, session.ownerId, session.audience.id, 0],
+      [encSessionId.value, session.seq, session.ownerId, session.audience.id, 0],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,

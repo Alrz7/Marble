@@ -91,13 +91,10 @@ export async function decryptDataFromDb<T>(
   dbValue: unknown,
   key: CryptoKey,
 ): Promise<Result<T>> {
-  const blobResult = fromThrowableErr(
-    () => blobFromDb(dbValue),
-    commonErrors.decryptionFailed,
-  );
-  if (!blobResult.ok) return err(blobResult.error);
+  const converted = blobFromDb(dbValue);
+  if (!converted.ok) return err(converted.error);
 
-  return decryptData<T>(blobResult.value, key);
+  return decryptData<T>(converted.value, key);
 }
 
 export async function decryptData<T>(

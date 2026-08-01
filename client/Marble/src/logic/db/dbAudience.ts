@@ -16,24 +16,23 @@ export async function InsertAudience(
   audience: Audience,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
-  const encrypted = await fromPromiseErr(
-    Promise.all([
+  const encrypted = await fromPromiseAllErr(
+    [
       encryptData(audience.userId, masterKey),
       encryptData(audience.displayId, masterKey),
-      audience.ownerId,
       encryptData(audience.name, masterKey),
       encryptData(audience.armedPubKey, masterKey),
       encryptData(audience.profileAvatar, masterKey),
-    ]),
+    ],
     commonErrors.encryptionFailed,
   );
   if (!encrypted.ok) return err(encrypted.error);
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
-      `INSERT INTO audience (user_id, display_id, owner_id, name, public_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO audience (owner_id, user_id, display_id, name, public_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING id`,
-      encrypted.value,
+      [audience.ownerId, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -126,7 +125,10 @@ export async function GetAudience(
       decryptDataFromDb<string>(res.value[0].public_key, masterKey),
       decryptDataFromDb<string>(res.value[0].profile_avatar, masterKey),
     ],
-    commonErrors.decryptionFailed,
+    errEdtMessage(
+      commonErrors.decryptionFailed,
+      "failed to decrypt audience data",
+    ),
   );
   if (!decrypted.ok) return err(decrypted.error);
 

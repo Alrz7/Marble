@@ -30,8 +30,8 @@ export async function InsertUser(
   user: User,
   keychainKey: CryptoKey,
 ): Promise<Result<number>> {
-  const encrypted = await fromPromiseErr(
-    Promise.all([
+  const encrypted = await fromPromiseAllErr(
+    [
       encryptData(user.config.userId, keychainKey),
       encryptData(user.config.displayId, keychainKey),
       SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
@@ -39,7 +39,7 @@ export async function InsertUser(
       encryptData(user.config.email, keychainKey),
       encryptMasterKeyWithKEK(user.MasterKey, keychainKey),
       encryptData(user.config.profile_avatar, keychainKey),
-    ]),
+    ],
     commonErrors.encryptionFailed,
   );
   if (!encrypted.ok) return err(encrypted.error);
@@ -142,11 +142,10 @@ export async function GetUser(
     email: email,
     profile_avatar: profile_avatar,
   };
+  const converted = blobFromDb(res.value[0].encrypted_master_key);
+  if (!converted.ok) return err(converted.error);
 
-  const masterKey = await decryptMasterKeyWithKEK(
-    blobFromDb(res.value[0].encrypted_master_key),
-    keychainKey,
-  );
+  const masterKey = await decryptMasterKeyWithKEK(converted.value, keychainKey);
   if (!masterKey.ok) return err(masterKey.error);
 
   const pgpProfile = await GetPgpProfile(config.id, masterKey.value);
@@ -188,13 +187,12 @@ export async function InsertPgpProfile(
   userId: UserId,
   masterKey: CryptoKey,
 ): Promise<Result<void>> {
-  const encrypted = await fromPromiseErr(
-    Promise.all([
-      userId,
+  const encrypted = await fromPromiseAllErr(
+    [
       encryptData(pgpProfile.PrivateKey, masterKey),
       encryptData(pgpProfile.PublicKey, masterKey),
       encryptData(pgpProfile.RevocationCertificate, masterKey),
-    ]),
+    ],
     commonErrors.encryptionFailed,
   );
   if (!encrypted.ok) return err(encrypted.error);
@@ -202,7 +200,7 @@ export async function InsertPgpProfile(
   const res = await fromPromiseErr(
     db.execute(
       `INSERT INTO pgp_profile (user_id, private_key, public_key, revocation_certificate) VALUES ($1, $2, $3, $4)`,
-      encrypted.value,
+      [userId, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -249,11 +247,10 @@ export async function GetPgpProfile(
   const actvPrvKey = await getKeyFromArmored(prvKey.value, null);
   if (!actvPrvKey.ok) return err(actvPrvKey.error);
 
-  const decrypted = await fromPromiseAllErr(
-    [
-      decryptDataFromDb<string>(res.value[0].public_key, masterKey),
-      decryptDataFromDb<string>(res.value[0].revocation_certificate, masterKey),
-    ])
+  const decrypted = await fromPromiseAllErr([
+    decryptDataFromDb<string>(res.value[0].public_key, masterKey),
+    decryptDataFromDb<string>(res.value[0].revocation_certificate, masterKey),
+  ]);
   if (!decrypted.ok) return err(decrypted.error);
 
   const existing: pgpProfile = {

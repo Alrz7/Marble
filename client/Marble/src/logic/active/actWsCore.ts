@@ -53,7 +53,6 @@ export function sendToken() {
       token: token,
     };
     const res = sendRequest(req);
-    console.log("s'ssss");
     if(res)setConnTitle("connecting...")
   }
 }
