@@ -24,10 +24,9 @@ export async function onCreateNewSession(message: Message) {
   const curSession = sessions.get(currentSessionId);
   if (!curSession || !currentUser) return;
 
-  const MessageToJsonString: string = JSON.stringify(message.content);
   const encMessage = await encryptMessage(
     curSession.audience.armedPubKey,
-    MessageToJsonString,
+    message.content,
   );
   if (!encMessage.ok) {
     addAppErrNotif(encMessage.error);

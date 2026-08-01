@@ -81,10 +81,9 @@ async function reCreateSessionViaMessage(
   message: Message,
   session: Session,
 ): Promise<boolean> {
-  const MessageToJsonString: string = JSON.stringify(message.content);
   const encMessage = await encryptMessage(
     session.audience.armedPubKey,
-    MessageToJsonString,
+    message.content,
   );
   if (!encMessage.ok) {
     addAppErrNotif(encMessage.error);
@@ -121,10 +120,9 @@ export async function onRequestSendMessage(
   message: Message,
   curSession: Session,
 ) {
-  const MessageToJsonString: string = JSON.stringify(message.content);
   const encMessage = await encryptMessage(
     curSession.audience.armedPubKey,
-    MessageToJsonString,
+    message.content,
   );
   if (!encMessage.ok) {
     addAppErrNotif(encMessage.error);

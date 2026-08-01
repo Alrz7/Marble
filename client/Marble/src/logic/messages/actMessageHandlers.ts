@@ -13,68 +13,69 @@ import { AppUser } from "@states/userMainStates";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
 import { ResendQueue, saveNewMessage } from "./msgHelpers";
 import { dbUpdateMessageById, GetMessageById } from "@db/dbMessages";
-import { addNewNotification } from "@states/stateNotif";
-import { addAppErrNotif, commonErrors } from "@internal/golog";
+import {
+  addAppErrNotif,
+  AppError,
+  commonErrors,
+  err,
+  ok,
+  Result,
+} from "@internal/golog";
 
 export async function HndlAddMessage(req: Request) {
-  try {
-    const data: { sessionId: SessionId; messages: Message[] } = JSON.parse(
-      req.body,
-    );
-    if (data.messages.length === 0) return;
-    if (!data.sessionId) throw new Error("sessionId was Not Valid");
-    await actAddMessage(data.sessionId, data.messages);
-  } catch (err) {
-    console.error(err);
-  }
+  const data: { sessionId: SessionId; messages: Message[] } = JSON.parse(
+    req.body,
+  );
+  const res = await actAddMessage(data.sessionId, data.messages);
+  if (!res.ok) addAppErrNotif(res.error.err);
 }
 
 export async function actAddMessage(
   sessionId: SessionId,
   messages: Message[],
-): Promise<number> {
+): Promise<Result<number, { lastSeq: number; err: AppError }>> {
   const { currentUser } = AppUser.getState();
-  if (!currentUser) return messages.at(0)?.seq ?? 0;
+  if (!currentUser)
+    return err({
+      lastSeq: messages.at(0)?.seq ?? 0,
+      err: commonErrors.userNotFound,
+    });
+
   const { currentSessionId, sessions } = sessionsState.getState();
   const { addMessage } = messageState.getState();
 
   const curSession = sessions.get(currentSessionId);
 
   const PrvKey = await getKeyFromArmored(currentUser.Pgp.PrivateKey, null);
-  if (!PrvKey.ok) {
-    addAppErrNotif(PrvKey.error);
-    return messages.at(0)?.seq ?? 0;
-  }
+  if (!PrvKey.ok)
+    return err({ lastSeq: messages.at(0)?.seq ?? 0, err: PrvKey.error });
 
   const session = getSessionBySessionId(sessionId);
-
-  if (!session) {
-    addNewNotification(
-      "error",
-      commonErrors.sessionNotFound.reason,
-      "session does Not Exist",
-    );
-    return messages.at(0)?.seq ?? 0;
-  }
+  if (!session)
+    return err({
+      lastSeq: messages.at(0)?.seq ?? 0,
+      err: commonErrors.sessionNotFound,
+    });
 
   for (const message of messages) {
     const decryptedContent = await decryptMessage(
       PrvKey.value,
       message.content,
     );
-    if (!decryptedContent.ok) {
-      addAppErrNotif(decryptedContent.error);
-      return messages.at(0)?.seq ?? 0;
-    }
+    if (!decryptedContent.ok)
+      return err({
+        lastSeq: message.seq ?? 0,
+        err: decryptedContent.error,
+      });
 
     message.content = decryptedContent.value;
     message.createdAt = new Date(message.createdAt);
-    saveNewMessage(session, currentUser.MasterKey, message);
+    await saveNewMessage(session, currentUser.MasterKey, message);
     if (curSession && sessionId === curSession.sessionId) {
       addMessage(message);
     }
   }
-  return messages.at(-1)?.seq ?? 0;
+  return ok(messages.at(-1)?.seq ?? 0);
 }
 
 export async function HandleMsgEventResponse(req: Request) {
@@ -116,7 +117,7 @@ export async function HandleMsgEvent(
 
       targetMessage = {
         ...existing,
-        sessionId: resp.sessionId,
+        session_id: resp.sessionId,
         status: resp.status,
       };
     }

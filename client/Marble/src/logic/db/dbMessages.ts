@@ -39,11 +39,9 @@ export async function InsertMessage(
     );
   }
 
-  const newSequence = updated.message_sequence;
-  if (newSequence) {
-    message.seq = newSequence;
-    session.message_sequence = newSequence;
-  }
+  message.seq = updated.message_sequence;
+  session.message_sequence = updated.message_sequence;
+
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(message.content, masterKey),
@@ -60,7 +58,7 @@ export async function InsertMessage(
     db.select<{ id: number }[]>(
       `INSERT INTO message (seq, session_id, content, profile, sender_id, timestamp, status) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id`,
-      [newSequence, session.id, ...encrypted.value],
+      [updated.message_sequence, session.id, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -153,7 +151,7 @@ export async function dbDeleteMessge(message: Message): Promise<Result<void>> {
   const query = `--sql
   DELETE FROM message where session_id = $1 AND seq = $2`;
   const res = await fromPromiseErr(
-    db.execute(query, [message.sessionId, message.seq]),
+    db.execute(query, [message.session_id, message.seq]),
     errEdtMessage(
       commonErrors.dbfailedToDeleteData,
       "failed to delete message from db",
@@ -222,7 +220,7 @@ export async function decryptAllMessages(
     existing.push({
       id: msg.id,
       seq: msg.seq,
-      sessionId: msg.session_id,
+      session_id: msg.session_id,
       content: content,
       senderId: senderId,
       profile: profile,

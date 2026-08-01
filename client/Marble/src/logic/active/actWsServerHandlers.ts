@@ -19,6 +19,7 @@ import { isSessionLegit } from "@sessions/sessionHelpers";
 import { onSyncSession } from "@sessions/sessionMain";
 import { onCLearSyncedMessage, onSyncMessage } from "@messages/msgMain";
 import { AppUser } from "@states/userMainStates";
+import { addAppErrNotif } from "@internal/golog";
 
 export function HndlSessions(req: Request) {
   if (!req.headers) {
@@ -132,10 +133,15 @@ export async function hndlSyncMessage(req: Request) {
         data.sessionId,
         data.changes.add,
       );
+      if (!lastMessageSavedSeq.ok) {
+        addAppErrNotif(lastMessageSavedSeq.error.err);
+        onCLearSyncedMessage(data.sessionId, lastMessageSavedSeq.error.lastSeq);
+        return;
+      }
       if (data.hasMore) {
-        onSyncMessage(data.sessionId, lastMessageSavedSeq);
+        onSyncMessage(data.sessionId, lastMessageSavedSeq.value);
       } else {
-        onCLearSyncedMessage(data.sessionId, lastMessageSavedSeq);
+        onCLearSyncedMessage(data.sessionId, lastMessageSavedSeq.value);
       }
     }
   }

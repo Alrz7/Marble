@@ -71,7 +71,7 @@ export async function encryptMessage(
   const encOptions: any = {
     message: newMessageRes.value,
     encryptionKeys: publicKeyRes.value,
-    format: "armored",
+    format: "armored" as const,
   };
 
   if (privateKey) {

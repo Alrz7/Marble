@@ -107,7 +107,7 @@ export default function Notification() {
         {/* Content */}
         <div className="flex-1 pt-0.5">
           <p className={`${styles.textColor} text-sm font-medium leading-snug`}>
-            {currentNotif?.message}
+            {`<${currentNotif.key}> ${currentNotif?.message}`}
           </p>
         </div>
 

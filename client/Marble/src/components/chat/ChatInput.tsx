@@ -24,7 +24,7 @@ export default function ChatInput() {
     const newMessage: Message = {
       id: lastId ? lastId++ : 0,
       seq: -1,
-      sessionId: curSession.id,
+      session_id: curSession.id,
       content,
       senderId: currentUser?.config.id,
       createdAt: new Date(),

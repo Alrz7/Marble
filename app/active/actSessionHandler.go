@@ -78,7 +78,7 @@ func (u *ActvUser) OnAddSession(conn *websocket.Conn, session *session.Session, 
 		ProfileAvatar: audience.ProfileAvatar,
 		ArmedPubKey:   audience.PgpProfile.PublicKey}}
 
-	Body := envelope{"sessions": []*envelope{&sendingSession}}
+	Body := envelope{"session": &sendingSession}
 	if message != nil {
 		Body["message"] = message
 	}

@@ -1,5 +1,7 @@
+import { fromThrowableErr } from "./../internal/golog";
 import { InsertSession, UpdateSessionById } from "@db/dbSessions";
 import {
+  Message,
   MessageEventResponse,
   Session,
   SessionId,
@@ -10,9 +12,9 @@ import { AppUser } from "@states/userMainStates";
 import { InsertAudience } from "@db/dbAudience";
 import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";
-import { HandleMsgEvent } from "@messages/actMessageHandlers";
+import { actAddMessage, HandleMsgEvent } from "@messages/actMessageHandlers";
 import { ResetSearchPrcs } from "@states/appCommonStates";
-import { addAppErrNotif } from "@internal/golog";
+import { addAppErrNotif, commonErrors, err, ok, Result } from "@internal/golog";
 
 /** 
 hndlAddSession is trigerd by server when ever it needs to add a session
@@ -23,91 +25,96 @@ fucntion) it just alters the existing one and updates the datas, &
 if adding-session was new, it inserts it instead.
  */
 export async function hndlAddSession(req: Request) {
-  try {
-    const data: { session: Session } = JSON.parse(req.body);
-    await actAddSession([data.session]);
-  } catch (err) {
-    console.error(err);
+  const data: { session: Session; message: Message } = JSON.parse(req.body);
+  const res = await actAddSession([data.session]);
+  if (res.ok) {
+    const addMessage = await actAddMessage(data.session.sessionId, [
+      data.message,
+    ]);
+    if (!addMessage.ok) addAppErrNotif(addMessage.error.err);
+  } else {
+    addAppErrNotif(res.error);
   }
 }
 
-export async function actAddSession(sessions: Session[]) {
+export async function actAddSession(
+  sessions: Session[],
+): Promise<Result<void>> {
   const { currentUser } = AppUser.getState();
   const { addSession } = sessionsState.getState();
-  if (!currentUser) return;
+  if (!currentUser) return err(commonErrors.userNotValid);
 
-  try {
-    for (const session of sessions) {
-      session.audience.ownerId = currentUser.config.id;
-      session.ownerId = currentUser.config.id;
+  for (const session of sessions) {
+    session.audience.ownerId = currentUser.config.id;
+    session.ownerId = currentUser.config.id;
 
-      const audience_id = await InsertAudience(
-        session.audience,
-        currentUser.MasterKey,
-      );
-      if (!audience_id.ok) {
-        addAppErrNotif(audience_id.error);
-        return;
-      }
-      session.audience.id = audience_id.value;
-      const session_id = await InsertSession(session, currentUser.MasterKey);
-      if (!session_id.ok) {
-        addAppErrNotif(session_id.error);
-        return;
-      }
-      session.id = session_id.value;
-      addSession(session);
+    const audience_id = await InsertAudience(
+      session.audience,
+      currentUser.MasterKey,
+    );
+    if (!audience_id.ok) {
+      return err(audience_id.error);
     }
-  } catch (err) {
-    console.error(err);
+    session.audience.id = audience_id.value;
+    const session_id = await InsertSession(session, currentUser.MasterKey);
+    if (!session_id.ok) {
+      return err(session_id.error);
+    }
+    session.id = session_id.value;
+    addSession(session);
   }
+  return ok(undefined);
 }
 
 export async function HandlSessionEventResponse(req: Request) {
   const { currentUser } = AppUser.getState();
-  if (!currentUser) return;
+  if (!currentUser) {
+    addAppErrNotif(commonErrors.userNotFound);
+    return;
+  }
 
-  try {
-    const resp: {
+  const res = fromThrowableErr(
+    (): {
       verified: boolean;
       sessionEventId: SessionId;
       registeredSession: Session;
       messageEventResponse: MessageEventResponse | undefined;
-    } = JSON.parse(req.body);
-    if (!resp.verified) {
-      addNewNotification(
-        "error",
-        NotificationKeys.SESSION_REJECTED_BY_SERVER,
-        "server refused to validate session!",
-      );
-      return;
+    } => JSON.parse(req.body),
+    commonErrors.failedToParseJsonString,
+  );
+
+  if (!res.ok) return addAppErrNotif(res.error);
+  if (!res.value.verified) {
+    addNewNotification(
+      "error",
+      NotificationKeys.SESSION_REJECTED_BY_SERVER,
+      "server refused to validate session!",
+    );
+    return;
+  }
+  const { sessions, updateSession } = sessionsState.getState();
+  const existing = sessions.get(res.value.sessionEventId);
+
+  if (existing) {
+    const next: Session = {
+      ...existing,
+      sessionId: res.value.registeredSession.sessionId,
+      seq: res.value.registeredSession.seq,
+      onCreateStage: false,
+    };
+    updateSession(existing.id, next);
+
+    await UpdateSessionById(
+      existing.id,
+      res.value.registeredSession.sessionId,
+      currentUser.MasterKey,
+      res.value.registeredSession.seq,
+    );
+
+    if (res.value.messageEventResponse) {
+      await HandleMsgEvent(currentUser, next, res.value.messageEventResponse);
     }
-    const { sessions, updateSession } = sessionsState.getState();
-    const existing = sessions.get(resp.sessionEventId);
-
-    if (existing) {
-      const next: Session = {
-        ...existing,
-        sessionId: resp.registeredSession.sessionId,
-        seq: resp.registeredSession.seq,
-        onCreateStage: false,
-      };
-      updateSession(existing.id, next);
-
-      await UpdateSessionById(
-        existing.id,
-        resp.registeredSession.sessionId,
-        currentUser.MasterKey,
-        resp.registeredSession.seq,
-      );
-
-      if (resp.messageEventResponse) {
-        await HandleMsgEvent(currentUser, next, resp.messageEventResponse);
-      }
-      ResetSearchPrcs();
-    }
-  } catch (err) {
-    console.error(err);
+    ResetSearchPrcs();
   }
 }
 

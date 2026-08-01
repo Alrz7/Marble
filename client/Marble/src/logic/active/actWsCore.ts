@@ -38,7 +38,7 @@ export function sendRequest(req: Request): boolean {
       "RequestNotSent",
       "Request Not Sent, connection failed",
     );
-    console.warn("WebSocket not open. Message not sent.");
+    // console.warn("WebSocket not open. Message not sent.");
     return false;
   }
 }

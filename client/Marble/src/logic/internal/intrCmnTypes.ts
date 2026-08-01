@@ -68,16 +68,16 @@ export type MessageStatus =
   | "notSend"
   | "notDefiend";
 
-export interface Message {
+export type Message = {
   id: number;
   seq: number;
-  sessionId: SessionId;
+  session_id: number;
   senderId: UserId;
   profile: string;
   content: string;
   createdAt: Date;
   status: MessageStatus;
-}
+};
 
 export type MessageEventResponse = {
   sessionId: SessionId;
