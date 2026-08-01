@@ -9,7 +9,7 @@ import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
 import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
 import { isSessionLegit } from "./sessionHelpers";
-import { addAppErrNotif } from "@internal/golog";
+import { addAppErrNotif, newAppErr } from "@internal/golog";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -29,7 +29,16 @@ export async function onCreateNewSession(message: Message) {
     curSession.audience.armedPubKey,
     MessageToJsonString,
   );
-  if (!encMessage) return;
+  if (!encMessage.ok) {
+    addAppErrNotif(encMessage.error);
+    message.status = "notSend";
+  }
+  if (!encMessage.value) {
+    addAppErrNotif(
+      newAppErr("encMessageNotValid", "encrypted message is not Valid"),
+    );
+    return;
+  }
 
   const struct: {
     audienceId: number;
@@ -38,7 +47,7 @@ export async function onCreateNewSession(message: Message) {
     sessionEventId: SessionId;
   } = {
     audienceId: curSession.audience.userId,
-    message: encMessage,
+    message: encMessage.value,
     sessionEventId: -1, // going to be modified below
     MessageEventId: -1, // going to be modified below
   };

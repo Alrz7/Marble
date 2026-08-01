@@ -4,7 +4,7 @@ import { generateIdntKey, getKeyFromArmored } from "@enc/encOpenpgp";
 import { InsertUser, SetActiveUserId } from "@db/dbUsers";
 import { generateMasterKey } from "@enc/encMaster";
 import { GetOrCreateKeyChainKey } from "@enc/encMain";
-import { addAppErrNotif } from "@internal/golog";
+import { addAppErrNotif, commonErrors } from "@internal/golog";
 
 // the openpgpKeyGroup & strongHoldKey Key-Groups are going to be saved in the StrongHold
 // there are save there but i'll add encryption to these keys later too
@@ -14,11 +14,26 @@ export async function createAccount(
   email: string,
   password: string,
 ): Promise<User | null> {
-  const Kek = await GetOrCreateKeyChainKey();
-  if (!Kek) throw new Error(" there Was an Error while trying to get the KEK");
+  const kek = await GetOrCreateKeyChainKey();
+  if (!kek.ok) {
+    addAppErrNotif(kek.error);
+    return null;
+  }
+  if (kek.value == null) {
+    addAppErrNotif(commonErrors.keychainKeyNotValid);
+    return null;
+  }
 
   const openpgpKeyGroup = await generateIdntKey(name, email);
-  const userMasterKey: CryptoKey = await generateMasterKey();
+  if (!openpgpKeyGroup.ok) {
+    addAppErrNotif(openpgpKeyGroup.error);
+    return null;
+  }
+  const userMasterKey = await generateMasterKey();
+  if (!userMasterKey.ok) {
+    addAppErrNotif(userMasterKey.error);
+    return null;
+  }
   const response = await fetch("http://localhost:6280/account", {
     method: "POST",
     headers: {
@@ -29,7 +44,7 @@ export async function createAccount(
       name: name,
       email: email,
       password: password,
-      pubIdentKey: openpgpKeyGroup.publicKey,
+      pubIdentKey: openpgpKeyGroup.value.publicKey,
     }),
   });
 
@@ -47,20 +62,30 @@ export async function createAccount(
     email: email,
     profile_avatar: "NMG",
   };
+
+  const actPrvKey = await getKeyFromArmored(
+    openpgpKeyGroup.value.privateKey,
+    null,
+  );
+  if (!actPrvKey.ok) {
+    addAppErrNotif(actPrvKey.error);
+    return null;
+  }
+
   const pgpProfile: pgpProfile = {
-    PrivateKey: openpgpKeyGroup.privateKey,
-    PublicKey: openpgpKeyGroup.publicKey,
-    RevocationCertificate: openpgpKeyGroup.revocationCertificate,
-    ActivePrvKey: await getKeyFromArmored(openpgpKeyGroup.privateKey, null),
+    PrivateKey: openpgpKeyGroup.value.privateKey,
+    PublicKey: openpgpKeyGroup.value.publicKey,
+    RevocationCertificate: openpgpKeyGroup.value.revocationCertificate,
+    ActivePrvKey: actPrvKey.value,
   };
 
   const newUser: User = {
-    MasterKey: userMasterKey,
+    MasterKey: userMasterKey.value,
     config: newConfig,
     Pgp: pgpProfile,
   };
 
-  const res = await InsertUser(newUser, Kek);
+  const res = await InsertUser(newUser, kek.value);
   if (!res.ok) {
     addAppErrNotif(res.error);
     return null;

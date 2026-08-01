@@ -1,3 +1,12 @@
+import {
+  commonErrors,
+  err,
+  errEdtMessage,
+  fromPromiseErr,
+  newAppErr,
+  ok,
+  Result,
+} from "@internal/golog";
 import * as openpgp from "openpgp";
 import { config } from "openpgp";
 //---- Config ----
@@ -9,100 +18,140 @@ export async function generateIdntKey(
   name: string,
   email: string,
   // passphrase: string,
-): Promise<{
-  privateKey: string;
-  publicKey: string;
-  revocationCertificate: string;
-}> {
-  return await openpgp.generateKey({
-    type: "curve25519",
-    userIDs: [{ name: name, email: email }],
-    // passphrase: passphrase,
-    format: "armored",
-    // config: {
-    //   preferredSymmetricAlgorithm: openpgp.enums.symmetric.aes256,
-    //   aeadProtect: true,
-    //   v6Keys: true,
-    // },
-  });
+): Promise<
+  Result<{
+    privateKey: string;
+    publicKey: string;
+    revocationCertificate: string;
+  }>
+> {
+  return await fromPromiseErr(
+    openpgp.generateKey({
+      type: "curve25519",
+      userIDs: [{ name: name, email: email }],
+      // passphrase: passphrase,
+      format: "armored",
+      // config: {
+      //   preferredSymmetricAlgorithm: openpgp.enums.symmetric.aes256,
+      //   aeadProtect: true,
+      //   v6Keys: true,
+      // },
+    }),
+    newAppErr(
+      "pgpFailedToGenerateIdentityKey",
+      "failed to generate private Identity Key-group",
+    ),
+  );
 }
-
 /**
- @param armPublicKey the armored Public key of the reciver
- @param privateKey the message you want to encrypt as string
- @param privateKey it signs the encrypted message to if PrivateKey was provided
- @description EncryptMessage encrypts the message and signs it too if the PrivateKey was Provided & it Returns the Based64 Binary string.
+ * @param armPublicKey the armored Public key of the receiver
+ * @param message the message you want to encrypt as string
+ * @param privateKey it signs the encrypted message if PrivateKey was provided
+ * @description Encrypts the message and signs it if PrivateKey is provided.
  */
 export async function encryptMessage(
   armPublicKey: string,
   message: string,
   privateKey?: openpgp.PrivateKey,
-): Promise<string> {
-  try {
-    const publicKey = await openpgp.readKey({ armoredKey: armPublicKey });
+): Promise<Result<string>> {
+  const publicKeyRes = await fromPromiseErr(
+    openpgp.readKey({ armoredKey: armPublicKey }),
+    commonErrors.failedToReadKey,
+  );
+  if (!publicKeyRes.ok) return err(publicKeyRes.error);
 
-    const encOptions: any = {
-      message: await openpgp.createMessage({
-        text: message,
-        date: new Date(Date.now()),
-      }),
-      encryptionKeys: publicKey,
-      format: "armored",
-    };
+  const newMessageRes = await fromPromiseErr(
+    openpgp.createMessage({
+      text: message,
+    }),
+    newAppErr("pgpFailedToCreateMessage", "failed to create new Pgp Message"),
+  );
+  if (!newMessageRes.ok) return err(newMessageRes.error);
 
-    if (privateKey) {
-      encOptions.signingKeys = privateKey;
-    }
+  const encOptions: any = {
+    message: newMessageRes.value,
+    encryptionKeys: publicKeyRes.value,
+    format: "armored",
+  };
 
-    return (await openpgp.encrypt(encOptions)) as string; // encrypted
-    // return btoa(String.fromCharCode(...new Uint8Array(encrypted))); // last aproach,
-    //  need more researh and development to choode best one
-  } catch (err) {
-    throw new Error(`there was an error while encrypting the message ${err}`);
+  if (privateKey) {
+    encOptions.signingKeys = privateKey;
   }
+
+  const encryptedRes = await fromPromiseErr(
+    openpgp.encrypt(encOptions),
+    errEdtMessage(
+      commonErrors.encryptionFailed,
+      "Pgp failed to encrypt Message",
+    ),
+  );
+  if (!encryptedRes.ok) return err(encryptedRes.error);
+
+  return ok(encryptedRes.value as string);
 }
 
 export async function decryptMessage(
   privateKey: openpgp.PrivateKey,
-  encryptMessage: string,
+  encryptedMessage: string,
   armPublicKey?: string,
-) {
-  try {
-    // const binaryString = atob(encryptedBinaryMessage);
-    // const uint8Array = new Uint8Array(binaryString.length);
-    const decOptions: openpgp.DecryptOptions = {
-      message: await openpgp.readMessage({
-        armoredMessage: encryptMessage,
-      }),
-      decryptionKeys: privateKey,
-    };
+): Promise<Result<string>> {
+  const messageRes = await fromPromiseErr(
+    openpgp.readMessage({
+      armoredMessage: encryptedMessage,
+    }),
+    newAppErr("failedToReadMessage", "failed to read pgp message"),
+  );
+  if (!messageRes.ok) return err(messageRes.error);
 
-    if (armPublicKey) {
-      decOptions.verificationKeys = await openpgp.readKey({
+  const decOptions: openpgp.DecryptOptions = {
+    message: messageRes.value,
+    decryptionKeys: privateKey,
+  };
+
+  if (armPublicKey) {
+    const verificationKeyRes = await fromPromiseErr(
+      openpgp.readKey({
         armoredKey: armPublicKey,
-      });
-    }
-    const { data: decryptedJsonString } = await openpgp.decrypt(decOptions);
-    return JSON.parse(decryptedJsonString) as string;
-  } catch (err) {
-    throw new Error(`there was an error while decryptig a message ${err}`);
+      }),
+      commonErrors.failedToReadKey,
+    );
+    if (!verificationKeyRes.ok) return err(verificationKeyRes.error);
+
+    decOptions.verificationKeys = verificationKeyRes.value;
   }
+
+  const decryptedRes = await fromPromiseErr(
+    openpgp.decrypt(decOptions),
+    errEdtMessage(
+      commonErrors.decryptionFailed,
+      "failed to decrypt pgp message",
+    ),
+  );
+  if (!decryptedRes.ok) return err(decryptedRes.error);
+
+  return ok(decryptedRes.value.data as string);
 }
 
 export async function getKeyFromArmored(
   armoredKey: string,
   password: string | null,
-): Promise<openpgp.PrivateKey | null> {
-  try {
-    let privateKey = await openpgp.readPrivateKey({ armoredKey });
-    if (password) {
-      privateKey = await openpgp.decryptKey({
-        privateKey,
+): Promise<Result<openpgp.PrivateKey>> {
+  const privateKey = await fromPromiseErr(
+    openpgp.readPrivateKey({ armoredKey }),
+    commonErrors.failedToReadKey,
+  );
+  if (!privateKey.ok) return err(privateKey.error);
+
+  if (password) {
+    const decryptedPrivateKey = await fromPromiseErr(
+      openpgp.decryptKey({
+        privateKey: privateKey.value,
         passphrase: password,
-      });
-    }
-    return privateKey;
-  } catch {
-    return null;
+      }),
+      errEdtMessage(commonErrors.decryptionFailed, "failed to decrypt Pgp Key"),
+    );
+    if (!decryptedPrivateKey.ok) return err(decryptedPrivateKey.error);
+    return ok(decryptedPrivateKey.value);
   }
+  return ok(privateKey.value);
 }

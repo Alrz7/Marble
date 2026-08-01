@@ -41,8 +41,9 @@ export async function actAddMessage(
   const curSession = sessions.get(currentSessionId);
 
   const PrvKey = await getKeyFromArmored(currentUser.Pgp.PrivateKey, null);
-  if (!PrvKey) {
-    throw new Error("there was an error while recovering Prv-Key");
+  if (!PrvKey.ok) {
+    addAppErrNotif(PrvKey.error);
+    return messages.at(0)?.seq ?? 0;
   }
 
   const session = getSessionBySessionId(sessionId);
@@ -57,16 +58,16 @@ export async function actAddMessage(
   }
 
   for (const message of messages) {
-    let decryptedContent: string;
-
-    try {
-      decryptedContent = await decryptMessage(PrvKey, message.content);
-    } catch (err) {
-      console.error(err);
-      decryptedContent = "*** Error While Decrypting Message ***";
+    const decryptedContent = await decryptMessage(
+      PrvKey.value,
+      message.content,
+    );
+    if (!decryptedContent.ok) {
+      addAppErrNotif(decryptedContent.error);
+      return messages.at(0)?.seq ?? 0;
     }
 
-    message.content = decryptedContent;
+    message.content = decryptedContent.value;
     message.createdAt = new Date(message.createdAt);
     saveNewMessage(session, currentUser.MasterKey, message);
     if (curSession && sessionId === curSession.sessionId) {

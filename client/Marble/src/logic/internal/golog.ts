@@ -36,6 +36,36 @@ export const fromPromise = async <T, E = AppError>(
   }
 };
 
+type UnwrapPromiseResultTuple<T extends readonly Promise<Result<any>>[]> = {
+  [K in keyof T]: T[K] extends Promise<Result<infer U>> ? U : never;
+};
+
+export async function fromPromiseAllErr<
+  T extends readonly Promise<Result<any>>[],
+>(
+  promises: [...T],
+  fallbackErr?: AppError,
+): Promise<Result<UnwrapPromiseResultTuple<T>>> {
+  try {
+    const results = await Promise.all(promises);
+
+    const values: unknown[] = [];
+    for (const res of results) {
+      if (!res.ok) {
+        return err(fallbackErr ?? res.error);
+      }
+      values.push(res.value);
+    }
+
+    return ok(values as UnwrapPromiseResultTuple<T>);
+  } catch (e) {
+    return err(
+      fallbackErr ??
+        newAppErr("promiseAllFailed", e instanceof Error ? e.message : String(e)),
+    );
+  }
+}
+
 export const newAppErr = (
   reason: string,
   message: string,
@@ -54,6 +84,17 @@ export const errEdtReason = (appErr: AppError, reason: string): AppError => {
 
 export const addOnErr = (cmnErr: AppError, err: unknown): AppError => {
   return { reason: cmnErr.reason, message: `${cmnErr.message}: ${err}` };
+};
+
+export const fromThrowableErr = <T>(
+  fn: () => T,
+  appErr: AppError,
+): Result<T, AppError> => {
+  try {
+    return ok(fn());
+  } catch (e) {
+    return err(addOnErr(appErr, e));
+  }
 };
 
 export const fromPromiseErr = async <T>(
@@ -119,9 +160,25 @@ export const commonErrors = {
     reason: "invalidPrivateKey",
     message: "Private key is not valid",
   },
-  decryptionFailed: {
-    reason: "decryptionFailed",
-    message: "Failed to decrypt the crypto key",
+  faildToExportKey: {
+    reason: "keyeExportFailed",
+    message: "failed to export cryptoKey",
+  },
+  faildToImportKey: {
+    reason: "keyImportFailed",
+    message: "failed to Import cryptoKey",
+  },
+  faildToHashPassword: {
+    reason: "faildToHashPassword",
+    message: "Failed to hash password",
+  },
+  failedToVerifyPassword: {
+    reason: "failedToVerifyPassword",
+    message: "Failed to verify password",
+  },
+  failedToReadKey: {
+    reason: "failedToReadKeyFromArmored",
+    message: "failed To Read Key From Armored",
   },
 
   // --- Network & Database ---
@@ -159,6 +216,10 @@ export const commonErrors = {
     reason: "encryptionFailed",
     message: "Error while encrypting data",
   },
+  decryptionFailed: {
+    reason: "decryptionFailed",
+    message: "Failed to decrypt data",
+  },
   conversionFailed: {
     reason: "conversionFailed",
     message: "Error while converting data",
@@ -178,6 +239,14 @@ export const commonErrors = {
   audienceNotFound: {
     reason: "audienceNotFound",
     message: "Failed to fetch audience",
+  },
+  failedToStringifyObject: {
+    reason: "failedToStringifyObject",
+    message: "failed to stringify object",
+  },
+  failedToParseJsonString: {
+    reason: "failedToParseJsonString",
+    message: "Failed to Parse Json-string",
   },
 
   // --- General & Fallback ---

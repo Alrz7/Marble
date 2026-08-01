@@ -1,4 +1,3 @@
-import * as openpgp from "openpgp";
 import {
   decryptDataFromDb,
   decryptMasterKeyWithKEK,
@@ -20,6 +19,7 @@ import {
   commonErrors,
   err,
   errEdtMessage,
+  fromPromiseAllErr,
   fromPromiseErr,
   ok,
   Result,
@@ -124,38 +124,37 @@ export async function GetUser(
     return err(commonErrors.noRecordFound);
   }
 
-  const decrypred = await fromPromiseErr(
-    Promise.all([
-      decryptDataFromDb<number>(res.value[0].user_id, keychainKey),
-      decryptDataFromDb<string>(res.value[0].display_id, keychainKey),
-      decryptDataFromDb<string>(res.value[0].name, keychainKey),
-      decryptDataFromDb<string>(res.value[0].email, keychainKey),
-      decryptDataFromDb<string>(res.value[0].profile_avatar, keychainKey),
-    ]),
-    commonErrors.encryptionFailed,
-  );
-  if (!decrypred.ok) return err(decrypred.error);
+  const decryprted = await fromPromiseAllErr([
+    decryptDataFromDb<number>(res.value[0].user_id, keychainKey),
+    decryptDataFromDb<string>(res.value[0].display_id, keychainKey),
+    decryptDataFromDb<string>(res.value[0].name, keychainKey),
+    decryptDataFromDb<string>(res.value[0].email, keychainKey),
+    decryptDataFromDb<string>(res.value[0].profile_avatar, keychainKey),
+  ]);
+  if (!decryprted.ok) return err(decryprted.error);
+  const [userId, displayId, name, email, profile_avatar] = decryprted.value;
 
   const config: UserConfig = {
     id: res.value[0].id,
-    userId: decrypred.value[0],
-    displayId: decrypred.value[1],
-    name: decrypred.value[2],
-    email: decrypred.value[3],
-    profile_avatar: decrypred.value[4],
+    userId: userId,
+    displayId: displayId,
+    name: name,
+    email: email,
+    profile_avatar: profile_avatar,
   };
 
-  const masterKey: CryptoKey = await decryptMasterKeyWithKEK(
+  const masterKey = await decryptMasterKeyWithKEK(
     blobFromDb(res.value[0].encrypted_master_key),
     keychainKey,
   );
+  if (!masterKey.ok) return err(masterKey.error);
 
-  const pgpProfile = await GetPgpProfile(config.id, masterKey);
+  const pgpProfile = await GetPgpProfile(config.id, masterKey.value);
   if (!pgpProfile.ok) return err(pgpProfile.error);
 
   return ok({
     config,
-    MasterKey: masterKey,
+    MasterKey: masterKey.value,
     Pgp: pgpProfile.value,
   });
 }
@@ -241,30 +240,27 @@ export async function GetPgpProfile(
     return err(commonErrors.noRecordFound);
   }
 
-  const prvKey: string = await decryptDataFromDb<string>(
+  const prvKey = await decryptDataFromDb<string>(
     res.value[0].private_key,
     masterKey,
   );
+  if (!prvKey.ok) return err(prvKey.error);
 
-  const actvPrvKey: openpgp.PrivateKey | null = await getKeyFromArmored(
-    prvKey,
-    null,
-  );
+  const actvPrvKey = await getKeyFromArmored(prvKey.value, null);
+  if (!actvPrvKey.ok) return err(actvPrvKey.error);
 
-  const decrypted = await fromPromiseErr(
-    Promise.all([
+  const decrypted = await fromPromiseAllErr(
+    [
       decryptDataFromDb<string>(res.value[0].public_key, masterKey),
       decryptDataFromDb<string>(res.value[0].revocation_certificate, masterKey),
-    ]),
-    commonErrors.decryptionFailed,
-  );
+    ])
   if (!decrypted.ok) return err(decrypted.error);
 
   const existing: pgpProfile = {
-    PrivateKey: prvKey,
+    PrivateKey: prvKey.value,
     PublicKey: decrypted.value[0],
     RevocationCertificate: decrypted.value[1],
-    ActivePrvKey: actvPrvKey,
+    ActivePrvKey: actvPrvKey.value,
   };
 
   return ok(existing);

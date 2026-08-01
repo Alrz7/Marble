@@ -1,33 +1,39 @@
 import { MAIN_KEY } from "@internal/intrCmnTypes";
 import { getKeychainObject, setKeychainObject } from "./keyChain";
 import { generateMasterKey, GetKeyFromString, KeyToString } from "./encMaster";
+import { err, ok, Result } from "@internal/golog";
 
-export var KEYCHAIN_KEY: CryptoKey | null = null;
-var loadingKey: boolean = false;
+export let KEYCHAIN_KEY: CryptoKey | null = null;
+let loadingKey: boolean = false;
 
-export async function GetOrCreateKeyChainKey(): Promise<CryptoKey | null> {
-  if (KEYCHAIN_KEY) return KEYCHAIN_KEY;
+export async function GetOrCreateKeyChainKey(): Promise<
+  Result<CryptoKey | null>
+> {
+  if (KEYCHAIN_KEY) return ok(KEYCHAIN_KEY);
 
   if (loadingKey) {
     while (loadingKey) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    return KEYCHAIN_KEY;
+    return ok(KEYCHAIN_KEY);
   }
   loadingKey = true;
 
-  try {
-    const existing = await getKeychainObject(MAIN_KEY);
-    if (existing) {
-      KEYCHAIN_KEY = await GetKeyFromString(existing);
-      return KEYCHAIN_KEY;
-    }
-
-    KEYCHAIN_KEY = await generateMasterKey();
-    const keychainKeybase64 = await KeyToString(KEYCHAIN_KEY);
-    await setKeychainObject(MAIN_KEY, keychainKeybase64);
-    return KEYCHAIN_KEY;
-  } finally {
-    loadingKey = false;
+  const existing = await getKeychainObject(MAIN_KEY);
+  if (!existing.ok) return err(existing.error);
+  if (existing.value) {
+    const res = await GetKeyFromString(existing.value);
+    if (!res.ok) return err(res.error);
+    KEYCHAIN_KEY = res.value;
+    return ok(res.value);
   }
+
+  const newKey = await generateMasterKey();
+  if (!newKey.ok) return err(newKey.error);
+  KEYCHAIN_KEY = newKey.value;
+  const keychainKeybase64 = await KeyToString(KEYCHAIN_KEY);
+  if (!keychainKeybase64.ok) return err(keychainKeybase64.error);
+  await setKeychainObject(MAIN_KEY, keychainKeybase64.value);
+  loadingKey = false;
+  return ok(KEYCHAIN_KEY);
 }

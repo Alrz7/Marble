@@ -6,6 +6,7 @@ import {
   commonErrors,
   err,
   errEdtMessage,
+  fromPromiseAllErr,
   fromPromiseErr,
   ok,
   Result,
@@ -117,29 +118,30 @@ export async function GetAudience(
     return err(commonErrors.noRecordFound);
   }
 
-  const decrypted = await fromPromiseErr(
-    Promise.all([
+  const decrypted = await fromPromiseAllErr(
+    [
       decryptDataFromDb<number>(res.value[0].user_id, masterKey),
       decryptDataFromDb<string>(res.value[0].display_id, masterKey),
       decryptDataFromDb<string>(res.value[0].name, masterKey),
       decryptDataFromDb<string>(res.value[0].public_key, masterKey),
       decryptDataFromDb<string>(res.value[0].profile_avatar, masterKey),
-    ]),
+    ],
     commonErrors.decryptionFailed,
   );
   if (!decrypted.ok) return err(decrypted.error);
 
+  const [userId, displayId, name, armedPubKey, profileAvatar] = decrypted.value;
+
   const existing: Audience = {
     id: res.value[0].id,
-    userId: decrypted.value[0],
-    displayId: decrypted.value[1],
+    userId,
+    displayId,
     ownerId: res.value[0].owner_id,
-    name: decrypted.value[2],
-    armedPubKey: decrypted.value[3],
-    profileAvatar: decrypted.value[4],
+    name,
+    armedPubKey,
+    profileAvatar,
     isOnline: false,
   };
-
   return ok(existing);
 }
 

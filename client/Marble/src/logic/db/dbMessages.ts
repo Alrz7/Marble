@@ -5,6 +5,7 @@ import {
   commonErrors,
   err,
   errEdtMessage,
+  fromPromiseAllErr,
   fromPromiseErr,
   ok,
   Result,
@@ -200,27 +201,28 @@ export async function decryptAllMessages(
   const existing: Message[] = [];
 
   for (const msg of res) {
-    const decrypted = await fromPromiseErr(
-      Promise.all([
+    const decrypted = await fromPromiseAllErr(
+      [
         decryptDataFromDb<string>(msg.content, masterKey),
         decryptDataFromDb<number>(msg.sender_id, masterKey),
         decryptDataFromDb<string>(msg.profile, masterKey),
         decryptDataFromDb<string>(msg.timestamp, masterKey),
         decryptDataFromDb<string>(msg.status, masterKey),
-      ]),
+      ],
       commonErrors.decryptionFailed,
     );
     if (!decrypted.ok) return err(decrypted.error);
+    const [content, senderId, profile, createdAt, status] = decrypted.value;
 
     existing.push({
       id: msg.id,
       seq: msg.seq,
       sessionId: msg.session_id,
-      content: decrypted.value[0],
-      senderId: decrypted.value[1],
-      profile: decrypted.value[2],
-      createdAt: new Date(decrypted.value[3]),
-      status: decrypted.value[4] as MessageStatus,
+      content: content,
+      senderId: senderId,
+      profile: profile,
+      createdAt: new Date(createdAt),
+      status: status as MessageStatus,
     });
   }
   return ok(existing);

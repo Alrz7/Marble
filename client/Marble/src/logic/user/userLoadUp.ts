@@ -3,11 +3,18 @@ import { User } from "@internal/intrCmnTypes";
 import { InitAndMigrate } from "@db/dbMain.ts";
 import { getActiveUserId, GetUser } from "@db/dbUsers.ts";
 import { GetOrCreateKeyChainKey } from "@enc/encMain.ts";
-import { addAppErrNotif } from "@internal/golog";
+import { addAppErrNotif, commonErrors } from "@internal/golog";
 
 export async function loadConfig(): Promise<User | null> {
   const kek = await GetOrCreateKeyChainKey();
-  if (!kek) throw new Error("kechainKey was not Valid");
+  if (!kek.ok) {
+    addAppErrNotif(kek.error);
+    return null;
+  }
+  if (kek.value == null) {
+    addAppErrNotif(commonErrors.keychainKeyNotValid);
+    return null;
+  }
 
   InitAndMigrate();
   const actvUserId = await getActiveUserId();
@@ -15,7 +22,7 @@ export async function loadConfig(): Promise<User | null> {
     addAppErrNotif(actvUserId.error);
     return null;
   }
-  const currentUser = await GetUser(kek, actvUserId.value, null);
+  const currentUser = await GetUser(kek.value, actvUserId.value, null);
   if (!currentUser.ok) {
     addAppErrNotif(currentUser.error);
     return null;

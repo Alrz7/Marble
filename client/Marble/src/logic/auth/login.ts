@@ -6,7 +6,7 @@ import { GetUser, SetActiveUserId } from "@db/dbUsers";
 import { SignWithHmac } from "@enc/encHelpers";
 import { GetOrCreateKeyChainKey } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
-import { addAppErrNotif } from "@internal/golog";
+import { addAppErrNotif, commonErrors } from "@internal/golog";
 
 // on the login we need to set the Logging-user as Primary-user
 export async function login(
@@ -14,12 +14,23 @@ export async function login(
   password: string,
 ): Promise<User | null> {
   const kek = await GetOrCreateKeyChainKey();
-  if (!kek) throw new Error("kechainKey was not Valid");
+  if (!kek.ok) {
+    addAppErrNotif(kek.error);
+    return null;
+  }
+  if (kek.value == null) {
+    addAppErrNotif(commonErrors.keychainKeyNotValid);
+    return null;
+  }
 
   const signedDIsplayId = await SignWithHmac(
     DefEncoder.encode(DisplayId).buffer,
   );
-  const existingUser = await GetUser(kek, null, signedDIsplayId);
+  if (!signedDIsplayId.ok) {
+    addAppErrNotif(signedDIsplayId.error);
+    return null;
+  }
+  const existingUser = await GetUser(kek.value, null, signedDIsplayId.value);
   if (!existingUser.ok) {
     addAppErrNotif(existingUser.error);
     return null;

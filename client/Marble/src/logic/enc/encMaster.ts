@@ -1,144 +1,229 @@
+import {
+  commonErrors,
+  err,
+  errEdtMessage,
+  fromPromiseErr,
+  fromThrowableErr,
+  newAppErr,
+  ok,
+  Result,
+} from "@internal/golog";
 import { DefDecoder, DefEncoder } from "@internal/intrCmnTypes";
 import { blobFromDb } from "@internal/intrHelperfuncs";
 
-export async function generateMasterKey(): Promise<CryptoKey> {
-  return await window.crypto.subtle.generateKey(
-    {
-      name: "AES-GCM",
-      length: 256,
-    },
-    true,
-    ["encrypt", "decrypt"],
+export async function generateMasterKey(): Promise<Result<CryptoKey>> {
+  return await fromPromiseErr(
+    window.crypto.subtle.generateKey(
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      true,
+      ["encrypt", "decrypt"],
+    ),
+    newAppErr("failedToGenerateKey", "failed to generate new masterKey"),
   );
 }
 
-export async function KeyToString(cryptoKey: CryptoKey): Promise<string> {
-  const rawMasterKeyBuffer = await window.crypto.subtle.exportKey(
-    "raw",
-    cryptoKey,
+export async function KeyToString(
+  cryptoKey: CryptoKey,
+): Promise<Result<string>> {
+  const rawMasterKeyBuffer = await fromPromiseErr(
+    window.crypto.subtle.exportKey("raw", cryptoKey),
+    commonErrors.faildToExportKey,
   );
-  const rawMasterKeyBytes = new Uint8Array(rawMasterKeyBuffer);
+  if (!rawMasterKeyBuffer.ok) return err(rawMasterKeyBuffer.error);
 
-  let binary = "";
-  for (let i = 0; i < rawMasterKeyBytes.length; i++) {
-    const rbi = rawMasterKeyBytes[i];
-    if (!rbi) throw new Error("Error while converting key to string");
-    binary += String.fromCharCode(rbi);
-  }
-  return btoa(binary);
+  const converted = fromThrowableErr(
+    () => {
+      const bytes = new Uint8Array(rawMasterKeyBuffer.value);
+      let binary = "";
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+      return btoa(binary);
+    },
+    errEdtMessage(
+      commonErrors.conversionFailed,
+      "Error while converting key to string",
+    ),
+  );
+
+  if (!converted.ok) return err(converted.error);
+  return ok(converted.value);
 }
 
 export async function encryptData<T>(
   data: T,
   key: CryptoKey,
-): Promise<Uint8Array> {
-  const jsonString = JSON.stringify(data);
-  const dataBytes = DefEncoder.encode(jsonString);
+): Promise<Result<Uint8Array>> {
+  const jsonString = fromThrowableErr(
+    () => JSON.stringify(data),
+    commonErrors.failedToStringifyObject,
+  );
+  if (!jsonString.ok) return err(jsonString.error);
 
+  const dataBytes = DefEncoder.encode(jsonString.value);
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-  const cipherBuffer = await window.crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    key,
-    dataBytes,
+  const cipherBuffer = await fromPromiseErr(
+    window.crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv: iv,
+      },
+      key,
+      dataBytes,
+    ),
+    commonErrors.encryptionFailed,
   );
+  if (!cipherBuffer.ok) return err(cipherBuffer.error);
 
-  const cipherBytes = new Uint8Array(cipherBuffer);
+  const cipherBytes = new Uint8Array(cipherBuffer.value);
   const combined = new Uint8Array(iv.length + cipherBytes.length);
   combined.set(iv, 0);
   combined.set(cipherBytes, iv.length);
 
-  return combined;
+  return ok(combined);
 }
 
 export async function decryptDataFromDb<T>(
   dbValue: unknown,
   key: CryptoKey,
-): Promise<T> {
-  return decryptData<T>(blobFromDb(dbValue), key);
+): Promise<Result<T>> {
+  const blobResult = fromThrowableErr(
+    () => blobFromDb(dbValue),
+    commonErrors.decryptionFailed,
+  );
+  if (!blobResult.ok) return err(blobResult.error);
+
+  return decryptData<T>(blobResult.value, key);
 }
 
 export async function decryptData<T>(
   encryptedData: Uint8Array,
   key: CryptoKey,
-): Promise<T> {
-  try {
-    const iv = encryptedData.slice(0, 12);
-    const cipherBytes = encryptedData.slice(12);
-
-    const decryptedBuffer = await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: iv },
-      key,
-      cipherBytes,
+): Promise<Result<T>> {
+  if (encryptedData.byteLength < 12) {
+    return err(
+      errEdtMessage(
+        commonErrors.decryptionFailed,
+        "encrypted data is too short to contain IV",
+      ),
     );
-
-    const jsonString = DefDecoder.decode(decryptedBuffer);
-    return JSON.parse(jsonString) as T;
-  } catch {
-    throw new Error("there was an error while decrypting");
   }
+
+  const iv = encryptedData.slice(0, 12);
+  const cipherBytes = encryptedData.slice(12);
+
+  const decryptedBuffer = await fromPromiseErr(
+    window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, cipherBytes),
+    commonErrors.decryptionFailed,
+  );
+  if (!decryptedBuffer.ok) return err(decryptedBuffer.error);
+
+  const jsonString = DefDecoder.decode(decryptedBuffer.value);
+  const res = fromThrowableErr(
+    () => JSON.parse(jsonString) as T,
+    commonErrors.failedToParseJsonString,
+  );
+  if (!res.ok) return err(res.error);
+  return ok(res.value);
 }
 
 export async function encryptMasterKeyWithKEK(
   masterKey: CryptoKey,
   kek: CryptoKey,
-): Promise<Uint8Array> {
-  const rawMasterKeyBuffer = await window.crypto.subtle.exportKey(
-    "raw",
-    masterKey,
+): Promise<Result<Uint8Array>> {
+  const rawMasterKeyBuffer = await fromPromiseErr(
+    window.crypto.subtle.exportKey("raw", masterKey),
+    commonErrors.faildToExportKey,
   );
-  const rawMasterKeyBytes = new Uint8Array(rawMasterKeyBuffer);
+  if (!rawMasterKeyBuffer.ok) return err(rawMasterKeyBuffer.error);
 
+  const rawMasterKeyBytes = new Uint8Array(rawMasterKeyBuffer.value);
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-  const encryptedBuffer = await window.crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: iv },
-    kek,
-    rawMasterKeyBytes,
+  const encryptedBuffer = await fromPromiseErr(
+    window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      kek,
+      rawMasterKeyBytes,
+    ),
+    errEdtMessage(
+      commonErrors.encryptionFailed,
+      "failed to encrypt MasterKey with KEK",
+    ),
   );
+  if (!encryptedBuffer.ok) return err(encryptedBuffer.error);
 
-  const encryptedBytes = new Uint8Array(encryptedBuffer);
+  const encryptedBytes = new Uint8Array(encryptedBuffer.value);
   const combined = new Uint8Array(iv.length + encryptedBytes.length);
   combined.set(iv, 0);
   combined.set(encryptedBytes, iv.length);
 
-  return combined;
+  return ok(combined);
 }
 
 export async function decryptMasterKeyWithKEK(
   encryptedMasterKey: Uint8Array,
   kek: CryptoKey,
-): Promise<CryptoKey> {
+): Promise<Result<CryptoKey>> {
+  if (encryptedMasterKey.byteLength < 12) {
+    return err(
+      errEdtMessage(
+        commonErrors.decryptionFailed,
+        "encrypted master key data is too short to contain IV",
+      ),
+    );
+  }
+
   const iv = encryptedMasterKey.slice(0, 12);
   const cipherBytes = encryptedMasterKey.slice(12);
 
-  const rawMasterKeyBuffer = await window.crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: iv },
-    kek,
-    cipherBytes,
+  const rawMasterKeyBuffer = await fromPromiseErr(
+    window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, kek, cipherBytes),
+    errEdtMessage(
+      commonErrors.decryptionFailed,
+      "failed to decrypt MasterKey With KEK",
+    ),
   );
+  if (!rawMasterKeyBuffer.ok) return err(rawMasterKeyBuffer.error);
 
-  return await GetKeyFromRawData(rawMasterKeyBuffer);
+  return await GetKeyFromRawData(rawMasterKeyBuffer.value);
 }
 
-export async function GetKeyFromRawData(raw: ArrayBuffer): Promise<CryptoKey> {
-  return await window.crypto.subtle.importKey(
-    "raw",
-    raw,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"],
+export async function GetKeyFromRawData(
+  raw: ArrayBuffer,
+): Promise<Result<CryptoKey>> {
+  return await fromPromiseErr(
+    window.crypto.subtle.importKey(
+      "raw",
+      raw,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"],
+    ),
+    newAppErr("failedToImportKey", "failed to Import CryptoKey from Raw-Data"),
   );
 }
 
-export async function GetKeyFromString(key: string): Promise<CryptoKey> {
-  const binary = atob(key);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return GetKeyFromRawData(bytes.buffer);
+export async function GetKeyFromString(
+  key: string,
+): Promise<Result<CryptoKey>> {
+  const parsedBytes = fromThrowableErr(
+    () => {
+      const binary = atob(key);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    },
+    errEdtMessage(commonErrors.conversionFailed, "Invalid Base64 key string"),
+  );
+
+  if (!parsedBytes.ok) return err(parsedBytes.error);
+
+  return GetKeyFromRawData(parsedBytes.value.buffer);
 }

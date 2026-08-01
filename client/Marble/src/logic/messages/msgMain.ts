@@ -86,6 +86,11 @@ async function reCreateSessionViaMessage(
     session.audience.armedPubKey,
     MessageToJsonString,
   );
+  if (!encMessage.ok) {
+    addAppErrNotif(encMessage.error);
+    message.status = "notSend";
+    return false;
+  }
   const struct: {
     audienceId: number;
     message: string;
@@ -93,7 +98,7 @@ async function reCreateSessionViaMessage(
     sessionEventId: SessionId;
   } = {
     audienceId: session.audience.userId,
-    message: encMessage,
+    message: encMessage.value,
     MessageEventId: message.id,
     sessionEventId: session.id,
   };
@@ -121,6 +126,12 @@ export async function onRequestSendMessage(
     curSession.audience.armedPubKey,
     MessageToJsonString,
   );
+  if (!encMessage.ok) {
+    addAppErrNotif(encMessage.error);
+    message.status = "notSend";
+    return false;
+  }
+
   const struct: {
     audienceId: UserId;
     sessionId: SessionId;
@@ -129,7 +140,7 @@ export async function onRequestSendMessage(
   } = {
     audienceId: curSession.audience.userId,
     sessionId: curSession.sessionId,
-    message: encMessage,
+    message: encMessage.value,
     messageEventId: message.id,
   };
   const req: Request = {
@@ -152,10 +163,10 @@ export async function loadSavedMessages(): Promise<Message[] | null> {
   const existing = await GetMessages(currentUser.MasterKey, curSession, 10);
   if (existing.ok) {
     return existing.value;
-  }else{
-    addAppErrNotif(existing.error)
+  } else {
+    addAppErrNotif(existing.error);
   }
-  return null
+  return null;
 }
 
 export async function DeleteMessage(message: Message) {

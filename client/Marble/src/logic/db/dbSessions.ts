@@ -76,10 +76,11 @@ export async function GetSessions(
   const existing: Session[] = [];
 
   for (const val of res.value) {
-    const decSessionId = await fromPromiseErr(
-      decryptDataFromDb<SessionId>(val.session_id, masterKey),
-      commonErrors.decryptionFailed,
+    const decSessionId = await decryptDataFromDb<SessionId>(
+      val.session_id,
+      masterKey,
     );
+
     if (!decSessionId.ok) return err(decSessionId.error);
 
     let audience: Audience | null;
@@ -128,10 +129,8 @@ export async function UpdateSessionById(
 
   if (sessionId !== undefined && masterKey) {
     queryComb.push(`session_id = $${queryComb.length + 2}`);
-    const encSessionId = await fromPromiseErr(
-      encryptData(sessionId, masterKey),
-      commonErrors.encryptionFailed,
-    );
+    const encSessionId = await encryptData(sessionId, masterKey);
+
     if (!encSessionId.ok) return err(encSessionId.error);
     valueComb.push(encSessionId.value);
   }
