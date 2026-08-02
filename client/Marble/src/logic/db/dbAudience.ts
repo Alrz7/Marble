@@ -67,44 +67,26 @@ export async function InsertAudience(
 // ): Promise<number> {
 //   return Math.floor(Math.random() * 60);
 // }
-export async function GetAudience(
+
+type dbAudienceData = {
+  id: number;
+  user_id: number[];
+  display_id: number[];
+  owner_id: number;
+  name: number[];
+  public_key: number[];
+  profile_avatar: number[];
+};
+
+export async function GetAudienceById(
   id: number | null,
-  ownerId: number | null,
   masterKey: CryptoKey,
 ): Promise<Result<Audience>> {
-  let selectBy: string;
-  let targetVal: number;
-
-  if (id !== null) {
-    selectBy = "id";
-    targetVal = id;
-  } else if (ownerId !== null) {
-    selectBy = "owner_id";
-    targetVal = ownerId;
-  } else {
-    return err(
-      errEdtMessage(
-        commonErrors.unexpectedInput,
-        "expected an id or an ownerId, nither was valid",
-      ),
-    );
-  }
-
   const res = await fromPromiseErr(
-    db.select<
-      {
-        id: number;
-        user_id: number[];
-        display_id: number[];
-        owner_id: number;
-        name: number[];
-        public_key: number[];
-        profile_avatar: number[];
-      }[]
-    >(
+    db.select<dbAudienceData[]>(
       `--sql
-    SELECT * FROM audience WHERE ${selectBy} = $1`,
-      [targetVal],
+    SELECT * FROM audience WHERE id = $1`,
+      [id],
     ),
     errEdtMessage(
       commonErrors.dbfailedToGetData,
@@ -117,19 +99,7 @@ export async function GetAudience(
     return err(commonErrors.noRecordFound);
   }
 
-  const decrypted = await fromPromiseAllErr(
-    [
-      decryptDataFromDb<number>(res.value[0].user_id, masterKey),
-      decryptDataFromDb<string>(res.value[0].display_id, masterKey),
-      decryptDataFromDb<string>(res.value[0].name, masterKey),
-      decryptDataFromDb<string>(res.value[0].public_key, masterKey),
-      decryptDataFromDb<string>(res.value[0].profile_avatar, masterKey),
-    ],
-    errEdtMessage(
-      commonErrors.decryptionFailed,
-      "failed to decrypt audience data",
-    ),
-  );
+  const decrypted = await decypAudienceData(res.value[0], masterKey);
   if (!decrypted.ok) return err(decrypted.error);
 
   const [userId, displayId, name, armedPubKey, profileAvatar] = decrypted.value;
@@ -147,6 +117,70 @@ export async function GetAudience(
   return ok(existing);
 }
 
+export async function GetAudienceByOwnerId(
+  ownerId: number | null,
+  masterKey: CryptoKey,
+): Promise<Result<Audience[]>> {
+  const res = await fromPromiseErr(
+    db.select<dbAudienceData[]>(
+      `--sql
+    SELECT * FROM audience WHERE owner_id = $1`,
+      [ownerId],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching audience from db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+
+  if (res.value.length === 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
+  }
+
+  const existings: Audience[] = [];
+
+  for (const aud of res.value) {
+    const decrypted = await decypAudienceData(aud, masterKey);
+    if (!decrypted.ok) return err(decrypted.error);
+
+    const [userId, displayId, name, armedPubKey, profileAvatar] =
+      decrypted.value;
+
+    const audience: Audience = {
+      id: aud.id,
+      userId,
+      displayId,
+      ownerId: aud.owner_id,
+      name,
+      armedPubKey,
+      profileAvatar,
+      isOnline: false,
+    };
+    existings.push(audience);
+  }
+  return ok(existings);
+}
+
+const decypAudienceData = async (
+  data: dbAudienceData,
+  masterKey: CryptoKey,
+) => {
+  return await fromPromiseAllErr(
+    [
+      decryptDataFromDb<number>(data.user_id, masterKey),
+      decryptDataFromDb<string>(data.display_id, masterKey),
+      decryptDataFromDb<string>(data.name, masterKey),
+      decryptDataFromDb<string>(data.public_key, masterKey),
+      decryptDataFromDb<string>(data.profile_avatar, masterKey),
+    ],
+    errEdtMessage(
+      commonErrors.decryptionFailed,
+      "failed to decrypt audience data",
+    ),
+  );
+};
+
 export async function DeleteAudienceFromDb(
   audience: Audience,
 ): Promise<Result<void>> {
@@ -154,8 +188,8 @@ export async function DeleteAudienceFromDb(
   let ac = 0;
   for (const session of sessions.values()) {
     if (session.audience.id === audience.id) ac++;
+    if (ac >= 2) return ok(undefined);
   }
-  if (ac >= 2) return ok(undefined);
 
   const query = `DELETE FROM audience WHERE id = $1`;
   const res = await fromPromiseErr(

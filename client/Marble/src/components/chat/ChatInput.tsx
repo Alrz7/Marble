@@ -78,44 +78,42 @@ export default function ChatInput() {
   const handleEmoji = () => {};
 
   return (
-    <div className="relative z-10 px-6 pb-6 pt-2">
-      <div className="flex items-end gap-2 glass-panel rounded-2xl px-3 py-2.5">
-        <button
-          onClick={handleAttach}
-          className="p-2 rounded-xl hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground shrink-0"
-          title="Attach file"
-        >
-          <Paperclip className="w-5 h-5" />
-        </button>
+    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[97%] flex items-end gap-2 rounded-xl px-3 py-2.5 border border-white/10 bg-black/10 backdrop-blur-xl shadow-lg transition-all">
+      <button
+        onClick={handleAttach}
+        className="p-2 rounded-xl hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground shrink-0"
+        title="Attach file"
+      >
+        <Paperclip className="w-5 h-5" />
+      </button>
 
-        <textarea
-          ref={textareaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onInput={handleInput}
-          placeholder="Type a message..."
-          className="flex-1 bg-transparent text-foreground placeholder-muted-foreground resize-none outline-none max-h-32 text-sm py-1.5"
-          rows={1}
-        />
+      <textarea
+        ref={textareaRef}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onInput={handleInput}
+        placeholder="Type a message..."
+        className="flex-1 bg-transparent text-foreground placeholder-muted-foreground resize-none outline-none max-h-32 text-sm py-1.5"
+        rows={1}
+      />
 
-        <button
-          onClick={handleEmoji}
-          className="p-2 rounded-xl hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground shrink-0"
-          title="Add emoji"
-        >
-          <Smile className="w-5 h-5" />
-        </button>
+      <button
+        onClick={handleEmoji}
+        className="p-2 rounded-xl hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground shrink-0"
+        title="Add emoji"
+      >
+        <Smile className="w-5 h-5" />
+      </button>
 
-        <button
-          onClick={onSend}
-          disabled={!message.trim()}
-          className="p-2.5 rounded-xl bg-primary hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-primary-foreground shrink-0"
-          title="Send message"
-        >
-          <Send className="w-5 h-5" />
-        </button>
-      </div>
+      <button
+        onClick={onSend}
+        disabled={!message.trim()}
+        className="p-2.5 rounded-xl bg-primary hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-primary-foreground shrink-0"
+        title="Send message"
+      >
+        <Send className="w-5 h-5" />
+      </button>
     </div>
   );
 }

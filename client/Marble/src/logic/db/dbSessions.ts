@@ -1,6 +1,6 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
 import { Audience, Session, SessionId, UserId } from "@internal/intrCmnTypes";
-import { GetAudience } from "./dbAudience";
+import { GetAudienceById } from "./dbAudience";
 import { db } from "./dbMain";
 import { isItSavedMessages } from "@internal/intrHelperfuncs";
 import { savedMessagesAudience } from "@internal/intrCmnVars";
@@ -17,14 +17,20 @@ export async function InsertSession(
   session: Session,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
-  const encSessionId = await encryptData(session.sessionId, masterKey)
+  const encSessionId = await encryptData(session.sessionId, masterKey);
   if (!encSessionId.ok) return err(encSessionId.error);
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
       `INSERT INTO session (session_id, seq, owner_id, audience_id, message_sequence) VALUES ($1, $2, $3, $4, $5)
     RETURNING id`,
-      [encSessionId.value, session.seq, session.ownerId, session.audience.id, 0],
+      [
+        encSessionId.value,
+        session.seq,
+        session.ownerId,
+        session.audience.id,
+        0,
+      ],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -84,7 +90,7 @@ export async function GetSessions(
     if (isItSavedMessages(decSessionId.value)) {
       audience = { ...savedMessagesAudience, ownerId: ownerId };
     } else {
-      const audByDb = await GetAudience(null, ownerId, masterKey);
+      const audByDb = await GetAudienceById(val.audience_id, masterKey);
       if (!audByDb.ok) return err(audByDb.error);
       audience = audByDb.value;
     }

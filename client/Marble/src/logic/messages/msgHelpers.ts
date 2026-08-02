@@ -4,6 +4,7 @@ import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { messageState } from "./stateMessage";
 import { err, ok } from "@internal/golog";
+import { addNewNotification } from "@states/stateNotif";
 
 export async function saveNewMessage(
   session: Session,
@@ -38,6 +39,10 @@ export async function onSendNewSavedMessage(message: Message) {
   const { currentSessionId, sessions } = sessionsState.getState();
   const curSession = sessions.get(currentSessionId);
   if (!curSession || !currentUser) return;
+  if(!curSession.isSavedMessages){
+    addNewNotification("error", "notSavedMessage", "expecting sesion is not a saved-Message Session")
+    return
+  }
 
   message.status = "read";
   await saveNewMessage(curSession, currentUser.MasterKey, message);

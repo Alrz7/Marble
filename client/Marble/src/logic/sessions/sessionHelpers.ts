@@ -1,5 +1,5 @@
 import { sessionsState } from "@sessions/sessionStates";
-import { Message, Session } from "@internal/intrCmnTypes";
+import { Audience, Message, Session } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/userMainStates";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertSession } from "@db/dbSessions";
@@ -28,24 +28,18 @@ export function isSessionLegit(session: Session | undefined): boolean {
 }
 
 /** 
-SameOnStage checks for a new addingSession to be Unique and not
+IsAlreadyInTouch checks for a new addingSession to be Unique and not
 duplicate if there was a duplicate existing -> it returns that session,
 otherwise if it was Unique -> it returns Null.
  */
-export async function SameOnStage(
-  addingSession: Session,
+export async function IsAlreadyInTouch(
+  audience: Audience,
 ): Promise<Session | null> {
-  const { currentSessionId, sessions } = sessionsState.getState();
-  const curSession = sessions.get(currentSessionId);
-
-  for (const ex of curSession
-    ? [curSession, ...sessions.values()]
-    : [...sessions.values()]) {
-    if (ex.audience.userId === addingSession.audience.userId) {
-      return ex;
-    }
-  }
-  return null;
+  const { sessions } = sessionsState.getState();
+  const session = Array.from(sessions.values()).find(
+    (s) => s.audience.userId == audience.userId,
+  );
+  return session ?? null;
 }
 
 export async function onCreateSessionSavedMessages(message: Message) {

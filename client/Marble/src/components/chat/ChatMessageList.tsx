@@ -38,7 +38,7 @@ export default function ChatMessageList() {
   return (
     <div
       ref={scrollContainerRef}
-      className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 pt-24 pb-6 space-y-3 marble-scrollbar"
+      className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 pt-6 pb-24 space-y-3 marble-scrollbar"
     >
       {messages.size === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center gap-1">

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Circle } from "lucide-react";
+// import { Circle } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
 import { GetSessions } from "@db/dbSessions";
@@ -49,7 +50,7 @@ export default function SessionsList() {
   // }, [Messagelist]);
 
   // useEffect(() => {
-  //   console.log(currentSessionId, sessions);
+  //   console.log(currentSessionId, sessions); // LOG
   // }, [currentSessionId, sessions]);
 
   return (
@@ -69,11 +70,15 @@ export default function SessionsList() {
           >
             <div className="relative shrink-0">
               <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground">
-                {session.audience.name.charAt(0)}
+                {session.isSavedMessages ? (
+                  <Bookmark />
+                ) : (
+                  session.audience.name.charAt(0)
+                )}
               </div>
-              {session.audience.isOnline && (
+              {/* {session.audience.isOnline && (
                 <Circle className="absolute bottom-0 right-0 w-3 h-3 bg-accent text-accent rounded-full border-2 border-background" />
-              )}
+              )} */}
             </div>
 
             <div className="flex-1 min-w-0 text-left">

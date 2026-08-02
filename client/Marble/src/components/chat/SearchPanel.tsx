@@ -1,9 +1,9 @@
-import { MessageCircle } from "lucide-react";
+import { Bookmark, MessageCircle } from "lucide-react";
 import { searchResult } from "@states/appCommonStates";
 import { Audience, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import { AppUser } from "@states/userMainStates";
-import { SameOnStage } from "@sessions/sessionHelpers";
+import { IsAlreadyInTouch } from "@sessions/sessionHelpers";
 import { reserveSessionId } from "@sessions/sessionHelpers";
 import { SavedMessagesSesionId } from "@internal/intrCmnVars";
 
@@ -18,28 +18,28 @@ export default function SearchPanel({ query }: SearchPanelProps) {
 
   async function setNewSessionOnStage(audience: Audience) {
     if (!currentUser) return;
-    const newReservedId = reserveSessionId();
-    audience.ownerId = currentUser.config.id;
-    const preReservedSession: Session = {
-      id: newReservedId,
-      seq: newReservedId,
-      ownerId: currentUser?.config.id,
-      sessionId: newReservedId,
-      onCreateStage: true,
-      audience: audience,
-      message_sequence: 0,
-    };
-    if (audience.isSavedMessages) {
-      preReservedSession.sessionId = SavedMessagesSesionId;
-      preReservedSession.isSavedMessages = true;
-    }
+    const existing = await IsAlreadyInTouch(audience);
+    if (existing !== null) {
+      setCurrentSessionId(existing.id);
+    } else {
+      const newReservedId = reserveSessionId();
+      audience.ownerId = currentUser.config.id;
+      const preReservedSession: Session = {
+        id: newReservedId,
+        seq: newReservedId,
+        ownerId: currentUser?.config.id,
+        sessionId: newReservedId,
+        onCreateStage: true,
+        audience: audience,
+        message_sequence: 0,
+      };
+      if (audience.isSavedMessages) {
+        preReservedSession.sessionId = SavedMessagesSesionId;
+        preReservedSession.isSavedMessages = true;
+      }
 
-    const existing = await SameOnStage(preReservedSession);
-    if (existing === null) {
       addSession(preReservedSession);
       setCurrentSessionId(newReservedId);
-    } else {
-      setCurrentSessionId(existing.id);
     }
   }
 
@@ -67,7 +67,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
           onClick={() => setNewSessionOnStage(user)}
         >
           <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0">
-            {user.name.charAt(0)}
+            {user.isSavedMessages ? <Bookmark/> :user.name.charAt(0)}
           </div>
           <div className="text-left">
             <h3 className="font-medium text-foreground text-sm">{user.name}</h3>
