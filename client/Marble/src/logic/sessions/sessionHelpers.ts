@@ -1,11 +1,11 @@
 import { sessionsState } from "@sessions/sessionStates";
 import { Audience, Message, Session } from "@internal/intrCmnTypes";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertSession } from "@db/dbSessions";
 import { InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
-import { ResetSearchPrcs } from "@states/appCommonStates";
+import { ResetSearchPrcs } from "@states/stateCommon";
 import { addAppErrNotif } from "@internal/golog";
 
 export function reserveSessionId(): number {

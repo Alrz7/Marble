@@ -1,13 +1,12 @@
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { MessageStatus, Request } from "./actTypes";
 import { sendRequest } from "./actWsCore";
-import { searchResult } from "@states/appCommonStates";
+import { searchResult } from "@states/stateCommon";
 import { savedMessagesAudience } from "@internal/intrCmnVars";
 import { setAuthToken } from "@internal/intrAuthHelpers";
 import { UserConfig } from "@internal/intrCmnTypes";
 import { fetch } from "@tauri-apps/plugin-http";
 import { openConnection } from "./actWsRouter";
-
 
 export async function signIn(
   DisplayId: string,

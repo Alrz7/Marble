@@ -1,8 +1,8 @@
-import { StateVariables } from "./../internal/intrCmnVars";
+import { StateVariables } from "../internal/intrCmnVars";
 import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
 
-export type PAGES = "loading" | "login" | "signup";
+export type PAGES = "loading" | "login" | "signup" | "dayilyLogin";
 type connectionTitles = "waiting for network..." | "connecting..." | "Marble";
 interface AppState {
   appState: PAGES;

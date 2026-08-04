@@ -1,6 +1,6 @@
 // import { Circle } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
-import { stateCommon } from "@states/appCommonStates";
+import { stateCommon } from "@states/stateCommon";
 import { StateVariables } from "@internal/intrCmnVars";
 
 export default function ChatHeader() {

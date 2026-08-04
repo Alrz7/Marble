@@ -3,11 +3,11 @@ import ChatMessageList from "./ChatMessageList";
 import ChatInput from "./ChatInput";
 import { sessionsState } from "@sessions/sessionStates";
 import UserProfilePanel from "./UserProfilePanel";
-import { stateCommon } from "@states/appCommonStates";
+import { stateCommon } from "@states/stateCommon";
 import { StateVariables } from "@internal/intrCmnVars";
 
 export default function ChatArea() {
-  const {states, setState}  = stateCommon()
+  const { states, setState } = stateCommon();
   const { currentSessionId, sessions } = sessionsState();
   const curSession = sessions.get(currentSessionId);
   return (
@@ -21,7 +21,7 @@ export default function ChatArea() {
 
       {curSession ? (
         <div className="relative z-10 flex flex-col h-full">
-          <ChatHeader/>
+          <ChatHeader />
           <ChatMessageList />
           <ChatInput />
           {states.get(StateVariables.SHOW_PROFILE_PANEL) && curSession && (

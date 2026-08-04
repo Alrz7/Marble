@@ -4,41 +4,50 @@ import { setAuthToken } from "@internal/intrAuthHelpers";
 import { openConnection } from "@active/actWsRouter";
 import { GetUser, SetActiveUserId } from "@db/dbUsers";
 import { SignWithHmac } from "@enc/encHelpers";
-import { GetOrCreateKeyChainKey } from "@enc/encMain";
+import {
+  GetMasterKeyFromMasterString,
+  GetOrCreateKeyChainKey,
+} from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
-import { addAppErrNotif, commonErrors } from "@internal/golog";
+import { commonErrors, err, ok, Result } from "@internal/golog";
 
 // on the login we need to set the Logging-user as Primary-user
-export async function login(
+export async function onLogin(
   DisplayId: string,
-  password: string,
-): Promise<User | null> {
+  masterPassPhrase: string,
+): Promise<Result<User | null>> {
   const kek = await GetOrCreateKeyChainKey();
   if (!kek.ok) {
-    addAppErrNotif(kek.error);
-    return null;
+    return err(kek.error);
   }
   if (kek.value == null) {
-    addAppErrNotif(commonErrors.keychainKeyNotValid);
-    return null;
+    return err(commonErrors.keychainKeyNotValid);
   }
 
   const signedDIsplayId = await SignWithHmac(
     DefEncoder.encode(DisplayId).buffer,
   );
   if (!signedDIsplayId.ok) {
-    addAppErrNotif(signedDIsplayId.error);
-    return null;
+    return err(signedDIsplayId.error);
   }
-  const existingUser = await GetUser(kek.value, null, signedDIsplayId.value);
+
+  const localMasterKey = await GetMasterKeyFromMasterString(masterPassPhrase);
+  if (!localMasterKey.ok) {
+    return err(localMasterKey.error);
+  }
+
+  const existingUser = await GetUser(
+    localMasterKey.value,
+    null,
+    signedDIsplayId.value,
+  );
   if (!existingUser.ok) {
-    addAppErrNotif(existingUser.error);
-    return null;
+    return err(existingUser.error);
   }
-  userSignIn(DisplayId, password); // this is gonna be replaced with userSignIn() later
+  userSignIn(DisplayId, masterPassPhrase); // this is gonna be replaced with userSignIn() later
 
   SetActiveUserId(existingUser.value.config.id);
-  return existingUser.value;
+  return ok(existingUser.value);
 }
 
 export async function logOut() {

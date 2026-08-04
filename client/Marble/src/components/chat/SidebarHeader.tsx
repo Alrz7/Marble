@@ -1,4 +1,4 @@
-import { AppState } from "@states/appCommonStates";
+import { AppState } from "@states/stateCommon";
 import { MessageCircle } from "lucide-react";
 
 export default function SidebarHeader() {

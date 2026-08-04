@@ -128,9 +128,9 @@ export async function decryptData<T>(
   return ok(res.value);
 }
 
-export async function encryptMasterKeyWithKEK(
+export async function encryptMasterKey(
   masterKey: CryptoKey,
-  kek: CryptoKey,
+  encryptionKey: CryptoKey,
 ): Promise<Result<Uint8Array>> {
   const rawMasterKeyBuffer = await fromPromiseErr(
     window.crypto.subtle.exportKey("raw", masterKey),
@@ -144,7 +144,7 @@ export async function encryptMasterKeyWithKEK(
   const encryptedBuffer = await fromPromiseErr(
     window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv: iv },
-      kek,
+      encryptionKey,
       rawMasterKeyBytes,
     ),
     errEdtMessage(
@@ -191,12 +191,16 @@ export async function decryptMasterKeyWithKEK(
 }
 
 export async function GetKeyFromRawData(
-  raw: ArrayBuffer,
+  raw: Uint8Array | ArrayBuffer,
 ): Promise<Result<CryptoKey>> {
+  const bufferSource = (
+    raw instanceof Uint8Array ? raw.buffer : raw
+  ) as ArrayBuffer;
+
   return await fromPromiseErr(
     window.crypto.subtle.importKey(
       "raw",
-      raw,
+      bufferSource,
       { name: "AES-GCM", length: 256 },
       true,
       ["encrypt", "decrypt"],

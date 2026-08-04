@@ -2,7 +2,7 @@ import { useEffect } from "react";
 // import { Circle } from "lucide-react";
 import { Bookmark } from "lucide-react";
 import { sessionsState } from "@sessions/sessionStates";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { GetSessions } from "@db/dbSessions";
 import { messageState } from "@messages/stateMessage";
 import { addAppErrNotif } from "@internal/golog";

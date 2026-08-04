@@ -6,7 +6,7 @@ import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
 import { logOut } from "@auth/login";
 import { onSearchUser } from "@active/actWsClientHandelers";
-import { searchResult } from "@states/appCommonStates";
+import { searchResult } from "@states/stateCommon";
 
 export default function Sidebar() {
   const {
@@ -20,8 +20,8 @@ export default function Sidebar() {
   const [showSettings, setShowSettings] = useState(false);
 
   const RequestForSearch = (query: string) => {
-    if(searchQuery.length > 0 && query.length == 0){
-      setUsers([])
+    if (searchQuery.length > 0 && query.length == 0) {
+      setUsers([]);
     }
     setSearchQuery(query);
     onSearchUser(query);

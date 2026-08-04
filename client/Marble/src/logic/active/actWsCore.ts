@@ -1,20 +1,19 @@
 import { GetAuthToken } from "@internal/intrAuthHelpers";
-import {  Request } from "./actTypes";
-import { AppState, stateCommon } from "@states/appCommonStates";
+import { Request } from "./actTypes";
+import { AppState, stateCommon } from "@states/stateCommon";
 import { addNewNotification } from "@states/stateNotif";
 import { StateVariables } from "@internal/intrCmnVars";
-
 
 export let ws: WebSocket | null = null;
 export function setWs(val: WebSocket | null) {
   ws = val;
 }
 export let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-export function setReconnectTimeout(timeout: ReturnType<typeof setTimeout> | null) {
+export function setReconnectTimeout(
+  timeout: ReturnType<typeof setTimeout> | null,
+) {
   reconnectTimeout = timeout;
 }
-
-
 
 export function sendRequest(req: Request): boolean {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -44,7 +43,7 @@ export function sendRequest(req: Request): boolean {
 }
 
 export function sendToken() {
-  const {setConnTitle} = AppState.getState()
+  const { setConnTitle } = AppState.getState();
   const token = GetAuthToken();
   if (token) {
     const req: Request = {
@@ -53,6 +52,6 @@ export function sendToken() {
       token: token,
     };
     const res = sendRequest(req);
-    if(res)setConnTitle("connecting...")
+    if (res) setConnTitle("connecting...");
   }
 }

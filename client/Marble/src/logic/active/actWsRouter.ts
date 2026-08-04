@@ -13,7 +13,7 @@ import {
   HndlSessions,
 } from "@active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
-import { AppState, stateCommon } from "@states/appCommonStates";
+import { AppState, stateCommon } from "@states/stateCommon";
 
 const handlers: Handelers = {
   auth: HndlAuthStatus,
@@ -90,7 +90,6 @@ function ReconnectWS() {
   setReconnectTimeout(
     setTimeout(() => {
       openConnection();
-      console.log("opennnning");
       if (ws?.OPEN) {
         // ReconnectWS();
       }

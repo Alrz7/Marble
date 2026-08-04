@@ -2,9 +2,10 @@ import {
   decryptDataFromDb,
   decryptMasterKeyWithKEK,
   encryptData,
-  encryptMasterKeyWithKEK,
+  encryptMasterKey,
 } from "@enc/encMaster";
 import {
+  AuthMethod,
   DefEncoder,
   pgpProfile,
   User,
@@ -28,17 +29,17 @@ import {
 // ------- Users --------
 export async function InsertUser(
   user: User,
-  keychainKey: CryptoKey,
+  wrappingKey: CryptoKey,
 ): Promise<Result<number>> {
   const encrypted = await fromPromiseAllErr(
     [
-      encryptData(user.config.userId, keychainKey),
-      encryptData(user.config.displayId, keychainKey),
+      encryptData(user.config.userId, wrappingKey),
+      encryptData(user.config.displayId, wrappingKey),
       SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
-      encryptData(user.config.name, keychainKey),
-      encryptData(user.config.email, keychainKey),
-      encryptMasterKeyWithKEK(user.MasterKey, keychainKey),
-      encryptData(user.config.profile_avatar, keychainKey),
+      encryptData(user.config.name, wrappingKey),
+      encryptData(user.config.email, wrappingKey),
+      encryptMasterKey(user.MasterKey, wrappingKey),
+      encryptData(user.config.profile_avatar, wrappingKey),
     ],
     commonErrors.encryptionFailed,
   );
@@ -46,9 +47,9 @@ export async function InsertUser(
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
-      `INSERT INTO users (user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (auth_method, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING id`,
-      encrypted.value,
+      [user.authMethod, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -76,7 +77,7 @@ export async function InsertUser(
 }
 
 export async function GetUser(
-  keychainKey: CryptoKey,
+  wrappingKey: CryptoKey,
   id: number | null,
   display_id: ArrayBuffer | null,
 ): Promise<Result<User>> {
@@ -101,6 +102,7 @@ export async function GetUser(
   const res = await fromPromiseErr(
     db.select<
       {
+        auth_method: string;
         id: number;
         user_id: string;
         display_id: string;
@@ -110,7 +112,7 @@ export async function GetUser(
         profile_avatar: string;
       }[]
     >(
-      `SELECT id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
+      `SELECT auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
       [targetVal],
     ),
     errEdtMessage(
@@ -125,11 +127,11 @@ export async function GetUser(
   }
 
   const decryprted = await fromPromiseAllErr([
-    decryptDataFromDb<number>(res.value[0].user_id, keychainKey),
-    decryptDataFromDb<string>(res.value[0].display_id, keychainKey),
-    decryptDataFromDb<string>(res.value[0].name, keychainKey),
-    decryptDataFromDb<string>(res.value[0].email, keychainKey),
-    decryptDataFromDb<string>(res.value[0].profile_avatar, keychainKey),
+    decryptDataFromDb<number>(res.value[0].user_id, wrappingKey),
+    decryptDataFromDb<string>(res.value[0].display_id, wrappingKey),
+    decryptDataFromDb<string>(res.value[0].name, wrappingKey),
+    decryptDataFromDb<string>(res.value[0].email, wrappingKey),
+    decryptDataFromDb<string>(res.value[0].profile_avatar, wrappingKey),
   ]);
   if (!decryprted.ok) return err(decryprted.error);
   const [userId, displayId, name, email, profile_avatar] = decryprted.value;
@@ -145,7 +147,7 @@ export async function GetUser(
   const converted = blobFromDb(res.value[0].encrypted_master_key);
   if (!converted.ok) return err(converted.error);
 
-  const masterKey = await decryptMasterKeyWithKEK(converted.value, keychainKey);
+  const masterKey = await decryptMasterKeyWithKEK(converted.value, wrappingKey);
   if (!masterKey.ok) return err(masterKey.error);
 
   const pgpProfile = await GetPgpProfile(config.id, masterKey.value);
@@ -155,7 +157,30 @@ export async function GetUser(
     config,
     MasterKey: masterKey.value,
     Pgp: pgpProfile.value,
+    authMethod: res.value[0].auth_method as AuthMethod,
   });
+}
+
+export async function GetUserAuthMethod(
+  id: number,
+): Promise<Result<AuthMethod>> {
+  const res = await fromPromiseErr(
+    db.select<
+      {
+        auth_method: string;
+      }[]
+    >(`SELECT auth_method FROM users WHERE id = $1`, [id]),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching user from db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+
+  if (res.value.length === 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
+  }
+  return ok(res.value[0].auth_method as AuthMethod);
 }
 
 export async function getActiveUserId(): Promise<Result<UserId>> {

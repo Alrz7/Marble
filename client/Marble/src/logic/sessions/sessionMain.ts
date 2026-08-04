@@ -4,7 +4,7 @@ import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
 import { sendRequest } from "@active/actWsCore";
 import { sessionsState } from "@sessions/sessionStates";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
 import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";

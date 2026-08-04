@@ -1,12 +1,12 @@
 import { Audience, Message, Session, SessionId } from "@internal/intrCmnTypes";
-import { AppState, searchResult } from "@states/appCommonStates";
+import { AppState, searchResult } from "@states/stateCommon";
 import {
   actAddSession,
   HandlSessionEventResponse,
   hndlAddSession,
 } from "../sessions/actSessionHandlers";
 import { Request } from "./actTypes";
-import { stateCommon } from "@states/appCommonStates";
+import { stateCommon } from "@states/stateCommon";
 import { MessageStatus } from "./actTypes";
 import { sessionsState } from "@sessions/sessionStates";
 import {
@@ -18,7 +18,7 @@ import { notifState } from "@states/stateNotif";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { onSyncSession } from "@sessions/sessionMain";
 import { onCLearSyncedMessage, onSyncMessage } from "@messages/msgMain";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { addAppErrNotif } from "@internal/golog";
 
 export function HndlSessions(req: Request) {

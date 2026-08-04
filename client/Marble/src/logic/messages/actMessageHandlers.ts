@@ -9,7 +9,7 @@ import {
 } from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
 import { sessionsState } from "@sessions/sessionStates";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
 import { ResendQueue, saveNewMessage } from "./msgHelpers";
 import { dbUpdateMessageById, GetMessageById } from "@db/dbMessages";

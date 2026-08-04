@@ -11,12 +11,15 @@ export type User = {
   config: UserConfig;
   MasterKey: CryptoKey;
   Pgp: pgpProfile;
+  authMethod: AuthMethod;
 };
 
 export type UserId = number;
 export type SessionId = number;
 export type DisplayId = string;
 export type StorageId = string;
+export type RecoveryModes = "custom" | "generated" | null;
+export type AuthMethod = "keychain" | "passphrase" | "keychain-passphrase";
 
 export type UserConfig = {
   id: number;

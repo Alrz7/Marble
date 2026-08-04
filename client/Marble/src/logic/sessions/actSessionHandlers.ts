@@ -8,12 +8,12 @@ import {
 } from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
 import { sessionsState } from "@sessions/sessionStates";
-import { AppUser } from "@states/userMainStates";
+import { AppUser } from "@states/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";
 import { actAddMessage, HandleMsgEvent } from "@messages/actMessageHandlers";
-import { ResetSearchPrcs } from "@states/appCommonStates";
+import { ResetSearchPrcs } from "@states/stateCommon";
 import { addAppErrNotif, commonErrors, err, ok, Result } from "@internal/golog";
 
 /** 

@@ -1,7 +1,7 @@
 import { X, Circle, KeyRound } from "lucide-react";
 import { Session } from "@internal/intrCmnTypes";
 import { onDeleteSession } from "@sessions/sessionMain";
-import { stateCommon } from "@states/appCommonStates";
+import { stateCommon } from "@states/stateCommon";
 import { StateVariables } from "@internal/intrCmnVars";
 
 interface UserProfilePanelProps {

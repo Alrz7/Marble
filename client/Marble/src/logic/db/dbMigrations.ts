@@ -6,6 +6,7 @@ CREATE TABLE users (
     hmac_display_id BLOB NOT NULL,
     name BLOB NOT NULL,
     email BLOB NOT NULL,
+    auth_method TEXT NOT NULL,
     encrypted_master_key BLOB NOT NULL,
     profile_avatar BLOB
 );
