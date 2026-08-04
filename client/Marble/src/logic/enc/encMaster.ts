@@ -162,7 +162,7 @@ export async function encryptMasterKey(
   return ok(combined);
 }
 
-export async function decryptMasterKeyWithKEK(
+export async function decryptMasterKey(
   encryptedMasterKey: Uint8Array,
   kek: CryptoKey,
 ): Promise<Result<CryptoKey>> {

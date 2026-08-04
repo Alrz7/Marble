@@ -1,23 +1,19 @@
 import { disconnectWS } from "@active/actWsRouter";
-import { SetActiveUserId } from "@db/dbUsers";
 import { AppState, stateCommon } from "./stateCommon";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { messageState } from "@messages/stateMessage";
 import { AppUser } from "./stateUser";
 
 export async function ResetStates() {
-  const { setUserData } = AppUser.getState();
-  const { setCurrentSessionId, setSessions } = sessionsState.getState();
-  const { setMessages } = messageState.getState();
-  const { setState } = stateCommon.getState();
-  const { setAppState } = AppState.getState();
+  const { resetUserData } = AppUser.getState();
+  const { resetSessionStates } = sessionsState.getState();
+  const { resetMessageStates } = messageState.getState();
+  const { resetCommonStates } = stateCommon.getState();
+  const { resetAppStates } = AppState.getState();
   disconnectWS();
-  setUserData(null);
-  setCurrentSessionId(-1);
-  setSessions([]);
-  setMessages([]);
-  setState("authorized", false);
-  setState("syncedSession", false);
-  SetActiveUserId(-1);
-  setAppState("login");
+  resetUserData();
+  resetSessionStates();
+  resetMessageStates();
+  resetCommonStates();
+  resetAppStates();
 }

@@ -6,7 +6,7 @@ interface LoadingPageProps {
 
 export default function LoadingPage({ onLoadComplete }: LoadingPageProps) {
   useEffect(() => {
-    const timer = setTimeout(onLoadComplete, 2500);
+    const timer = setTimeout(onLoadComplete, 500);
     return () => clearTimeout(timer);
   }, [onLoadComplete]);
 

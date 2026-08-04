@@ -8,7 +8,7 @@ import {
   User,
 } from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { AppUser } from "@states/stateUser";
 import { getSessionBySessionId } from "@sessions/actSessionHandlers";
 import { ResendQueue, saveNewMessage } from "./msgHelpers";

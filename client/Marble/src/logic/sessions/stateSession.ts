@@ -10,11 +10,16 @@ interface SessionsState {
   UpdateCurrentSession: (next: Session) => void;
   setCurrentSessionId: (id: number) => void;
   deleteSession: (id: number) => void;
+  resetSessionStates: () => void;
 }
 
-export const sessionsState = create<SessionsState>((set) => ({
+const initialSessionStates = {
   sessions: new Map<number, Session>([]),
   currentSessionId: 0,
+};
+
+export const sessionsState = create<SessionsState>((set) => ({
+  ...initialSessionStates,
   setSessions: (list: Session[]) =>
     set(() => {
       const newSessions = new Map();
@@ -63,4 +68,5 @@ export const sessionsState = create<SessionsState>((set) => ({
         currentSessionId: newCurId,
       };
     }),
+  resetSessionStates: () => set( initialSessionStates ),
 }));

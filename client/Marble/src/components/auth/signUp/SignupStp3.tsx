@@ -6,7 +6,7 @@ import { addAppErrNotif, commonErrors } from "@internal/golog";
 import { AppUser } from "@states/stateUser";
 
 export default function SignupStp3() {
-  const { setStep, setAuthMethod } = stateSignUp();
+  const { setStep, setAuthMethod, resetSignUpStore } = stateSignUp();
   const { setUserData } = AppUser();
 
   const handleAuthMethodSelect = async (method: AuthMethod) => {
@@ -23,6 +23,7 @@ export default function SignupStp3() {
         return;
       }
       setUserData(res.value);
+      resetSignUpStore()
     } else {
       setStep(4);
     }

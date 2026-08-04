@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Message } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/stateUser";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { notifState } from "@states/stateNotif";
 import { DeleteMessage } from "@messages/msgMain";

@@ -1,12 +1,12 @@
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { Audience, Message, Session } from "@internal/intrCmnTypes";
 import { AppUser } from "@states/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertSession } from "@db/dbSessions";
 import { InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
-import { ResetSearchPrcs } from "@states/stateCommon";
 import { addAppErrNotif } from "@internal/golog";
+import { searchResult } from "@states/stateCommon";
 
 export function reserveSessionId(): number {
   const { sessions } = sessionsState.getState();
@@ -81,5 +81,6 @@ export async function onCreateSessionSavedMessages(message: Message) {
   const { addMessage } = messageState.getState();
   addMessage(message);
 
-  ResetSearchPrcs();
+  const { resetSearchResult } = searchResult.getState();
+  resetSearchResult();
 }

@@ -4,6 +4,7 @@ import { AuthMethod } from "@internal/intrCmnTypes";
 import { loadConfigByMethod } from "@user/userLoadUp";
 import { err, ok } from "@internal/golog";
 import { AppUser } from "@states/stateUser";
+import { logOut } from "@auth/login";
 
 interface PassphraseViewProps {
   user_id: number;
@@ -23,19 +24,26 @@ export function PassphraseView({
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    const userData = await loadConfigByMethod(user_id, authMethod, passphrase);
-    if (!userData.ok) {
-      return err(userData.error);
-    } else {
-      setUserData(userData.value);
-      return ok(undefined);
+    try {
+      setIsLoading(true);
+      const userData = await loadConfigByMethod(
+        user_id,
+        authMethod,
+        passphrase,
+      );
+      if (!userData.ok) {
+        return err(userData.error);
+      } else {
+        setUserData(userData.value);
+        return ok(undefined);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleLogout = () => {
-    // TODO: Clear local session / DB and return to initial Auth Screen
-    console.log("Logging out...");
+    logOut();
   };
 
   return (

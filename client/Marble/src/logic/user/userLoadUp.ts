@@ -1,8 +1,16 @@
 import { userSignIn } from "@auth/login.ts";
 import { AuthMethod, User } from "@internal/intrCmnTypes";
 import { InitAndMigrate } from "@db/dbMain.ts";
-import { getActiveUserId, GetUser, GetUserAuthMethod } from "@db/dbUsers.ts";
-import { GetWrappingKeyByMethod } from "@enc/encMain.ts";
+import {
+  getActiveUserId,
+  GetUserAuthMethod,
+  getUserByMasterKey,
+  getUserByWrappingKey,
+} from "@db/dbUsers.ts";
+import {
+  GetMasterKeyFromMasterString,
+  GetWrappingKeyByMethod,
+} from "@enc/encMain.ts";
 import { err, ok, Result } from "@internal/golog";
 
 export async function getActiveUserAuthMethod(): Promise<
@@ -31,10 +39,32 @@ export async function loadConfigByMethod(
   if (!wrappingKey.ok) {
     return err(wrappingKey.error);
   }
-  const currentUser = await GetUser(wrappingKey.value, user_id, null);
+  const currentUser = await getUserByWrappingKey(wrappingKey.value, user_id);
   if (!currentUser.ok) {
     return err(currentUser.error);
   }
+  userSignIn(currentUser.value.config.displayId, "testingg!"); // this is gonna be replaced with autoSignIn() later
+  return ok(currentUser.value);
+}
+
+export async function loadConfigByMasterPhrase(
+  user_id: number,
+  masterPassPhrase: string,
+): Promise<Result<User | null>> {
+  const localMasterKey = await GetMasterKeyFromMasterString(masterPassPhrase);
+  if (!localMasterKey.ok) {
+    return err(localMasterKey.error);
+  }
+
+  const currentUser = await getUserByMasterKey(
+    localMasterKey.value,
+    user_id,
+    null,
+  );
+  if (!currentUser.ok) {
+    return err(currentUser.error);
+  }
+
   userSignIn(currentUser.value.config.displayId, "testingg!"); // this is gonna be replaced with autoSignIn() later
   return ok(currentUser.value);
 }

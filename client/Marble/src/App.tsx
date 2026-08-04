@@ -10,7 +10,7 @@ import {
 import { AppUser } from "./logic/states/stateUser";
 import { AppState } from "./logic/states/stateCommon";
 import LoginScreen from "./components/auth/login/LoginScreen";
-import { commonErrors, err, errEdtMessage, ok } from "@internal/golog";
+import { err, ok } from "@internal/golog";
 import DayilyLoginScreen from "./components/auth/dailyLogin/dailyLogin";
 import { AuthMethod } from "@internal/intrCmnTypes";
 function App() {
@@ -25,9 +25,10 @@ function App() {
       if (!actUserPartialData.ok) {
         return err(actUserPartialData.error);
       } else if (actUserPartialData.value == null) {
-        return err(
-          errEdtMessage(commonErrors.userNotFound, "acrive User Not found"),
-        );
+        // return err(
+        //   errEdtMessage(commonErrors.userNotFound, "acrive User Not found"),
+        // );
+        return ok(undefined);
       }
       if (actUserPartialData.value.method == "keychain") {
         const userData = await loadConfigByMethod(

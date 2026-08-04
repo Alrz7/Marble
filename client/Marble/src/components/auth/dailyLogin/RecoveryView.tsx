@@ -1,19 +1,33 @@
 import React, { useState } from "react";
 import { KeyRound, ArrowLeft, RotateCcw } from "lucide-react";
+import { loadConfigByMasterPhrase } from "@user/userLoadUp";
+import { err, ok } from "@internal/golog";
+import { AppUser } from "@states/stateUser";
 
 interface RecoveryViewProps {
+  user_id: number;
   onBack: () => void;
 }
 
-export function RecoveryView({ onBack }: RecoveryViewProps) {
+export function RecoveryView({ user_id, onBack }: RecoveryViewProps) {
   const [recoveryKey, setRecoveryKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { setUserData } = AppUser();
 
   const handleRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // TODO: Verify Recovery Key -> Decrypt Vault -> Prompt to set a new Passphrase
-    setTimeout(() => setIsLoading(false), 2000);
+    try {
+      setIsLoading(true);
+      const userData = await loadConfigByMasterPhrase(user_id, recoveryKey);
+      if (!userData.ok) {
+        return err(userData.error);
+      } else {
+        setUserData(userData.value);
+        return ok(undefined);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -23,7 +37,8 @@ export function RecoveryView({ onBack }: RecoveryViewProps) {
           Emergency Recovery
         </h2>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-          Enter your Master Recovery Key to bypass the daily passphrase and restore access to your vault.
+          Enter your Master Recovery Key to bypass the daily passphrase and
+          restore access to your vault.
         </p>
       </div>
 

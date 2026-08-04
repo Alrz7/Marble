@@ -66,7 +66,7 @@ export default function DayilyLoginScreen({
               authMethod={authMethod}
             />
           ) : (
-            <RecoveryView onBack={() => setView("passphrase")} />
+            <RecoveryView user_id={user_id} onBack={() => setView("passphrase")} />
           )}
         </div>
       </div>

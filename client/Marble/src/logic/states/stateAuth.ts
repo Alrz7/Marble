@@ -33,7 +33,7 @@ type StateSignUp = {
   resetSignUpStore: () => void;
 };
 
-const initialState = {
+const initialSignUpStates = {
   step: 1 as Steps,
   name: "",
   username: "",
@@ -50,7 +50,7 @@ const initialState = {
 };
 
 export const stateSignUp = create<StateSignUp>((set) => ({
-  ...initialState,
+  ...initialSignUpStates,
   setStep: (step) => set({ step }),
   setName: (name) => set({ name }),
   setUsername: (username) => set({ username }),
@@ -65,7 +65,7 @@ export const stateSignUp = create<StateSignUp>((set) => ({
   setConfirmPassphrase: (confirmPassphrase) => set({ confirmPassphrase }),
   setShowPassphrase: (showPassphrase) => set({ showPassphrase }),
   setIsLoading: (isLoading) => set({ isLoading }),
-  resetSignUpStore: () => set(initialState),
+  resetSignUpStore: () => set(initialSignUpStates),
 }));
 
 // ---------- Login -----------
@@ -84,16 +84,19 @@ export interface LoginState {
   setAuthMethod: (authMethod: AuthMethod) => void;
   setPassphrase: (passphrase: string) => void;
   setIsLoading: (isLoading: boolean) => void;
+  resetLoginStore: () => void;
 }
 
-export const stateLogin = create<LoginState>((set) => ({
-  step: 1,
+const initialLoginStates = {
+  step: 1 as LoginStep,
   username: "",
   password: "",
-  authMethod: "passphrase",
+  authMethod: "passphrase" as AuthMethod,
   passphrase: "",
   isLoading: false,
-
+};
+export const stateLogin = create<LoginState>((set) => ({
+  ...initialLoginStates,
   setStep: (stepOrUpdater) =>
     set((state) => ({
       step:
@@ -106,4 +109,5 @@ export const stateLogin = create<LoginState>((set) => ({
   setAuthMethod: (authMethod) => set({ authMethod }),
   setPassphrase: (passphrase) => set({ passphrase }),
   setIsLoading: (isLoading) => set({ isLoading }),
+  resetLoginStore: () => set(initialLoginStates),
 }));

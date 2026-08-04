@@ -8,7 +8,6 @@ import {
 } from "@internal/intrCmnTypes";
 import { generateIdntKey, getKeyFromArmored } from "@enc/encOpenpgp";
 import { InsertUser, SetActiveUserId } from "@db/dbUsers";
-import { GetKeyFromRawData } from "@enc/encMaster";
 import {
   GetMasterKeyFromMasterString,
   GetWrappingKeyByMethod,
@@ -109,7 +108,7 @@ export async function onSignUp(
       return err(WrappingKey.error);
     }
 
-    const res = await InsertUser(newUser, WrappingKey.value);
+    const res = await InsertUser(newUser, localMasterKey.value, WrappingKey.value);
     if (!res.ok) {
       return err(res.error);
     }

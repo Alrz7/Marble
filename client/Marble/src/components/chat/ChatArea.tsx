@@ -1,7 +1,7 @@
 import ChatHeader from "./ChatHeader";
 import ChatMessageList from "./ChatMessageList";
 import ChatInput from "./ChatInput";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import UserProfilePanel from "./UserProfilePanel";
 import { stateCommon } from "@states/stateCommon";
 import { StateVariables } from "@internal/intrCmnVars";

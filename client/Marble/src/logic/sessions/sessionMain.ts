@@ -3,7 +3,7 @@ import { encryptMessage } from "@enc/encOpenpgp";
 import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
 import { sendRequest } from "@active/actWsCore";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { AppUser } from "@states/stateUser";
 import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
 import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";

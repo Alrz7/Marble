@@ -13,6 +13,7 @@ export default function SignupStp4() {
     confirmPassphrase,
     isLoading,
     setConfirmPassphrase,
+    resetSignUpStore
   } = stateSignUp();
   const { setUserData } = AppUser();
 
@@ -27,6 +28,7 @@ export default function SignupStp4() {
       return;
     }
     setUserData(res.value);
+    resetSignUpStore()
   };
   return (
     <div className="space-y-6 animate-fade-in">

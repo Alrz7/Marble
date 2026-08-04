@@ -1,6 +1,6 @@
 import {
   decryptDataFromDb,
-  decryptMasterKeyWithKEK,
+  decryptMasterKey,
   encryptData,
   encryptMasterKey,
 } from "@enc/encMaster";
@@ -29,17 +29,18 @@ import {
 // ------- Users --------
 export async function InsertUser(
   user: User,
+  masterKey: CryptoKey,
   wrappingKey: CryptoKey,
 ): Promise<Result<number>> {
   const encrypted = await fromPromiseAllErr(
     [
-      encryptData(user.config.userId, wrappingKey),
-      encryptData(user.config.displayId, wrappingKey),
+      encryptData(user.config.userId, masterKey),
+      encryptData(user.config.displayId, masterKey),
       SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
-      encryptData(user.config.name, wrappingKey),
-      encryptData(user.config.email, wrappingKey),
+      encryptData(user.config.name, masterKey),
+      encryptData(user.config.email, masterKey),
       encryptMasterKey(user.MasterKey, wrappingKey),
-      encryptData(user.config.profile_avatar, wrappingKey),
+      encryptData(user.config.profile_avatar, masterKey),
     ],
     commonErrors.encryptionFailed,
   );
@@ -76,8 +77,59 @@ export async function InsertUser(
   return ok(res.value[0].id);
 }
 
-export async function GetUser(
+type dbUserConfig = {
+  auth_method: string;
+  id: number;
+  user_id: string;
+  display_id: string;
+  name: string;
+  email: string;
+  encrypted_master_key: string;
+  profile_avatar: string;
+};
+
+export async function getUserByWrappingKey(
   wrappingKey: CryptoKey,
+  id: number | null,
+): Promise<Result<User>> {
+  const res = await fromPromiseErr(
+    db.select<dbUserConfig[]>(
+      `SELECT auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
+      [id],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching user from db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+
+  if (res.value.length === 0 || !res.value[0]) {
+    return err(commonErrors.noRecordFound);
+  }
+
+  const converted = blobFromDb(res.value[0].encrypted_master_key);
+  if (!converted.ok) return err(converted.error);
+
+  const masterKey = await decryptMasterKey(converted.value, wrappingKey);
+  if (!masterKey.ok) return err(masterKey.error);
+
+  const config = await getDataFromEncrypted(res.value[0], masterKey.value);
+  if (!config.ok) return err(config.error);
+
+  const pgpProfile = await GetPgpProfile(config.value.id, masterKey.value);
+  if (!pgpProfile.ok) return err(pgpProfile.error);
+
+  return ok({
+    config: config.value,
+    MasterKey: masterKey.value,
+    Pgp: pgpProfile.value,
+    authMethod: res.value[0].auth_method as AuthMethod,
+  });
+}
+
+export async function getUserByMasterKey(
+  masterKey: CryptoKey,
   id: number | null,
   display_id: ArrayBuffer | null,
 ): Promise<Result<User>> {
@@ -100,18 +152,7 @@ export async function GetUser(
   }
 
   const res = await fromPromiseErr(
-    db.select<
-      {
-        auth_method: string;
-        id: number;
-        user_id: string;
-        display_id: string;
-        name: string;
-        email: string;
-        encrypted_master_key: string;
-        profile_avatar: string;
-      }[]
-    >(
+    db.select<dbUserConfig[]>(
       `SELECT auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
       [targetVal],
     ),
@@ -126,39 +167,43 @@ export async function GetUser(
     return err(commonErrors.noRecordFound);
   }
 
+  const config = await getDataFromEncrypted(res.value[0], masterKey);
+  if (!config.ok) return err(config.error);
+
+  const pgpProfile = await GetPgpProfile(config.value.id, masterKey);
+  if (!pgpProfile.ok) return err(pgpProfile.error);
+
+  return ok({
+    config: config.value,
+    MasterKey: masterKey,
+    Pgp: pgpProfile.value,
+    authMethod: res.value[0].auth_method as AuthMethod,
+  });
+}
+
+async function getDataFromEncrypted(
+  encryptData: dbUserConfig,
+  masterKey: CryptoKey,
+): Promise<Result<UserConfig>> {
   const decryprted = await fromPromiseAllErr([
-    decryptDataFromDb<number>(res.value[0].user_id, wrappingKey),
-    decryptDataFromDb<string>(res.value[0].display_id, wrappingKey),
-    decryptDataFromDb<string>(res.value[0].name, wrappingKey),
-    decryptDataFromDb<string>(res.value[0].email, wrappingKey),
-    decryptDataFromDb<string>(res.value[0].profile_avatar, wrappingKey),
+    decryptDataFromDb<number>(encryptData.user_id, masterKey),
+    decryptDataFromDb<string>(encryptData.display_id, masterKey),
+    decryptDataFromDb<string>(encryptData.name, masterKey),
+    decryptDataFromDb<string>(encryptData.email, masterKey),
+    decryptDataFromDb<string>(encryptData.profile_avatar, masterKey),
   ]);
   if (!decryprted.ok) return err(decryprted.error);
   const [userId, displayId, name, email, profile_avatar] = decryprted.value;
 
   const config: UserConfig = {
-    id: res.value[0].id,
+    id: encryptData.id,
     userId: userId,
     displayId: displayId,
     name: name,
     email: email,
     profile_avatar: profile_avatar,
   };
-  const converted = blobFromDb(res.value[0].encrypted_master_key);
-  if (!converted.ok) return err(converted.error);
-
-  const masterKey = await decryptMasterKeyWithKEK(converted.value, wrappingKey);
-  if (!masterKey.ok) return err(masterKey.error);
-
-  const pgpProfile = await GetPgpProfile(config.id, masterKey.value);
-  if (!pgpProfile.ok) return err(pgpProfile.error);
-
-  return ok({
-    config,
-    MasterKey: masterKey.value,
-    Pgp: pgpProfile.value,
-    authMethod: res.value[0].auth_method as AuthMethod,
-  });
+  return ok(config);
 }
 
 export async function GetUserAuthMethod(

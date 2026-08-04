@@ -1,5 +1,5 @@
 // import { Circle } from "lucide-react";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { stateCommon } from "@states/stateCommon";
 import { StateVariables } from "@internal/intrCmnVars";
 

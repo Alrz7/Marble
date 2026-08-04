@@ -8,7 +8,7 @@ import {
 import { Request } from "./actTypes";
 import { stateCommon } from "@states/stateCommon";
 import { MessageStatus } from "./actTypes";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import {
   actAddMessage,
   HandleMsgEventResponse,

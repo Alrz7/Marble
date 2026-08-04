@@ -9,35 +9,50 @@ interface AppState {
   connTitle: connectionTitles;
   setAppState: (newState: PAGES) => void;
   setConnTitle: (newTitle: connectionTitles) => void;
+  resetAppStates: () => void;
 }
 
+const initialAppState = {
+  appState: "loading" as PAGES,
+  connTitle: "waiting for network..." as connectionTitles,
+};
+
 export const AppState = create<AppState>((set) => ({
-  appState: "loading",
-  connTitle: "waiting for network...",
+  ...initialAppState,
   setAppState: (newState: PAGES) => set({ appState: newState }),
   setConnTitle: (newTitle: connectionTitles) => set({ connTitle: newTitle }),
+  resetAppStates: () => set(initialAppState),
 }));
 
 // ---- Common ----
 type sTypes = string | boolean | number;
-export const stateCommon = create<{
+interface CommonStates {
   states: Map<string, sTypes>;
   setState: (key: string, val: sTypes) => void;
-}>((set) => ({
+  resetCommonStates: () => void;
+}
+
+const initialCommonStates = {
   states: new Map<string, sTypes>([
     [StateVariables.AUTHORIZED, false],
     [StateVariables.SYNCED_SESSION, false],
     [StateVariables.SHOW_PROFILE_PANEL, false],
   ]),
+};
+
+export const stateCommon = create<CommonStates>((set) => ({
+  ...initialCommonStates,
   setState: (key: string, val: sTypes) =>
     set((state) => {
       const next = new Map<string, sTypes>(state.states);
       next.set(key, val);
       return { states: next };
     }),
+  resetCommonStates: () => set(initialCommonStates),
 }));
 
 //  -- Search State --
+
 interface SearchResult {
   searchQuery: string;
   showSearchResults: boolean;
@@ -46,22 +61,21 @@ interface SearchResult {
   setShowSearchResults: (val: boolean) => void;
   setUsers: (users: Audience[]) => void;
   addtoUsers: (newUsers: Audience[]) => void;
+  resetSearchResult: () => void;
 }
-export const searchResult = create<SearchResult>((set) => ({
+
+const initialSearchState = {
   searchQuery: "",
   showSearchResults: false,
   Users: [],
+};
+
+export const searchResult = create<SearchResult>((set) => ({
+  ...initialSearchState,
   setSearchQuery: (query: string) => set({ searchQuery: query }),
   setShowSearchResults: (val: boolean) => set({ showSearchResults: val }),
   setUsers: (users: Audience[]) => set({ Users: users }),
   addtoUsers: (newUsers: Audience[]) =>
     set((state) => ({ Users: [...state.Users, ...newUsers] })),
+  resetSearchResult: () => set(initialSearchState),
 }));
-
-export async function ResetSearchPrcs() {
-  const { setSearchQuery, setShowSearchResults, setUsers } =
-    searchResult.getState();
-  setUsers([]);
-  setSearchQuery("");
-  setShowSearchResults(false);
-}

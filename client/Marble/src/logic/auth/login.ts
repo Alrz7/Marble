@@ -2,28 +2,16 @@ import { fetch } from "@tauri-apps/plugin-http";
 import { DefEncoder, User, UserConfig } from "@internal/intrCmnTypes";
 import { setAuthToken } from "@internal/intrAuthHelpers";
 import { openConnection } from "@active/actWsRouter";
-import { GetUser, SetActiveUserId } from "@db/dbUsers";
+import { getUserByMasterKey, SetActiveUserId } from "@db/dbUsers";
 import { SignWithHmac } from "@enc/encHelpers";
-import {
-  GetMasterKeyFromMasterString,
-  GetOrCreateKeyChainKey,
-} from "@enc/encMain";
+import { GetMasterKeyFromMasterString } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
-import { commonErrors, err, ok, Result } from "@internal/golog";
+import { err, ok, Result } from "@internal/golog";
 
-// on the login we need to set the Logging-user as Primary-user
 export async function onLogin(
   DisplayId: string,
   masterPassPhrase: string,
 ): Promise<Result<User | null>> {
-  const kek = await GetOrCreateKeyChainKey();
-  if (!kek.ok) {
-    return err(kek.error);
-  }
-  if (kek.value == null) {
-    return err(commonErrors.keychainKeyNotValid);
-  }
-
   const signedDIsplayId = await SignWithHmac(
     DefEncoder.encode(DisplayId).buffer,
   );
@@ -36,7 +24,7 @@ export async function onLogin(
     return err(localMasterKey.error);
   }
 
-  const existingUser = await GetUser(
+  const existingUser = await getUserByMasterKey(
     localMasterKey.value,
     null,
     signedDIsplayId.value,
@@ -52,6 +40,7 @@ export async function onLogin(
 
 export async function logOut() {
   await ResetStates();
+  SetActiveUserId(-1);
 }
 
 export async function userSignIn(

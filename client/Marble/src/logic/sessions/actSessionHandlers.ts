@@ -7,14 +7,14 @@ import {
   SessionId,
 } from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { AppUser } from "@states/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";
 import { actAddMessage, HandleMsgEvent } from "@messages/actMessageHandlers";
-import { ResetSearchPrcs } from "@states/stateCommon";
 import { addAppErrNotif, commonErrors, err, ok, Result } from "@internal/golog";
+import { searchResult } from "@states/stateCommon";
 
 /** 
 hndlAddSession is trigerd by server when ever it needs to add a session
@@ -114,7 +114,8 @@ export async function HandlSessionEventResponse(req: Request) {
     if (res.value.messageEventResponse) {
       await HandleMsgEvent(currentUser, next, res.value.messageEventResponse);
     }
-    ResetSearchPrcs();
+    const { resetSearchResult } = searchResult.getState();
+    resetSearchResult();
   }
 }
 

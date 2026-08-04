@@ -1,6 +1,6 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
 import { Audience } from "@internal/intrCmnTypes";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { db } from "./dbMain";
 import {
   commonErrors,

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
-import { sessionsState } from "@sessions/sessionStates";
+import { sessionsState } from "@sessions/stateSession";
 import { loadSavedMessages } from "@messages/msgMain";
 import { Message } from "@internal/intrCmnTypes";
 import { messageState } from "@messages/stateMessage";

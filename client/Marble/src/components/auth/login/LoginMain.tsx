@@ -13,7 +13,9 @@ export function LoginMain() {
     setPassword,
     isLoading,
     setIsLoading,
+    resetLoginStore
   } = stateLogin();
+
   const { setUserData } = AppUser();
 
   const handleServerLogin = async (e: React.FormEvent) => {
@@ -32,6 +34,7 @@ export function LoginMain() {
       }
       setUserData(res.value);
     } finally {
+      resetLoginStore()
       setIsLoading(false);
     }
     // setTimeout(() => {

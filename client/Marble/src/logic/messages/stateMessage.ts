@@ -7,11 +7,15 @@ interface MessageState {
   addMessage: (message: Message) => void;
   updateMessage: (oldId: number, next: Message) => void;
   deleteMessage: (id: number) => void;
+  resetMessageStates: () => void;
 }
 
-export const messageState = create<MessageState>((set) => ({
+const initialMessageState = {
   messages: new Map<number, Message>(),
+};
 
+export const messageState = create<MessageState>((set) => ({
+  ...initialMessageState,
   setMessages: (list: Message[]) =>
     set(() => {
       const newMessages = new Map<number, Message>();
@@ -55,4 +59,5 @@ export const messageState = create<MessageState>((set) => ({
         messages: newGen,
       };
     }),
+  resetMessageStates: () => set( initialMessageState ),
 }));
