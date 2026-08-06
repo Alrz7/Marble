@@ -1,4 +1,8 @@
-import { DeleteSessionFrmDb, InsertSession } from "@db/dbSessions";
+import {
+  DeleteSessionFrmDb,
+  GetLastSessionSeq,
+  InsertSession,
+} from "@db/dbSessions";
 import { encryptMessage } from "@enc/encOpenpgp";
 import { Message, Session, SessionId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
@@ -9,7 +13,7 @@ import { DeleteAudienceFromDb, InsertAudience } from "@db/dbAudience";
 import { dbUpdateMessageById, InsertMessage } from "@db/dbMessages";
 import { messageState } from "@messages/stateMessage";
 import { isSessionLegit } from "./sessionHelpers";
-import { addAppErrNotif, newAppErr } from "@internal/golog";
+import { addAppErrNotif, commonErrors, newAppErr } from "@internal/golog";
 
 /** 
 onCreateNewSession trigers by sending the first message to the session,
@@ -106,27 +110,24 @@ to the latest version in server.
 then, when ever there was a need for update, the server pushes the changes
 automaticaly.
  */
-export async function onSyncSession(sessions: Session[]) {
-  const lastSessionSeq =
-    sessions.length > 0
-      ? Math.max(
-          ...sessions.map((s) => {
-            /** 
-            we only need to send valid sessions for syncing process & not saved-messages
-             */
-            if (isSessionLegit(s) && !s.isSavedMessages) {
-              return s.seq;
-            } else {
-              return 0;
-            }
-          }),
-        )
-      : 0;
+export async function onSyncSession() {
+  const { currentUser } = AppUser.getState();
+  if (!currentUser || !currentUser.config) {
+    addAppErrNotif(commonErrors.userNotValid);
+    return;
+  }
+
+  const sessionLastSeq = await GetLastSessionSeq(currentUser.config.id);
+  if (!sessionLastSeq.ok) {
+    addAppErrNotif(sessionLastSeq.error);
+    return;
+  }
   const struct: {
     lastSessionEvent: number;
   } = {
-    lastSessionEvent: lastSessionSeq,
+    lastSessionEvent: sessionLastSeq.value,
   };
+
   const req: Request = {
     status: MessageStatus.Request,
     channel: "sessions",

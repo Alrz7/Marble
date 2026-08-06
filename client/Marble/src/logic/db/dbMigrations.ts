@@ -36,7 +36,7 @@ CREATE TABLE session (
     seq INTEGER NOT NULL,
     session_id BLOB NOT NULL,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    audience_id INTEGER NOT NULL REFERENCES audience(id) ON DELETE CASCADE,
+    audience_id INTEGER NOT NULL UNIQUE REFERENCES audience(id) ON DELETE CASCADE,
     message_sequence INTEGER NOT NULL DEFAULT 0
 );
 

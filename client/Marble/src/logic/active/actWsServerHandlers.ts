@@ -79,9 +79,8 @@ export async function HndlAuthStatus(request: any) {
   const { states, setState } = stateCommon.getState();
   if (request.status === MessageStatus.Approved) {
     setState("authorized", true);
-    const { sessions } = sessionsState.getState();
     if (!states.get("syncedSession")) {
-      onSyncSession(Array.from(sessions.values()));
+      onSyncSession();
       setState("syncedSession", true);
     }
     setConnTitle("Marble");
@@ -98,7 +97,7 @@ export async function HndlSyncSession(req: Request) {
   }
   const { sessions } = sessionsState.getState();
   if (data.hasMore) {
-    onSyncSession(Array.from(sessions.values()));
+    onSyncSession();
   } else {
     /** 
     when we are done syncing sessions we start syncing thir messages,

@@ -51,6 +51,23 @@ export async function InsertSession(
 //   return Math.floor(Math.random() * 60);
 // }
 
+export async function GetLastSessionSeq(
+  user_id: number,
+): Promise<Result<number>> {
+  const result = await fromPromiseErr(
+    db.select<{ seq: number }[]>(
+      `SELECT COALESCE(MAX(seq), 0) AS seq FROM session WHERE owner_id = $1`,
+      [user_id],
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching session-last-seq from db",
+    ),
+  );
+  if (!result.ok) return err(result.error);
+  return ok(result.value[0]?.seq ?? 0);
+}
+
 export async function GetSessions(
   ownerId: UserId,
   masterKey: CryptoKey,

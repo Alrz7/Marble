@@ -47,7 +47,6 @@ export async function actAddSession(
   for (const session of sessions) {
     session.audience.ownerId = currentUser.config.id;
     session.ownerId = currentUser.config.id;
-
     const audience_id = await InsertAudience(
       session.audience,
       currentUser.MasterKey,

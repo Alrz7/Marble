@@ -19,6 +19,7 @@ export default function SearchPanel({ query }: SearchPanelProps) {
   async function setNewSessionOnStage(audience: Audience) {
     if (!currentUser) return;
     const existing = await IsAlreadyInTouch(audience);
+    console.log(existing)
     if (existing !== null) {
       setCurrentSessionId(existing.id);
     } else {
