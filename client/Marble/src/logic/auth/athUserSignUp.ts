@@ -1,7 +1,6 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import {
   AuthMethod,
-  DefEncoder,
   pgpProfile,
   User,
   UserConfig,
@@ -23,9 +22,10 @@ import {
   Result,
 } from "@internal/golog";
 import { stateSignUp } from "@states/stateAuth";
-import { bytesToHex, deriveRawKeyFromPassword } from "@enc/encAuth";
+import { bytesToHex } from "@enc/encAuth";
+import { genCryptoRandomValue } from "@enc/encHelpers";
 
-export async function onSignUp(
+export async function onUserSignUp(
   selectedMethod?: AuthMethod,
   passphraseVal?: string,
 ) {
@@ -48,16 +48,25 @@ export async function onSignUp(
     const finalRecoveryPhrase: string =
       recoveryMode == "custom" ? customRecoveryKey : generatedRecoveryKey;
 
+    const randomSalt = genCryptoRandomValue(32);
+    const Master = await GetMasterKeyFromMasterString(
+      finalRecoveryPhrase,
+      randomSalt,
+    );
+    if (!Master.ok) {
+      return err(Master.error);
+    }
+
     const openpgpKeyGroup = await generateIdntKey(name, email);
     if (!openpgpKeyGroup.ok) {
       return err(openpgpKeyGroup.error);
     }
 
-    const serverReqResult = await onSendSignupRequest(
+    const serverReqResult = await onSendSignUpRequest(
       name,
       username,
       email,
-      finalRecoveryPhrase,
+      Master.value.serverHash,
       openpgpKeyGroup.value.publicKey,
     );
     if (!serverReqResult.ok) {
@@ -71,12 +80,6 @@ export async function onSignUp(
       email: email,
       profile_avatar: "NMG",
     };
-
-    const localMasterKey =
-      await GetMasterKeyFromMasterString(finalRecoveryPhrase);
-    if (!localMasterKey.ok) {
-      return err(localMasterKey.error);
-    }
 
     const actPrvKey = await getKeyFromArmored(
       openpgpKeyGroup.value.privateKey,
@@ -94,7 +97,7 @@ export async function onSignUp(
     };
 
     const newUser: User = {
-      MasterKey: localMasterKey.value,
+      MasterKey: Master.value.localKey,
       config: newConfig,
       Pgp: pgpProfile,
       authMethod: finalMethod,
@@ -108,11 +111,17 @@ export async function onSignUp(
       return err(WrappingKey.error);
     }
 
-    const res = await InsertUser(newUser, localMasterKey.value, WrappingKey.value);
+    const res = await InsertUser(
+      newUser,
+      Master.value.localKey,
+      WrappingKey.value,
+      randomSalt,
+    );
     if (!res.ok) {
       return err(res.error);
     }
     newUser.config.id = res.value;
+
     await SetActiveUserId(newUser.config.id);
 
     return ok(newUser);
@@ -121,21 +130,14 @@ export async function onSignUp(
   }
 }
 
-async function onSendSignupRequest(
+async function onSendSignUpRequest(
   name: string,
   username: string,
   email: string,
-  masterKeyPrase: string,
+  serverAuthKey: Uint8Array<ArrayBufferLike>,
   pgpPublicKey: string,
 ) {
-  const ServerAuthHash = await deriveRawKeyFromPassword(
-    masterKeyPrase,
-    DefEncoder.encode("server-auth-salt"),
-  );
-  if (!ServerAuthHash.ok) {
-    return err(ServerAuthHash.error);
-  }
-  const passInHex = bytesToHex(ServerAuthHash.value);
+  const passInHex = bytesToHex(serverAuthKey);
 
   const response = await fromPromiseErr(
     fetch("http://localhost:6280/account", {
@@ -146,7 +148,7 @@ async function onSendSignupRequest(
       },
       body: JSON.stringify({
         name: name,
-        // username: username,
+        username: username,
         email: email,
         password: passInHex,
         pubIdentKey: pgpPublicKey,

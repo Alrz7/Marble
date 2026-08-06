@@ -1,9 +1,9 @@
 import { Lock, Shield, Fingerprint } from "lucide-react";
 import { stateSignUp } from "@states/stateAuth";
-import { onSignUp } from "@auth/signUp";
+import { onUserSignUp } from "@auth/athUserSignUp";
 import { AuthMethod } from "@internal/intrCmnTypes";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 
 export default function SignupStp3() {
   const { setStep, setAuthMethod, resetSignUpStore } = stateSignUp();
@@ -13,17 +13,17 @@ export default function SignupStp3() {
     setAuthMethod(method);
     if (method === "keychain") {
       // Direct completion if no passphrase needed
-      const res = await onSignUp(method, "");
+      const res = await onUserSignUp(method, "");
       if (!res.ok) {
         addAppErrNotif(res.error);
-        return
+        return;
       }
       if (!res.value) {
         addAppErrNotif(commonErrors.userNotValid);
         return;
       }
       setUserData(res.value);
-      resetSignUpStore()
+      resetSignUpStore();
     } else {
       setStep(4);
     }

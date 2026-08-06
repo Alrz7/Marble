@@ -186,6 +186,10 @@ export const commonErrors = {
     reason: "connectionFailed",
     message: "Connection failed",
   },
+  failedTofetchData: {
+    reason: "failedToFetchData",
+    message: "failed to fetch data from server",
+  },
   dbConnectionFailed: {
     reason: "dbConnectionFailed",
     message: "Failed to connect to database",

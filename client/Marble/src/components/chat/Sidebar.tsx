@@ -4,7 +4,7 @@ import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";
 import SettingsPage from "./SettingsPage";
-import { logOut } from "@auth/login";
+import { logOut } from "@auth/athUserSignIn";
 import { onSearchUser } from "@active/actWsClientHandelers";
 import { searchResult } from "@states/stateCommon";
 

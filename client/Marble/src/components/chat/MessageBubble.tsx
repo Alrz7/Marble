@@ -9,7 +9,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Message } from "@internal/intrCmnTypes";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { sessionsState } from "@sessions/stateSession";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { notifState } from "@states/stateNotif";

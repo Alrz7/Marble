@@ -37,22 +37,10 @@ func (api *apiConfig) Run() {
 
 	mux := http.NewServeMux()
 
-	// at this time { NO INTERNET == NO HTTpROUTER} :)
-
-	// Convert the notFoundResponse() helper to a http.Handler using the
-	// http.HandlerFunc() adapter, and then set it as the custom error handler for 404
-	// Not Found responses.
-
-	// router.NotFound = http.HandlerFunc(app.notFoundResponse)
-	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
-	// it as the custom error handler for 405 Method Not Allowed responses.
-
-	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
-
 	mux.HandleFunc("/", api.handleHome)
 	mux.HandleFunc("/account/", api.handleAccount)
-	// mux.HandleFunc("/account/session", api.hndlSession)
 	mux.HandleFunc("/actv", api.handleWebSocket)
+	mux.HandleFunc("/auth/refresh", api.getNewTokens)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", api.Port),
@@ -69,17 +57,20 @@ func (api *apiConfig) Run() {
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		origin := r.Header.Get("Origin")
+		if origin == "http://localhost:1420" || origin == "http://localhost:5173" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:1420")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, order, taskType, configType")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, task, order, taskType, configType")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }

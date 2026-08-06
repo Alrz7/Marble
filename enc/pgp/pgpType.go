@@ -11,7 +11,6 @@ import (
 type Profile struct {
 	UserId    internal.UserId
 	PublicKey string
-	AuthKey   string
 }
 
 // ---------------------------------------
@@ -23,9 +22,9 @@ type ProfileModel struct {
 
 func (m ProfileModel) Insert(profile *Profile, id internal.UserId) error {
 	query := `
-	INSERT INTO pgp_profile (user_id, auth_key, public_key)
-	VALUES ($1, $2, $3)`
-	args := []any{id, profile.AuthKey, profile.PublicKey}
+	INSERT INTO pgp_profile (user_id, public_key)
+	VALUES ($1, $2)`
+	args := []any{id, profile.PublicKey}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("there was an error while Inserting the User-Pgp-Profile to DB: %v", err)
@@ -37,11 +36,11 @@ func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 	if id < 1 {
 		return nil, internal.ErrRecordNotFound
 	}
-	query := `SELECT user_id, auth_key, public_key
+	query := `SELECT user_id, public_key
 			FROM pgp_profile
 			WHERE user_id = $1`
 	var profile Profile
-	args := []any{&profile.UserId, &profile.AuthKey, &profile.PublicKey}
+	args := []any{&profile.UserId, &profile.PublicKey}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
 		switch {
@@ -56,9 +55,9 @@ func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 
 func (m ProfileModel) Update(profile *Profile) error {
 	query := `UPDATE pgp_profile
-			SET auth_key = $1, public_key = $2
-			WHERE user_id = $3`
-	args := []any{profile.AuthKey, profile.PublicKey, profile.UserId}
+			SET public_key = $1
+			WHERE user_id = $2`
+	args := []any{profile.PublicKey, profile.UserId}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
 		switch {

@@ -39,10 +39,10 @@ type Request struct {
 type Handeler func(*Request)
 
 type Claims struct {
-	UserId internal.UserId `json:"userId"`
+	UserId    internal.UserId `json:"user_id"`
+	TokenType string          `json:"token_type"` // "access" or "refresh"
 	jwt.RegisteredClaims
 }
-
 // ------------------------------------------
 
 type Notification struct {

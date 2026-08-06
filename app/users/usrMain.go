@@ -2,30 +2,23 @@ package users
 
 import (
 	"errors"
-	"marble/encryption/pgp"
+	"marble/enc/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
 )
 
 var logger = loggy.DefaultLogger
 
-func CreateNewUser(username, email, password string, pubIdentKey string) (*User, error) {
+func CreateNewUser(username, email, DisplayId string, pubIdentKey string) (*User, error) {
 	// check valid Email
 	newUser := User{
-		UserName: username,
-		Email:    email,
+		UserName:  username,
+		Email:     email,
+		DisplayId: DisplayId,
 	}
-	authorizationKey, err := pgp.GenAuthKey(password)
-	if err != nil {
-		return &User{}, err
-	}
-	newUser.PgpProfile.AuthKey = authorizationKey // this is good aproach But it costs alot of memory
-	// and speed so im going to replace this with the standard auth methods.
-
 	newUser.PgpProfile.PublicKey = pubIdentKey
 
 	return &newUser, nil
-
 }
 
 func (U *User) fakeSave() error {
@@ -35,8 +28,8 @@ func (U *User) fakeSave() error {
 	return nil
 }
 
-func (U *User) Save(UModel UserModel, PModel pgp.ProfileModel) error {
-	err := UModel.Insert(U)
+func (U *User) Save(UModel UserModel, userAuthKey string, PModel pgp.ProfileModel) error {
+	err := UModel.Insert(U, userAuthKey)
 	if err != nil {
 		return err
 	}

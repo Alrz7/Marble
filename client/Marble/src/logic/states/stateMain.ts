@@ -2,7 +2,7 @@ import { disconnectWS } from "@active/actWsRouter";
 import { AppState, stateCommon } from "./stateCommon";
 import { sessionsState } from "@sessions/stateSession";
 import { messageState } from "@messages/stateMessage";
-import { AppUser } from "./stateUser";
+import { AppUser } from "../user/stateUser";
 
 export async function ResetStates() {
   const { resetUserData } = AppUser.getState();

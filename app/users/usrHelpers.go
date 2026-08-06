@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"marble/encryption/pgp"
+	"marble/enc/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
 )
@@ -13,17 +13,61 @@ import (
 // 	U.PgpProfile.Id = pgp.GetPgpAddress(U.UserName, U.Id)
 // }
 
-func (m UserModel) Insert(user *User) error {
+func (m UserModel) Insert(user *User, passwordHash string) error {
 	query := `
-	INSERT INTO users (name, email)
-	VALUES ($1, $2)
+	INSERT INTO users (name, email, display_id, auth_hash)
+	VALUES ($1, $2, $3, $4)
 	RETURNING 	id, display_id`
-	args := []any{user.UserName, user.Email}
+	args := []any{user.UserName, user.Email, user.DisplayId, passwordHash}
 	err := m.Db.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
 		return fmt.Errorf("there was an error while Inserting the User-Information to DB: %v", err)
 	}
 	return nil
+}
+
+func (m UserModel) SetUserRefreshToken(id internal.UserId, token string) error {
+	query := `UPDATE users
+	SET refresh_token = $2
+	WHERE id = $1`
+	args := []any{id, token}
+	_, err := m.Db.Exec(query, args...)
+	if err != nil {
+		return fmt.Errorf("there was an error while Updating the User-RefreshToken to DB: %v", err)
+	}
+	return nil
+}
+
+func (m UserModel) GetUserRefreshToken(id internal.UserId) (string, error) {
+	var res string
+	query := `SELECT refresh_token FROM users WHERE id = $1`
+	args := []any{&res}
+	err := m.Db.QueryRow(query, id).Scan(args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return "", internal.ErrRecordNotFound
+		default:
+			return "", loggy.Sayr("there was an error while fetching the User refreshToken", err)
+		}
+	}
+	return res, nil
+}
+
+func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
+	var res string
+	query := `SELECT auth_hash FROM users WHERE id = $1`
+	args := []any{&res}
+	err := m.Db.QueryRow(query, id).Scan(args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return "", internal.ErrRecordNotFound
+		default:
+			return "", loggy.Sayr("there was an error while fetching the User AuthHash", err)
+		}
+	}
+	return res, nil
 }
 
 func (m UserModel) Get(id internal.UserId) (*User, error) {

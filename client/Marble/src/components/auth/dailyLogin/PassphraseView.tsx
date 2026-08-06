@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Lock, Eye, EyeOff, LogOut, ArrowRight } from "lucide-react";
 import { AuthMethod } from "@internal/intrCmnTypes";
-import { loadConfigByMethod } from "@user/userLoadUp";
+import { loadConfigByMethod } from "@user/usrLoaders";
 import { err, ok } from "@internal/golog";
-import { AppUser } from "@states/stateUser";
-import { logOut } from "@auth/login";
+import { AppUser } from "@user/stateUser";
+import { logOut } from "@auth/athUserSignIn";
+import { openConnection } from "@active/actWsRouter";
 
 interface PassphraseViewProps {
   user_id: number;
@@ -35,6 +36,7 @@ export function PassphraseView({
         return err(userData.error);
       } else {
         setUserData(userData.value);
+        openConnection();
         return ok(undefined);
       }
     } finally {

@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
 import { sessionsState } from "@sessions/stateSession";
 import { Message } from "@internal/intrCmnTypes";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { onCreateNewSession } from "@sessions/sessionMain";
 import { messageState } from "@messages/stateMessage";
 import { onSendNewMessage } from "@messages/msgMain";

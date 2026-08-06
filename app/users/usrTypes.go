@@ -2,7 +2,7 @@ package users
 
 import (
 	"database/sql"
-	"marble/encryption/pgp"
+	"marble/enc/pgp"
 	"marble/internal"
 )
 

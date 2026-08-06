@@ -4,7 +4,7 @@ package models
 // 	"database/sql"
 // 	"errors"
 // 	"marble/app/user"
-// 	"marble/encryption/pgp"
+// 	"marble/enc/pgp"
 // )
 
 // var (

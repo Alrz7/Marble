@@ -2,7 +2,7 @@ import { Bookmark, MessageCircle } from "lucide-react";
 import { searchResult } from "@states/stateCommon";
 import { Audience, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/stateSession";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { IsAlreadyInTouch } from "@sessions/sessionHelpers";
 import { reserveSessionId } from "@sessions/sessionHelpers";
 import { SavedMessagesSesionId } from "@internal/intrCmnVars";

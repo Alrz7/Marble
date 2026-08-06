@@ -18,7 +18,7 @@ import { notifState } from "@states/stateNotif";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { onSyncSession } from "@sessions/sessionMain";
 import { onCLearSyncedMessage, onSyncMessage } from "@messages/msgMain";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { addAppErrNotif } from "@internal/golog";
 
 export function HndlSessions(req: Request) {

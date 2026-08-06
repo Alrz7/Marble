@@ -1,9 +1,6 @@
 import {
   commonErrors,
-  err,
   fromPromiseErr,
-  newAppErr,
-  ok,
   Result,
 } from "@internal/golog";
 import { argon2id, argon2Verify } from "hash-wasm";
@@ -11,6 +8,7 @@ import { argon2id, argon2Verify } from "hash-wasm";
 export async function deriveRawKeyFromPassword(
   password: string,
   saltBuffer: Uint8Array,
+  hashLength = 32
 ): Promise<Result<Uint8Array>> {
   return await fromPromiseErr(
     argon2id({
@@ -19,14 +17,14 @@ export async function deriveRawKeyFromPassword(
       parallelism: 1,
       iterations: 3,
       memorySize: 2 ** 16,
-      hashLength: 32,
+      hashLength: hashLength,
       outputType: "binary",
     }),
     commonErrors.faildToHashPassword,
   );
 }
 
-export async function hashDailyPassphrase(
+export async function deriveDecodedKeyFromPassword(
   passphrase: string,
 ): Promise<Result<string>> {
   const randomSalt = window.crypto.getRandomValues(new Uint8Array(16));
@@ -67,28 +65,4 @@ export function hexToBytes(hex: string): Uint8Array {
     bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
   }
   return bytes;
-}
-
-export async function deriveLocalKek(
-  passphrase: string,
-  saltBuffer: Uint8Array,
-): Promise<Result<Uint8Array>> {
-  const derivedKeyBuffer = await fromPromiseErr(
-    argon2id({
-      password: passphrase,
-      salt: saltBuffer,
-      parallelism: 1,
-      iterations: 3,
-      memorySize: 2 ** 16,
-      hashLength: 32,
-      outputType: "binary",
-    }),
-    newAppErr(
-      "failedToDeriveFromKek",
-      "failed to Derive cryptoKey from PassPhrase & Kek",
-    ),
-  );
-  if (!derivedKeyBuffer.ok) return err(derivedKeyBuffer.error);
-
-  return ok(derivedKeyBuffer.value);
 }

@@ -54,13 +54,9 @@ export async function deriveKeyFromPin(
   const saltBytes = DefEncoder.encode(saltString);
 
   const baseKeyRes = await fromPromiseErr(
-    window.crypto.subtle.importKey(
-      "raw",
-      pinBytes,
-      { name: "PBKDF2" },
-      false,
-      ["deriveKey"],
-    ),
+    window.crypto.subtle.importKey("raw", pinBytes, { name: "PBKDF2" }, false, [
+      "deriveKey",
+    ]),
     commonErrors.faildToImportKey,
   );
   if (!baseKeyRes.ok) return err(baseKeyRes.error);
@@ -128,4 +124,10 @@ export async function deriveHmacFromKek(
   if (!hmacKey.ok) return err(hmacKey.error);
 
   return ok(hmacKey.value);
+}
+
+export function genCryptoRandomValue(length: number = 32) {
+  const keyArray = new Uint8Array(length);
+  window.crypto.getRandomValues(keyArray);
+  return keyArray
 }

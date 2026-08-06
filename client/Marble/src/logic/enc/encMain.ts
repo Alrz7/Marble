@@ -46,19 +46,28 @@ export async function GetOrCreateKeyChainKey(): Promise<
 
 export async function GetMasterKeyFromMasterString(
   masterString: string,
-): Promise<Result<CryptoKey>> {
-  const localMasterHash = await deriveRawKeyFromPassword(
+  saltBuffer: Uint8Array,
+) {
+  const MasterHash = await deriveRawKeyFromPassword(
     masterString,
-    DefEncoder.encode("local-masterKey-salt"),
+    saltBuffer,
+    64,
   );
-  if (!localMasterHash.ok) {
-    return err(localMasterHash.error);
+  if (!MasterHash.ok) {
+    return err(MasterHash.error);
   }
-  const localMasterKey = await GetKeyFromRawData(localMasterHash.value);
+  const localHash = MasterHash.value.slice(0, 32);
+  const serverHash = MasterHash.value.slice(32);
+
+  const localMasterKey = await GetKeyFromRawData(localHash);
   if (!localMasterKey.ok) {
     return err(localMasterKey.error);
   }
-  return ok(localMasterKey.value);
+
+  return ok({
+    localKey: localMasterKey.value,
+    serverHash: serverHash,
+  });
 }
 
 export async function GetWrappingKeyByMethod(

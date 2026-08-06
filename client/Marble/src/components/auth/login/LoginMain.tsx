@@ -1,9 +1,9 @@
 import React from "react";
 import { User, Key, Loader2 } from "lucide-react";
 import { stateLogin } from "@states/stateAuth";
-import { onLogin } from "@auth/login";
+import { onUserSignIn } from "@auth/athUserSignIn";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 
 export function LoginMain() {
   const {
@@ -13,7 +13,7 @@ export function LoginMain() {
     setPassword,
     isLoading,
     setIsLoading,
-    resetLoginStore
+    resetLoginStore,
   } = stateLogin();
 
   const { setUserData } = AppUser();
@@ -22,7 +22,7 @@ export function LoginMain() {
     e.preventDefault();
     setIsLoading(true);
 
-    const res = await onLogin(username, password);
+    const res = await onUserSignIn(username, password);
     try {
       if (!res.ok) {
         addAppErrNotif(res.error);
@@ -34,7 +34,7 @@ export function LoginMain() {
       }
       setUserData(res.value);
     } finally {
-      resetLoginStore()
+      resetLoginStore();
       setIsLoading(false);
     }
     // setTimeout(() => {

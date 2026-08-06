@@ -8,7 +8,7 @@ import {
 } from "@internal/intrCmnTypes";
 import { Request } from "@active/actTypes";
 import { sessionsState } from "@sessions/stateSession";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { addNewNotification } from "@states/stateNotif";
 import { NotificationKeys } from "@internal/intrCmnVars";

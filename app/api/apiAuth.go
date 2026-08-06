@@ -1,9 +1,13 @@
 package api
 
 import (
+	"errors"
 	"marble/app/active"
 	"marble/app/users"
 	"marble/db"
+	"marble/enc"
+	"marble/internal"
+	"marble/internal/loggy"
 	"net/http"
 	"time"
 
@@ -27,20 +31,25 @@ func (api *apiConfig) handleAccount(w http.ResponseWriter, r *http.Request) {
 func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
 		Name        string `json:"name"`
+		DisplayId   string `json:"username"`
 		Email       string `json:"email"`
-		Password    string `json:"password"`
+		AuthKey     string `json:"password"`
 		PubIdentKey string `json:"pubIdentKey"`
 	}
+
 	err := api.readJson(w, r, &entry)
 	if err != nil {
 		api.badRequestResponse(w, r, err)
 		return
 	}
-	newUser, err := users.CreateNewUser(entry.Name, entry.Email, entry.Password, entry.PubIdentKey)
+	newUser, err := users.CreateNewUser(entry.Name, entry.Email, entry.DisplayId, entry.PubIdentKey)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
-	err = newUser.Save(db.AppModels.UserModel, db.AppModels.ProfileModel)
+
+	authKeyHash, err := enc.HashUserAuthKey(entry.AuthKey)
+
+	err = newUser.Save(db.AppModels.UserModel, authKeyHash, db.AppModels.ProfileModel)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
@@ -73,7 +82,18 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, err)
 		return
 	}
-	// password validation goes here
+
+	userExistingAuthHash, err := db.AppModels.UserModel.GetUserAuthHash(existingUser.Id)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+
+	isValid := enc.CheckAuthHash(entry.Password, userExistingAuthHash)
+	if !isValid {
+		api.serverErrorResponse(w, r, errors.New("username/password was not valid!"))
+		return
+	}
 
 	claims := active.Claims{
 		UserId: existingUser.Id,
@@ -97,4 +117,54 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
 	}
+}
+
+func (api *apiConfig) getNewTokens(w http.ResponseWriter, r *http.Request) {
+	var entry struct {
+		UserId       internal.UserId `json:"userId"`
+		RefreshToken string          `json:"refreshToken"`
+	}
+	err := api.readJson(w, r, &entry)
+	if err != nil {
+		api.badRequestResponse(w, r, err)
+		return
+	}
+	existingUser, err := db.AppModels.UserModel.Get(entry.UserId)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+		return
+	}
+
+	accessToken, err := GetNewToken(existingUser.Id, api.jwtSecret, "access", 15*time.Minute)
+	refreshToken, err := GetNewToken(existingUser.Id, api.jwtSecret, "refresh", 30*24*time.Hour)
+
+	response := envelope{
+		"error":        false,
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	}
+	err = api.writeJSON(w, http.StatusCreated, response, nil)
+	if err != nil {
+		api.serverErrorResponse(w, r, err)
+	}
+}
+
+func GetNewToken(userId internal.UserId, jwtSecret []byte, tokenType string, duration time.Duration) (string, error) {
+	claims := active.Claims{
+		UserId:    userId,
+		TokenType: tokenType,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", loggy.Sayr("failed to sign token: %w", err)
+	}
+
+	return signedToken, nil
 }

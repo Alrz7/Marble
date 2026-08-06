@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"marble/app/session"
 	"marble/app/users"
-	"marble/encryption/pgp"
+	"marble/enc/pgp"
 )
 
 type Models struct {

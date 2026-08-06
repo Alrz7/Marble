@@ -3,16 +3,15 @@ import "./app.css";
 import SignupPage from "./components/auth/signUp/SignupMain";
 import LoadingPage from "./components/auth/LoadingPage";
 import ChatLayout from "./components/chat/ChatLayout";
-import {
-  getActiveUserAuthMethod,
-  loadConfigByMethod,
-} from "./logic/user/userLoadUp";
-import { AppUser } from "./logic/states/stateUser";
+import { loadConfigByMethod } from "./logic/user/usrLoaders";
+import { AppUser } from "./logic/user/stateUser";
 import { AppState } from "./logic/states/stateCommon";
 import LoginScreen from "./components/auth/login/LoginScreen";
 import { err, ok } from "@internal/golog";
 import DayilyLoginScreen from "./components/auth/dailyLogin/dailyLogin";
 import { AuthMethod } from "@internal/intrCmnTypes";
+import { getActiveUserAuthMethod } from "@user/usrHellpers";
+import { openConnection } from "@active/actWsRouter";
 function App() {
   const { appState, setAppState } = AppState();
   const { currentUser, setUserData } = AppUser();
@@ -39,6 +38,7 @@ function App() {
           return err(userData.error);
         } else {
           setUserData(userData.value);
+          openConnection();
         }
       } else {
         setAuthMethod(actUserPartialData.value.method);

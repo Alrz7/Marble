@@ -1,8 +1,8 @@
 import { Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { stateSignUp } from "@states/stateAuth";
-import { onSignUp } from "@auth/signUp";
+import { onUserSignUp } from "@auth/athUserSignUp";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 
 export default function SignupStp4() {
   const {
@@ -13,12 +13,12 @@ export default function SignupStp4() {
     confirmPassphrase,
     isLoading,
     setConfirmPassphrase,
-    resetSignUpStore
+    resetSignUpStore,
   } = stateSignUp();
   const { setUserData } = AppUser();
 
   const handleAuthMethodSelect = async () => {
-    const res = await onSignUp();
+    const res = await onUserSignUp();
     if (!res.ok) {
       addAppErrNotif(res.error);
       return;
@@ -28,7 +28,7 @@ export default function SignupStp4() {
       return;
     }
     setUserData(res.value);
-    resetSignUpStore()
+    resetSignUpStore();
   };
   return (
     <div className="space-y-6 animate-fade-in">

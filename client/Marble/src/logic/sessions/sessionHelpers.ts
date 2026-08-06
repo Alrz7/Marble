@@ -1,6 +1,6 @@
 import { sessionsState } from "@sessions/stateSession";
 import { Audience, Message, Session } from "@internal/intrCmnTypes";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { InsertAudience } from "@db/dbAudience";
 import { InsertSession } from "@db/dbSessions";
 import { InsertMessage } from "@db/dbMessages";

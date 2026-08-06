@@ -1,7 +1,7 @@
 import { InsertMessage } from "@db/dbMessages";
 import { Message, Session } from "@internal/intrCmnTypes";
 import { sessionsState } from "@sessions/stateSession";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
 import { messageState } from "./stateMessage";
 import { err, ok } from "@internal/golog";
 import { addNewNotification } from "@states/stateNotif";

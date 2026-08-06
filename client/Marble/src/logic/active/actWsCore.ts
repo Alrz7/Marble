@@ -1,8 +1,8 @@
-import { GetAuthToken } from "@internal/intrAuthHelpers";
 import { Request } from "./actTypes";
 import { AppState, stateCommon } from "@states/stateCommon";
 import { addNewNotification } from "@states/stateNotif";
 import { StateVariables } from "@internal/intrCmnVars";
+import { onGetUserAccessToken } from "@auth/athHelpers";
 
 export let ws: WebSocket | null = null;
 export function setWs(val: WebSocket | null) {
@@ -42,16 +42,15 @@ export function sendRequest(req: Request): boolean {
   }
 }
 
-export function sendToken() {
+export async function sendToken() {
   const { setConnTitle } = AppState.getState();
-  const token = GetAuthToken();
-  if (token) {
-    const req: Request = {
-      status: 0,
-      channel: "auth",
-      token: token,
-    };
-    const res = sendRequest(req);
-    if (res) setConnTitle("connecting...");
-  }
+  const token = await onGetUserAccessToken();
+  if (!token) return;
+  const req: Request = {
+    status: 0,
+    channel: "auth",
+    token: token,
+  };
+  const res = sendRequest(req);
+  if (res) setConnTitle("connecting...");
 }

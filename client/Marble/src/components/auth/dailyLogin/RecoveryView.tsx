@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { KeyRound, ArrowLeft, RotateCcw } from "lucide-react";
-import { loadConfigByMasterPhrase } from "@user/userLoadUp";
+import { loadConfigByMasterPhrase } from "@user/usrLoaders";
 import { err, ok } from "@internal/golog";
-import { AppUser } from "@states/stateUser";
+import { AppUser } from "@user/stateUser";
+import { openConnection } from "@active/actWsRouter";
 
 interface RecoveryViewProps {
   user_id: number;
@@ -23,9 +24,11 @@ export function RecoveryView({ user_id, onBack }: RecoveryViewProps) {
         return err(userData.error);
       } else {
         setUserData(userData.value);
+        openConnection();
         return ok(undefined);
       }
     } finally {
+
       setIsLoading(false);
     }
   };

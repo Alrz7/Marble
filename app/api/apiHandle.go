@@ -8,7 +8,7 @@ package api
 // 	"errors"
 // 	"fmt"
 // 	"marble/app/active"
-// 	"marble/encryption/pgp"
+// 	"marble/enc/pgp"
 // 	"marble/internal"
 // 	"net/http"
 // )
