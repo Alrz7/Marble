@@ -52,5 +52,5 @@ export async function sendToken() {
     token: token,
   };
   const res = sendRequest(req);
-  if (res) setConnTitle("connecting...");
+  if (res) setConnTitle("authorizing...");
 }

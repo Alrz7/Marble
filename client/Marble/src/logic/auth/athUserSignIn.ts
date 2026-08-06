@@ -7,7 +7,7 @@ import { GetMasterKeyFromMasterString } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
 import { commonErrors, err, fromPromiseErr, ok, Result } from "@internal/golog";
 import { bytesToHex } from "@enc/encAuth";
-import { getUserSaltArray } from "@db/dbAuthHelpers";
+import { getUserSaltArray, setUserTokens } from "@db/dbAuthHelpers";
 import { AppUser } from "@user/stateUser";
 
 export async function onUserSignIn(
@@ -41,8 +41,13 @@ export async function onUserSignIn(
     return err(existingUser.error);
   }
 
-  const res = await onSendUserSignInReq(DisplayId, bytesToHex(master.value.serverHash));
-  if(!res.ok) return err(res.error)
+  const res = await onSendUserSignInReq(
+    existingUser.value.config.id,
+    master.value.localKey,
+    DisplayId,
+    bytesToHex(master.value.serverHash),
+  );
+  if (!res.ok) return err(res.error);
 
   SetActiveUserId(existingUser.value.config.id);
   return ok(existingUser.value);
@@ -53,6 +58,8 @@ export async function logOut() {
   SetActiveUserId(-1);
 }
 export async function onSendUserSignInReq(
+  user_id: number,
+  masterKey: CryptoKey,
   DisplayId: string,
   password: string,
 ): Promise<Result<string>> {
@@ -82,7 +89,11 @@ export async function onSendUserSignInReq(
   }
 
   const jsonResult = await fromPromiseErr(
-    response.json() as Promise<{ token: string; error?: string }>,
+    response.json() as Promise<{
+      accessToken: string;
+      refreshToken: string;
+      error?: string;
+    }>,
     commonErrors.conversionFailed,
   );
 
@@ -95,8 +106,14 @@ export async function onSendUserSignInReq(
   }
 
   const { setAccessToken } = AppUser.getState();
-  setAccessToken(jsonResult.value.token);
+  setAccessToken(jsonResult.value.accessToken);
+  setUserTokens(
+    user_id,
+    masterKey,
+    jsonResult.value.accessToken,
+    jsonResult.value.refreshToken,
+  );
   openConnection();
 
-  return ok(jsonResult.value.token);
+  return ok(jsonResult.value.accessToken);
 }

@@ -83,8 +83,8 @@ export async function HndlAuthStatus(request: any) {
     if (!states.get("syncedSession")) {
       onSyncSession(Array.from(sessions.values()));
       setState("syncedSession", true);
-      setConnTitle("Marble");
     }
+    setConnTitle("Marble");
   }
 }
 

@@ -1,10 +1,11 @@
-import { getUserRefreshToken, setUserRefreshToken } from "@db/dbAuthHelpers";
+import { getUserTokens, setUserTokens } from "@db/dbAuthHelpers";
 import {
   addAppErrNotif,
   commonErrors,
   err,
   errEdtMessage,
   fromPromiseErr,
+  newAppErr,
   ok,
   Result,
 } from "@internal/golog";
@@ -27,33 +28,58 @@ export async function onGetUserAccessToken() {
 
   if (accessToken != null && !isJwtTokenExpiered(accessToken)) {
     return accessToken;
+  } else {
+    const tokens = await getUserTokens(
+      currentUser.config.id,
+      currentUser.MasterKey,
+    );
+    if (!tokens.ok) {
+      addAppErrNotif(tokens.error);
+      return null;
+    }
+    if (
+      tokens.value.accessToken != null &&
+      !isJwtTokenExpiered(tokens.value.accessToken)
+    ) {
+      setAccessToken(tokens.value.accessToken);
+      return tokens.value.accessToken;
+    } else if (
+      tokens.value.refreshToken != null &&
+      !isJwtTokenExpiered(tokens.value.refreshToken)
+    ) {
+      const newAccessToken = await onRefreshUserTokens(
+        currentUser.config.userId,
+        currentUser.config.id,
+        tokens.value.refreshToken,
+        currentUser.MasterKey,
+      );
+      if (!newAccessToken.ok) {
+        addAppErrNotif(newAccessToken.error);
+        return null;
+      }
+      setAccessToken(newAccessToken.value);
+      return newAccessToken.value;
+    } else {
+      addAppErrNotif(
+        newAppErr(
+          "failedToGetToken",
+          "existing refreshToken are expired or null",
+        ),
+      );
+    }
   }
-
-  const newAccessToken = await onRefreshUserTokens(
-    currentUser.config.userId,
-    currentUser.config.id,
-    currentUser.MasterKey,
-  );
-  if (!newAccessToken.ok) {
-    addAppErrNotif(newAccessToken.error);
-    return null;
-  }
-
-  setAccessToken(newAccessToken.value);
-  return newAccessToken.value;
+  return null;
 }
 
 export async function onRefreshUserTokens(
   userId: UserId, // this is user's Global Id
   user_id: number, // this is User's local (client-db) Id
+  refreshToken: string,
   masterkey: CryptoKey,
 ): Promise<Result<string>> {
-  const refreshToken = await getUserRefreshToken(user_id, masterkey);
-  if (!refreshToken.ok) return err(refreshToken.error);
-
   const body = JSON.stringify({
     userId: userId,
-    refreshToken: refreshToken.value,
+    refreshToken: refreshToken,
   });
   const response = await fromPromiseErr(
     fetch("http://localhost:6280/auth/refresh", {
@@ -79,15 +105,16 @@ export async function onRefreshUserTokens(
     return err(
       errEdtMessage(
         commonErrors.failedTofetchData,
-        "failed to fetch access-token from server: returned Null",
+        "failed to fetch access-token from server: returned Null for acessToken",
       ),
     );
 
   if (Result.refreshToken != null) {
-    const res = await setUserRefreshToken(
+    const res = await setUserTokens(
       user_id,
-      Result.refreshToken,
       masterkey,
+      Result.accessToken,
+      Result.refreshToken,
     );
     if (!res.ok) return err(res.error);
   }

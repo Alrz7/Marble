@@ -54,12 +54,16 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, err)
 	}
 	// err = newUser.fakeSave()
+	accessToken, err := GetNewToken(newUser.Id, api.JwtSecret, "access", 15*time.Minute)
+	refreshToken, err := GetNewToken(newUser.Id, api.JwtSecret, "refresh", 30*24*time.Hour)
 
 	response := envelope{
-		"error":      false,
-		"message":    "user has been Created Succesfully!",
-		"id":         newUser.Id,
-		"display_id": newUser.DisplayId,
+		"error":        false,
+		"message":      "user has been Created Succesfully!",
+		"id":           newUser.Id,
+		"display_id":   newUser.DisplayId,
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
@@ -89,29 +93,20 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isValid := enc.CheckAuthHash(entry.Password, userExistingAuthHash)
-	if !isValid {
+	isUserValid := enc.CheckAuthHash(entry.Password, userExistingAuthHash)
+	if !isUserValid {
 		api.serverErrorResponse(w, r, errors.New("username/password was not valid!"))
 		return
 	}
 
-	claims := active.Claims{
-		UserId: existingUser.Id,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString(api.jwtSecret)
-	if err != nil {
-		api.serverErrorResponse(w, r, err)
-		return
-	}
+	accessToken, err := GetNewToken(existingUser.Id, api.JwtSecret, "access", 15*time.Minute)
+	refreshToken, err := GetNewToken(existingUser.Id, api.JwtSecret, "refresh", 30*24*time.Hour)
+
 	response := envelope{
-		"error":   false,
-		"message": "User has Logged Succesfully!",
-		"token":   signedToken,
+		"error":        false,
+		"message":      "User has Logged Succesfully!",
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
@@ -135,8 +130,8 @@ func (api *apiConfig) getNewTokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := GetNewToken(existingUser.Id, api.jwtSecret, "access", 15*time.Minute)
-	refreshToken, err := GetNewToken(existingUser.Id, api.jwtSecret, "refresh", 30*24*time.Hour)
+	accessToken, err := GetNewToken(existingUser.Id, api.JwtSecret, "access", 15*time.Minute)
+	refreshToken, err := GetNewToken(existingUser.Id, api.JwtSecret, "refresh", 30*24*time.Hour)
 
 	response := envelope{
 		"error":        false,

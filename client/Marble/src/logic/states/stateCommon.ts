@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
 
 export type PAGES = "loading" | "login" | "signup" | "dayilyLogin";
-type connectionTitles = "waiting for network..." | "connecting..." | "Marble";
+type connectionTitles = "waiting for network..." | "connecting..." | "authorizing..." | "Marble";
 interface AppState {
   appState: PAGES;
   connTitle: connectionTitles;

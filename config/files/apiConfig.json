@@ -3,10 +3,15 @@
     "dir": "./config/files/",
     "name": "apiConfig",
     "format": ".json",
-    "linked_to_handeler": false,
-    "last_time_modified": "2026-04-15T16:44:49.038946825+03:30"
+    "linked_to_Handler": false,
+    "last_time_modified": "2026-08-06T21:50:48.141852417+03:30"
   },
   "data": {
-    "AppConfig": { "version": "1.0.0", "port": 6280, "env": "development" }
+    "AppConfig": {
+      "version": "1.0.0",
+      "port": 6280,
+      "env": "development",
+      "jwtSecret": "fkhdCoop9k4Sw2CFE/zKuE62SP0RUPUH4QYqM6V8kaNj9AbTaN1KOtW9NXvue27wK3ytPsQBEtUI6b11S0MyGNRuYscMeWdesk1Mz4euvbgVy83sVynXb+jJHFVrvM8PdC2onIvvguB9FlaL8yLZuC8l3Dhpi7T43VBQb1vl7LjA62YrOr3ch5CnY5h0X15KDIX4542v9q4Ny/hor7S7qjixayFEC5JEkMyLmqbEkJrNth03DhQLHsdOhPrZO+eJDEOpCKHgweX+dVkdYnKhn29COLnlZMohudOT5ZGjPi+wt9+BMJQelRpCR1yXl4K937ltf3NbAZm1ioNaQDJC0A=="
+    }
   }
 }

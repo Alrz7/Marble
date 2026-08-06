@@ -9,5 +9,5 @@ type apiConfig struct {
 	Port      int    `json:"port"`
 	Env       string `json:"env"`
 	logger    *log.Logger
-	jwtSecret []byte
+	JwtSecret []byte `json:"jwtSecret"`
 }

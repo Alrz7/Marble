@@ -17,10 +17,10 @@ func Setup() {
 	api := apiConfig{}
 	api.Version = version
 	api.logger = loggy.DefaultLogger
-	err := api.setJwtSecret()
-	if err != nil {
-		api.logger.Errorf("there was an error while setting the Jwt-Secret on Api: %v", err)
-	}
+	// err := api.setJwtSecret()
+	// if err != nil {
+	// 	api.logger.Errorf("there was an error while setting the Jwt-Secret on Api: %v", err)
+	// }
 	flag.IntVar(&api.Port, "port", defaultPort, "Api server port")
 	if api.Port <= 1023 {
 		api.logger.Warn(`server Port Should Not be less than-equal 1023 (setting %v as default)`, defaultPort)
@@ -76,5 +76,5 @@ func enableCORS(next http.Handler) http.Handler {
 }
 
 func (api *apiConfig) handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	active.WebSocket(w, r, api.jwtSecret)
+	active.WebSocket(w, r, api.JwtSecret)
 }

@@ -24,6 +24,8 @@ import {
 import { stateSignUp } from "@states/stateAuth";
 import { bytesToHex } from "@enc/encAuth";
 import { genCryptoRandomValue } from "@enc/encHelpers";
+import { AppUser } from "@user/stateUser";
+import { setUserTokens } from "@db/dbAuthHelpers";
 
 export async function onUserSignUp(
   selectedMethod?: AuthMethod,
@@ -111,18 +113,27 @@ export async function onUserSignUp(
       return err(WrappingKey.error);
     }
 
-    const res = await InsertUser(
+    const user_id = await InsertUser(
       newUser,
       Master.value.localKey,
       WrappingKey.value,
       randomSalt,
     );
-    if (!res.ok) {
-      return err(res.error);
+    if (!user_id.ok) {
+      return err(user_id.error);
     }
-    newUser.config.id = res.value;
-
+    newUser.config.id = user_id.value;
     await SetActiveUserId(newUser.config.id);
+
+    const { setAccessToken } = AppUser.getState();
+    setAccessToken(serverReqResult.value.accessToken);
+    const res = await setUserTokens(
+      user_id.value,
+      Master.value.localKey,
+      serverReqResult.value.accessToken,
+      serverReqResult.value.refreshToken,
+    );
+    if (!res.ok) return err(res.error);
 
     return ok(newUser);
   } finally {
@@ -163,14 +174,21 @@ async function onSendSignUpRequest(
     return err(newAppErr("signUpFailed", "server rejected the Signup Request"));
   }
 
-  const result: Result<{ id: number; display_id: string }, AppError> =
-    await fromPromiseErr(
-      response.value.json(),
-      errEdtMessage(
-        commonErrors.conversionFailed,
-        "failed to proccess signup response",
-      ),
-    );
+  const result: Result<
+    {
+      id: number;
+      display_id: string;
+      accessToken: string;
+      refreshToken: string;
+    },
+    AppError
+  > = await fromPromiseErr(
+    response.value.json(),
+    errEdtMessage(
+      commonErrors.conversionFailed,
+      "failed to proccess signup response",
+    ),
+  );
   if (!result.ok) {
     return err(result.error);
   }

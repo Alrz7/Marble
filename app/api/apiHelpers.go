@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strings"
 )
+
 type envelope = internal.Envelope
 
 func (api *apiConfig) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
@@ -84,6 +85,6 @@ func (api *apiConfig) setJwtSecret() error {
 	if err != nil {
 		return err
 	}
-	api.jwtSecret = sec
+	api.JwtSecret = sec
 	return nil
 }

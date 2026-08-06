@@ -5,6 +5,7 @@ import {
   commonErrors,
   err,
   errEdtMessage,
+  fromPromiseAllErr,
   fromPromiseErr,
   ok,
   Result,
@@ -72,32 +73,55 @@ export async function GetUserAuthMethod(
   return ok(res.value[0].auth_method as AuthMethod);
 }
 
-export async function setUserRefreshToken(
+export async function setUserTokens(
   id: number,
-  token: string,
   masterKey: CryptoKey,
+  accessToken?: string,
+  refreshToken?: string,
 ) {
-  const encrypted = await encryptData(token, masterKey);
-  if (!encrypted.ok) return err(encrypted.error);
-  const query = `UPDATE users
-    SET refresh_token = $2
-    WHERE id = $1`;
+  if (!accessToken && !refreshToken)
+    return err(
+      errEdtMessage(
+        commonErrors.unexpectedInput,
+        "expecting accessToken, refreshToken or Both, but nither was given",
+      ),
+    );
+  const addings: string[] = [];
+  const tokens: Uint8Array[] = [];
 
+  if (accessToken) {
+    addings.push("access_token");
+    const encrypted = await encryptData(accessToken, masterKey);
+    if (!encrypted.ok) return err(encrypted.error);
+    tokens.push(encrypted.value);
+  }
+
+  if (refreshToken) {
+    addings.push("refresh_token");
+    const encrypted = await encryptData(refreshToken, masterKey);
+    if (!encrypted.ok) return err(encrypted.error);
+    tokens.push(encrypted.value);
+  }
+
+  const query = `UPDATE users
+    SET ${addings.at(0) ? `${addings.at(0)} = $2` : ""}, ${addings.at(1) ? `${addings.at(1)} = $3` : ""}
+    WHERE id = $1`;
   const res = await fromPromiseErr(
-    db.execute(query, [id, encrypted.value]),
+    db.execute(query, [id, ...tokens]),
     commonErrors.dbfailedToUpdateData,
   );
 
   return res;
 }
 
-export async function getUserRefreshToken(id: number, MasterKey: CryptoKey) {
+export async function getUserTokens(id: number, MasterKey: CryptoKey) {
   const res = await fromPromiseErr(
     db.select<
       {
+        access_token: number[] | null;
         refresh_token: number[] | null;
       }[]
-    >(`SELECT refresh_token FROM users WHERE id = $1`, [id]),
+    >(`SELECT access_token, refresh_token FROM users WHERE id = $1`, [id]),
     errEdtMessage(
       commonErrors.dbfailedToGetData,
       "err while fetching user from db",
@@ -108,12 +132,25 @@ export async function getUserRefreshToken(id: number, MasterKey: CryptoKey) {
   if (res.value.length === 0 || !res.value[0]) {
     return err(commonErrors.noRecordFound);
   }
-  if (res.value[0].refresh_token == null) return ok(null);
+  const existings = [];
 
-  const decrypted = await decryptDataFromDb<string>(
-    res.value[0].refresh_token,
-    MasterKey,
-  );
+  if (res.value[0].access_token != null) {
+    existings.push(
+      decryptDataFromDb<string>(res.value[0].access_token, MasterKey),
+    );
+  }
+  if (res.value[0].refresh_token != null) {
+    existings.push(
+      decryptDataFromDb<string>(res.value[0].refresh_token, MasterKey),
+    );
+  }
+  const decrypted = await fromPromiseAllErr(existings);
+
   if (!decrypted.ok) return err(decrypted.error);
-  return ok(decrypted.value);
+  const [accessToken, refreshToken] = decrypted.value;
+
+  return ok({
+    accessToken: accessToken ?? null,
+    refreshToken: refreshToken ?? null,
+  });
 }

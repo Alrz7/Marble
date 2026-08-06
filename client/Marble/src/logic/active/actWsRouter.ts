@@ -1,3 +1,4 @@
+import { Message } from './../internal/intrCmnTypes';
 import {
   reconnectTimeout,
   sendToken,
@@ -93,7 +94,7 @@ function ReconnectWS() {
       if (ws?.OPEN) {
         // ReconnectWS();
       }
-    }, 5000),
+    }, 3000),
   );
 }
 

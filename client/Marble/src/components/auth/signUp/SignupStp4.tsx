@@ -3,6 +3,7 @@ import { stateSignUp } from "@states/stateAuth";
 import { onUserSignUp } from "@auth/athUserSignUp";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
 import { AppUser } from "@user/stateUser";
+import { openConnection } from "@active/actWsRouter";
 
 export default function SignupStp4() {
   const {
@@ -28,6 +29,7 @@ export default function SignupStp4() {
       return;
     }
     setUserData(res.value);
+    openConnection();
     resetSignUpStore();
   };
   return (

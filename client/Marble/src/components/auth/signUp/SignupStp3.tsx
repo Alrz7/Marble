@@ -4,6 +4,7 @@ import { onUserSignUp } from "@auth/athUserSignUp";
 import { AuthMethod } from "@internal/intrCmnTypes";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
 import { AppUser } from "@user/stateUser";
+import { openConnection } from "@active/actWsRouter";
 
 export default function SignupStp3() {
   const { setStep, setAuthMethod, resetSignUpStore } = stateSignUp();
@@ -23,6 +24,7 @@ export default function SignupStp3() {
         return;
       }
       setUserData(res.value);
+      openConnection()
       resetSignUpStore();
     } else {
       setStep(4);
