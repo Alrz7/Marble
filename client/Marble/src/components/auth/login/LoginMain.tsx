@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { User, Key, Loader2, Server, AlertCircle } from "lucide-react";
 import { stateLogin } from "@states/stateAuth";
 import { onUserSignIn } from "@auth/athUserSignIn";
-import { addAppErrNotif, commonErrors } from "@internal/golog";
+import {
+  addAppErrNotif,
+  commonErrors,
+  notifUnExpectedErr,
+} from "@internal/golog";
 import { AppUser } from "@user/stateUser";
 
 export function LoginMain() {
@@ -14,25 +18,33 @@ export function LoginMain() {
     isLoading,
     setIsLoading,
     resetLoginStore,
+    serverUrl,
+    setServerUrl
   } = stateLogin();
 
   const { setUserData } = AppUser();
-
-  const [serverUrl, setServerUrl] = useState("http://localhost:6280");
-
   const [serverError, setServerError] = useState<string | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-
 
   const handleServerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const res = await onUserSignIn(username, password);
+    const res = await onUserSignIn(serverUrl, username, password);
     try {
       if (!res.ok) {
-        addAppErrNotif(res.error);
+        if (
+          notifUnExpectedErr(
+            res.error,
+            commonErrors.decryptionFailed,
+            commonErrors.userNotFound,
+          ) != null
+        ) {
+          setUsernameError("username/password invalid");
+          setPasswordError("username/password invalid");
+        }
+
         return;
       }
       if (!res.value) {
@@ -49,7 +61,7 @@ export function LoginMain() {
     //   setStep(2);
     // }, 1000);
   };
-return (
+  return (
     <form
       onSubmit={handleServerLogin}
       className="w-full flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700"

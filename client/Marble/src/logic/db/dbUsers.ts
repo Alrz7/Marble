@@ -1,6 +1,6 @@
 import {
   decryptDataFromDb,
-  decryptMasterKey,
+  decryptMasterKeyFromDb,
   encryptData,
   encryptMasterKey,
 } from "@enc/encMaster";
@@ -24,6 +24,7 @@ import {
   Result,
 } from "@internal/golog";
 import { GetPgpProfile, InsertPgpProfile } from "./dbOpenPgp";
+import { AppState } from "@states/stateCommon";
 
 // ------- Users --------
 export async function InsertUser(
@@ -32,9 +33,11 @@ export async function InsertUser(
   wrappingKey: CryptoKey,
   masterSalt: Uint8Array<ArrayBufferLike>,
   hmac_salt: Uint8Array<ArrayBuffer>,
+  serverUrl: string,
 ): Promise<Result<number>> {
   const encrypted = await fromPromiseAllErr(
     [
+      encryptData(serverUrl, masterKey),
       encryptData(user.config.userId, masterKey),
       encryptData(user.config.displayId, masterKey),
       SignWithHmac(DefEncoder.encode(user.config.displayId).buffer, hmac_salt),
@@ -49,7 +52,7 @@ export async function InsertUser(
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
-      `INSERT INTO users (auth_method, master_salt, hmac_salt, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO users (auth_method, master_salt, hmac_salt, server_url, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id`,
       [user.authMethod, masterSalt, hmac_salt, ...encrypted.value],
     ),
@@ -107,6 +110,7 @@ export async function dbFindUserByDisplayId(DisplayId: string) {
 }
 
 type dbUserConfig = {
+  server_url: number[];
   auth_method: string;
   id: number;
   user_id: number[];
@@ -123,7 +127,7 @@ export async function getUserByWrappingKey(
 ): Promise<Result<User>> {
   const res = await fromPromiseErr(
     db.select<dbUserConfig[]>(
-      `SELECT auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
+      `SELECT server_url, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
       [id],
     ),
     errEdtMessage(
@@ -137,11 +141,20 @@ export async function getUserByWrappingKey(
     return err(commonErrors.noRecordFound);
   }
 
-  const converted = blobFromDb(res.value[0].encrypted_master_key);
-  if (!converted.ok) return err(converted.error);
-
-  const masterKey = await decryptMasterKey(converted.value, wrappingKey);
+  const masterKey = await decryptMasterKeyFromDb(
+    res.value[0].encrypted_master_key,
+    wrappingKey,
+  );
   if (!masterKey.ok) return err(masterKey.error);
+
+  const serverUrl = await decryptDataFromDb<string>(
+    res.value[0].server_url,
+    masterKey.value,
+  );
+  if (!serverUrl.ok) return err(serverUrl.error);
+
+  const { setServerUrl } = AppState.getState();
+  setServerUrl(serverUrl.value);
 
   const config = await getDataFromEncrypted(res.value[0], masterKey.value);
   if (!config.ok) return err(config.error);
@@ -182,7 +195,7 @@ export async function getUserByMasterKey(
 
   const res = await fromPromiseErr(
     db.select<dbUserConfig[]>(
-      `SELECT auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
+      `SELECT server_url, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
       [targetVal],
     ),
     errEdtMessage(
@@ -195,6 +208,15 @@ export async function getUserByMasterKey(
   if (res.value.length === 0 || !res.value[0]) {
     return err(commonErrors.noRecordFound);
   }
+
+  const serverUrl = await decryptDataFromDb<string>(
+    res.value[0].server_url,
+    masterKey,
+  );
+  if (!serverUrl.ok) return err(serverUrl.error);
+
+  const { setServerUrl } = AppState.getState();
+  setServerUrl(serverUrl.value);
 
   const config = await getDataFromEncrypted(res.value[0], masterKey);
   if (!config.ok) return err(config.error);
@@ -255,4 +277,21 @@ export async function SetActiveUserId(userId: UserId): Promise<void> {
     "UPDATE app_settings SET value = ? WHERE key = 'active_user_id'",
     [userId],
   );
+}
+export async function setUserServerUrl(
+  user_id: number,
+  newUrl: string,
+  masterKey: CryptoKey,
+) {
+  const encrypted = await encryptData(newUrl, masterKey);
+  if (!encrypted.ok) return err(encrypted.error);
+  const res = await fromPromiseErr(
+    db.execute(`UPDATE users SET server_url = $2 WHERE id = $1`, [
+      user_id,
+      encrypted.value,
+    ]),
+    commonErrors.dbfailedToInsertData,
+  );
+  if (!res.ok) return err(res.error);
+  return ok(undefined);
 }

@@ -3,23 +3,31 @@ import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
 
 export type PAGES = "loading" | "login" | "signup" | "dayilyLogin";
-type connectionTitles = "waiting for network..." | "connecting..." | "authorizing..." | "Marble";
+type connectionTitles =
+  | "waiting for network..."
+  | "connecting..."
+  | "authorizing..."
+  | "Marble";
 interface AppState {
   appState: PAGES;
+  serverUrl: string | null;
   connTitle: connectionTitles;
   setAppState: (newState: PAGES) => void;
+  setServerUrl: (url: string | null) => void;
   setConnTitle: (newTitle: connectionTitles) => void;
   resetAppStates: () => void;
 }
 
 const initialAppState = {
   appState: "loading" as PAGES,
+  serverUrl: null,
   connTitle: "waiting for network..." as connectionTitles,
 };
 
 export const AppState = create<AppState>((set) => ({
   ...initialAppState,
   setAppState: (newState: PAGES) => set({ appState: newState }),
+  setServerUrl: (url: string | null) => set({ serverUrl: url }),
   setConnTitle: (newTitle: connectionTitles) => set({ connTitle: newTitle }),
   resetAppStates: () => set(initialAppState),
 }));

@@ -27,10 +27,11 @@ export function openConnection() {
   if (
     ws &&
     (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
-  )
+  ) {
     return;
-
-  const newWs = new WebSocket("ws://localhost:6280/actv");
+  }
+  const { serverUrl } = AppState.getState();
+  const newWs = new WebSocket(`ws:${serverUrl?.slice(5)}/actv`);
   setWs(newWs);
 
   newWs.onopen = () => {

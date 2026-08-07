@@ -61,7 +61,10 @@ export async function fromPromiseAllErr<
   } catch (e) {
     return err(
       fallbackErr ??
-        newAppErr("promiseAllFailed", e instanceof Error ? e.message : String(e)),
+        newAppErr(
+          "promiseAllFailed",
+          e instanceof Error ? e.message : String(e),
+        ),
     );
   }
 }
@@ -114,6 +117,24 @@ export const addAppErrNotif = (
   type: NotifType = "error",
 ): void => {
   addNewNotification(type, err.reason, err.message);
+};
+
+export const notifUnExpectedErr = (err: AppError, ...match: AppError[]) => {
+  if (match.some((e) => e.reason === err.reason)) {
+    return err;
+  }
+  addAppErrNotif(err);
+  return null;
+};
+
+export type errFuncDue = Record<string, () => any>;
+export const flowExpectedErrOrNotif = (err: AppError, match: errFuncDue) => {
+  let found = match[err.reason];
+  if (found != undefined) {
+    found();
+  } else {
+    addAppErrNotif(err);
+  }
 };
 
 export const commonErrors = {

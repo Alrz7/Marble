@@ -1,8 +1,15 @@
 import React, { useState } from "react";
-import { Lock, Eye, EyeOff, LogOut, ArrowRight } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  LogOut,
+  ArrowRight,
+  AlertCircle,
+  Key,
+} from "lucide-react";
 import { AuthMethod } from "@internal/intrCmnTypes";
 import { loadConfigByMethod } from "@user/usrLoaders";
-import { err, ok } from "@internal/golog";
+import { commonErrors, flowExpectedErrOrNotif } from "@internal/golog";
 import { AppUser } from "@user/stateUser";
 import { logOut } from "@auth/athUserSignIn";
 import { openConnection } from "@active/actWsRouter";
@@ -20,6 +27,7 @@ export function PassphraseView({
 }: PassphraseViewProps) {
   const { setUserData } = AppUser();
   const [passphrase, setPassphrase] = useState("");
+  const [passphraseError, setpassphraseError] = useState<string | null>(null);
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,11 +41,14 @@ export function PassphraseView({
         passphrase,
       );
       if (!userData.ok) {
-        return err(userData.error);
+        flowExpectedErrOrNotif(userData.error, {
+          [commonErrors.decryptionFailed.reason]: () => {
+            setpassphraseError("passphrase was not valid!");
+          },
+        });
       } else {
         setUserData(userData.value);
         openConnection();
-        return ok(undefined);
       }
     } finally {
       setIsLoading(false);
@@ -59,15 +70,29 @@ export function PassphraseView({
 
       <form onSubmit={handleUnlock} className="space-y-6">
         <div>
+          <label className="block text-xs font-medium text-white/70 mb-2 pl-1">
+            Password
+          </label>
           <div className="relative">
-            <Lock className="absolute left-4 top-3.5 w-5 h-5 text-muted-foreground" />
+            <Key
+              className={`absolute left-4 top-3.5 w-4 h-4 transition-colors ${
+                passphraseError ? "text-red-400" : "text-white/40"
+              }`}
+            />
             <input
               type={showPassphrase ? "text" : "password"}
               placeholder="Enter Passphrase"
               value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all shadow-inner"
-              autoFocus
+              onChange={(e) => {
+                setPassphrase(e.target.value);
+                setpassphraseError(null);
+              }}
+              className={`w-full pl-11 pr-4 py-3 rounded-2xl text-sm transition-all focus:outline-none ${
+                passphraseError
+                  ? "bg-red-500/10 border border-red-500/50 text-red-200 placeholder:text-red-300/30 focus:border-red-500 focus:bg-red-500/15"
+                  : "bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:bg-white/[0.07]"
+              }`}
+              required
             />
             <button
               type="button"
@@ -81,6 +106,13 @@ export function PassphraseView({
               )}
             </button>
           </div>
+
+          {passphraseError && (
+            <p className="flex items-center gap-1.5 text-xs text-red-400 mt-1.5 pl-1">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{passphraseError}</span>
+            </p>
+          )}
         </div>
 
         <button

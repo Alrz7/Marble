@@ -4,20 +4,16 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "permissions": [
+    "core:default",
+    "http:allow-fetch-send",
     {
       "identifier": "http:default",
       "allow": [
-        {
-          "url": "http://localhost:6280/account"
-        }
-      ],
-      "deny": [
-        {
-          "url": "https://private.tauri.app"
-        }
+        { "url": "http://localhost:**" },
+        { "url": "http://**" },
+        { "url": "https://**" }
       ]
     },
-    "core:default",
     "opener:default",
     "keyring:default",
     "sql:default",

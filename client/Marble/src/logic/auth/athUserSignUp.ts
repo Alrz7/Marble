@@ -41,6 +41,7 @@ export async function onUserSignUp(
     customRecoveryKey,
     username,
     generatedRecoveryKey,
+    serverUrl,
   } = stateSignUp.getState();
   setIsLoading(true);
   try {
@@ -65,6 +66,7 @@ export async function onUserSignUp(
     }
 
     const serverReqResult = await onSendSignUpRequest(
+      serverUrl,
       name,
       username,
       email,
@@ -113,13 +115,14 @@ export async function onUserSignUp(
       return err(WrappingKey.error);
     }
 
-    const hmacSalt = genCryptoRandomValue(32)
+    const hmacSalt = genCryptoRandomValue(32);
     const user_id = await InsertUser(
       newUser,
       Master.value.localKey,
       WrappingKey.value,
       randomSalt,
-      hmacSalt
+      hmacSalt,
+      serverUrl,
     );
     if (!user_id.ok) {
       return err(user_id.error);
@@ -144,6 +147,7 @@ export async function onUserSignUp(
 }
 
 async function onSendSignUpRequest(
+  serverUrl: string,
   name: string,
   username: string,
   email: string,
@@ -151,9 +155,8 @@ async function onSendSignUpRequest(
   pgpPublicKey: string,
 ) {
   const passInHex = bytesToHex(serverAuthKey);
-
   const response = await fromPromiseErr(
-    fetch("http://localhost:6280/account", {
+    fetch(`${serverUrl}/account`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

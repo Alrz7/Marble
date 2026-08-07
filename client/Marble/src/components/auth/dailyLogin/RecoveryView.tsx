@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { KeyRound, ArrowLeft, RotateCcw } from "lucide-react";
+import { KeyRound, ArrowLeft, RotateCcw, AlertCircle } from "lucide-react";
 import { loadConfigByMasterPhrase } from "@user/usrLoaders";
-import { err, ok } from "@internal/golog";
+import { commonErrors, flowExpectedErrOrNotif } from "@internal/golog";
 import { AppUser } from "@user/stateUser";
 import { openConnection } from "@active/actWsRouter";
 
@@ -12,6 +12,7 @@ interface RecoveryViewProps {
 
 export function RecoveryView({ user_id, onBack }: RecoveryViewProps) {
   const [recoveryKey, setRecoveryKey] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { setUserData } = AppUser();
 
@@ -21,14 +22,16 @@ export function RecoveryView({ user_id, onBack }: RecoveryViewProps) {
       setIsLoading(true);
       const userData = await loadConfigByMasterPhrase(user_id, recoveryKey);
       if (!userData.ok) {
-        return err(userData.error);
+        flowExpectedErrOrNotif(userData.error, {
+          [commonErrors.decryptionFailed.reason]: () => {
+            setPasswordError("Recovery-key was not valid!");
+          },
+        });
       } else {
         setUserData(userData.value);
         openConnection();
-        return ok(undefined);
       }
     } finally {
-
       setIsLoading(false);
     }
   };
@@ -48,16 +51,31 @@ export function RecoveryView({ user_id, onBack }: RecoveryViewProps) {
       <form onSubmit={handleRecovery} className="space-y-6">
         <div>
           <div className="relative">
-            <KeyRound className="absolute left-4 top-3.5 w-5 h-5 text-emerald-500/70" />
+            <KeyRound
+              className={`absolute left-4 top-3.5 w-5 h-5 ${passwordError !== null ? "text-red-500/70" : "text-emerald-500/70"}`}
+            />
             <input
               type="text"
               placeholder="MRK-XXXX-XXXX-XXXX-XXXX"
               value={recoveryKey}
-              onChange={(e) => setRecoveryKey(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-emerald-500/20 rounded-2xl text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-emerald-500/50 transition-all shadow-inner"
+              onChange={(e) => {
+                setPasswordError(null);
+                setRecoveryKey(e.target.value);
+              }}
+              className={`w-full pl-11 pr-4 py-3 rounded-2xl text-sm transition-all focus:outline-none ${
+                passwordError
+                  ? "bg-red-500/10 border border-red-500/50 text-red-200 placeholder:text-red-300/30 focus:border-red-500 focus:bg-red-500/15"
+                  : "bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:bg-white/[0.07]"
+              }`}
               autoFocus
             />
           </div>
+          {passwordError && (
+            <p className="flex items-center gap-1.5 text-xs text-red-400 mt-1.5 pl-1">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{passwordError}</span>
+            </p>
+          )}
         </div>
 
         <button

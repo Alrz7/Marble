@@ -147,10 +147,7 @@ export async function encryptMasterKey(
       encryptionKey,
       rawMasterKeyBytes,
     ),
-    errEdtMessage(
-      commonErrors.encryptionFailed,
-      "failed to encrypt MasterKey with KEK",
-    ),
+    errEdtMessage(commonErrors.encryptionFailed, "failed to encrypt MasterKey"),
   );
   if (!encryptedBuffer.ok) return err(encryptedBuffer.error);
 
@@ -162,9 +159,19 @@ export async function encryptMasterKey(
   return ok(combined);
 }
 
+export async function decryptMasterKeyFromDb(
+  dbValue: unknown,
+  key: CryptoKey,
+): Promise<Result<CryptoKey>> {
+  const converted = blobFromDb(dbValue);
+  if (!converted.ok) return err(converted.error);
+
+  return decryptMasterKey(converted.value, key);
+}
+
 export async function decryptMasterKey(
   encryptedMasterKey: Uint8Array,
-  kek: CryptoKey,
+  encryptionKey: CryptoKey,
 ): Promise<Result<CryptoKey>> {
   if (encryptedMasterKey.byteLength < 12) {
     return err(
@@ -179,11 +186,12 @@ export async function decryptMasterKey(
   const cipherBytes = encryptedMasterKey.slice(12);
 
   const rawMasterKeyBuffer = await fromPromiseErr(
-    window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, kek, cipherBytes),
-    errEdtMessage(
-      commonErrors.decryptionFailed,
-      "failed to decrypt MasterKey With KEK",
+    window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      encryptionKey,
+      cipherBytes,
     ),
+    errEdtMessage(commonErrors.decryptionFailed, "failed to decrypt MasterKey"),
   );
   if (!rawMasterKeyBuffer.ok) return err(rawMasterKeyBuffer.error);
 

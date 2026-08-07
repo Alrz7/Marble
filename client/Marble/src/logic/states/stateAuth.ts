@@ -6,6 +6,8 @@ export type Steps = 1 | 2 | 3 | 4;
 type StateSignUp = {
   step: Steps;
   setStep: (stp: Steps) => void;
+  serverUrl: string;
+  setServerUrl: (name: string) => void;
   name: string;
   setName: (name: string) => void;
   username: string;
@@ -35,6 +37,7 @@ type StateSignUp = {
 
 const initialSignUpStates = {
   step: 1 as Steps,
+  serverUrl: "http://localhost:6280",
   name: "",
   username: "",
   email: "",
@@ -52,6 +55,7 @@ const initialSignUpStates = {
 export const stateSignUp = create<StateSignUp>((set) => ({
   ...initialSignUpStates,
   setStep: (step) => set({ step }),
+  setServerUrl: (serverUrl) => set({ serverUrl }),
   setName: (name) => set({ name }),
   setUsername: (username) => set({ username }),
   setEmail: (email) => set({ email }),
@@ -72,13 +76,14 @@ export const stateSignUp = create<StateSignUp>((set) => ({
 export type LoginStep = 1 | 2 | 3;
 export interface LoginState {
   step: LoginStep;
+  serverUrl: string;
   username: string;
   password: string;
   authMethod: AuthMethod;
   passphrase: string;
   isLoading: boolean;
-
   setStep: (step: LoginStep | ((s: LoginStep) => LoginStep)) => void;
+  setServerUrl: (name: string) => void;
   setUsername: (username: string) => void;
   setPassword: (password: string) => void;
   setAuthMethod: (authMethod: AuthMethod) => void;
@@ -89,6 +94,7 @@ export interface LoginState {
 
 const initialLoginStates = {
   step: 1 as LoginStep,
+  serverUrl: "http://localhost:6280",
   username: "",
   password: "",
   authMethod: "passphrase" as AuthMethod,
@@ -104,6 +110,7 @@ export const stateLogin = create<LoginState>((set) => ({
           ? stepOrUpdater(state.step)
           : stepOrUpdater,
     })),
+  setServerUrl: (serverUrl) => set({ serverUrl }),
   setUsername: (username) => set({ username }),
   setPassword: (password) => set({ password }),
   setAuthMethod: (authMethod) => set({ authMethod }),

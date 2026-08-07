@@ -9,7 +9,7 @@ export default function LoginScreen({
 }: {
   setAppState: (state: "login" | "signup") => void;
 }) {
-  const { step } = stateLogin();
+  const { step, resetLoginStore } = stateLogin();
 
   return (
     <div className="relative flex w-full h-screen bg-background overflow-hidden text-foreground select-none">
@@ -68,7 +68,10 @@ export default function LoginScreen({
           <div className="text-xs text-muted-foreground">
             Don't have an account?{" "}
             <button
-              onClick={() => setAppState("signup")}
+              onClick={() => {
+                resetLoginStore();
+                setAppState("signup");
+              }}
               className="text-primary hover:underline font-medium transition-colors"
             >
               Create your secure vault

@@ -5,6 +5,7 @@ import {
   dbFindUserByDisplayId,
   getUserByMasterKey,
   SetActiveUserId,
+  setUserServerUrl,
 } from "@db/dbUsers";
 import { GetMasterKeyFromMasterString } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
@@ -12,8 +13,10 @@ import { commonErrors, err, fromPromiseErr, ok, Result } from "@internal/golog";
 import { bytesToHex } from "@enc/encAuth";
 import { getUserSaltArray, setUserTokens } from "@db/dbAuthHelpers";
 import { AppUser } from "@user/stateUser";
+import { AppState } from "@states/stateCommon";
 
 export async function onUserSignIn(
+  newServerUrl: string,
   DisplayId: string,
   masterPassPhrase: string,
 ): Promise<Result<User | null>> {
@@ -41,6 +44,17 @@ export async function onUserSignIn(
     return err(existingUser.error);
   }
 
+  const { serverUrl, setServerUrl } = AppState.getState();
+  if (serverUrl !== newServerUrl) {
+    const res = await setUserServerUrl(
+      existingUser.value.config.id,
+      newServerUrl,
+      existingUser.value.MasterKey,
+    );
+    if (!res.ok) return err(res.error);
+    setServerUrl(newServerUrl);
+  }
+
   const res = await onSendUserSignInReq(
     existingUser.value.config.id,
     master.value.localKey,
@@ -63,8 +77,9 @@ export async function onSendUserSignInReq(
   DisplayId: string,
   password: string,
 ): Promise<Result<string>> {
+  const { serverUrl } = AppState.getState();
   const fetchResult = await fromPromiseErr(
-    fetch("http://localhost:6280/account", {
+    fetch(`${serverUrl}/account`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

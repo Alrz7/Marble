@@ -12,6 +12,7 @@ CREATE TABLE users (
     hmac_salt BLOB NOT NULL,
     refresh_token BLOB DEFAULT NULL,
     access_token BLOB DEFAULT NULL,
+    server_url BLOB NOT NULL,
     profile_avatar BLOB
 );
 

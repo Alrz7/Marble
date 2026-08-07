@@ -15,7 +15,8 @@ interface SignupPageProps {
 }
 
 export default function SignupPage({ setAppState }: SignupPageProps) {
-  const { step, setShowKeyModal, setStep, showKeyModal } = stateSignUp();
+  const { step, resetSignUpStore, setShowKeyModal, setStep, showKeyModal } =
+    stateSignUp();
 
   const handleModalConfirm = () => {
     setShowKeyModal(false);
@@ -80,7 +81,10 @@ export default function SignupPage({ setAppState }: SignupPageProps) {
           <div className="text-xs text-muted-foreground">
             Already registered?{" "}
             <button
-              onClick={() => setAppState("login")}
+              onClick={() => {
+                resetSignUpStore();
+                setAppState("login");
+              }}
               className="text-primary hover:underline font-medium transition-colors"
             >
               Sign in to your vault

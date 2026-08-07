@@ -1,3 +1,4 @@
+import { fetch } from "@tauri-apps/plugin-http";
 import { getUserTokens, setUserTokens } from "@db/dbAuthHelpers";
 import {
   addAppErrNotif,
@@ -12,6 +13,7 @@ import {
 import { UserId } from "@internal/intrCmnTypes";
 import { AppUser } from "@user/stateUser";
 import { jwtDecode } from "jwt-decode";
+import { AppState } from "@states/stateCommon";
 
 export function isJwtTokenExpiered(token: string): boolean {
   const decoded = jwtDecode(token);
@@ -55,6 +57,7 @@ export async function onGetUserAccessToken() {
       );
       if (!newAccessToken.ok) {
         addAppErrNotif(newAccessToken.error);
+        console.log(newAccessToken.error)
         return null;
       }
       setAccessToken(newAccessToken.value);
@@ -81,8 +84,9 @@ export async function onRefreshUserTokens(
     userId: userId,
     refreshToken: refreshToken,
   });
+  const {serverUrl} = AppState.getState()
   const response = await fromPromiseErr(
-    fetch("http://localhost:6280/auth/refresh", {
+    fetch(`${serverUrl}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
