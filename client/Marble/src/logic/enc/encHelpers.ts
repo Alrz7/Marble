@@ -1,5 +1,4 @@
 import { DefEncoder } from "@internal/intrCmnTypes";
-import { GetOrCreateKeyChainKey } from "./encMain";
 import {
   commonErrors,
   err,
@@ -9,18 +8,23 @@ import {
   Result,
 } from "@internal/golog";
 
+export async function createUsernameLookupHash(
+  username: string,
+  salt: Uint8Array,
+): Promise<Result<Uint8Array>> {
+  const usernameBytes = DefEncoder.encode(username);
+
+  const hmacRes = await SignWithHmac(usernameBytes.buffer, salt);
+  if (!hmacRes.ok) return err(hmacRes.error);
+
+  return ok(new Uint8Array(hmacRes.value));
+}
+
 export async function SignWithHmac(
   data: ArrayBuffer,
-  kek?: CryptoKey | null,
+  key: Uint8Array,
 ): Promise<Result<ArrayBuffer>> {
-  if (!kek) {
-    const existing = await GetOrCreateKeyChainKey();
-    if (!existing.ok) return err(existing.error);
-    if (!existing.value) return err(commonErrors.keychainKeyNotValid);
-    kek = existing.value;
-  }
-
-  const hmacKeyRes = await deriveHmacFromKek(kek);
+  const hmacKeyRes = await getHmacKeyFromKeyPhrase(key);
   if (!hmacKeyRes.ok) return err(hmacKeyRes.error);
 
   return await fromPromiseErr(
@@ -30,20 +34,88 @@ export async function SignWithHmac(
 }
 
 export async function VerifyWithHmac(
+  key: Uint8Array,
   data: ArrayBuffer,
   signature: ArrayBuffer,
 ): Promise<Result<boolean>> {
-  const kekRes = await GetOrCreateKeyChainKey();
-  if (!kekRes.ok) return err(kekRes.error);
-  if (!kekRes.value) return err(commonErrors.keychainKeyNotValid);
-
-  const hmacKeyRes = await deriveHmacFromKek(kekRes.value);
+  const hmacKeyRes = await getHmacKeyFromKeyPhrase(key);
   if (!hmacKeyRes.ok) return err(hmacKeyRes.error);
 
   return await fromPromiseErr(
     crypto.subtle.verify("HMAC", hmacKeyRes.value, signature, data),
     newAppErr("HMACfailedToVerifyData", "failed to verify data by HMAC"),
   );
+}
+
+export async function getHmacKeyFromKeyPhrase(
+  key: Uint8Array,
+): Promise<Result<CryptoKey>> {
+  const hmacKey = await fromPromiseErr(
+    window.crypto.subtle.importKey(
+      "raw",
+      key as BufferSource,
+      {
+        name: "HMAC",
+        hash: "SHA-256",
+        length: 256,
+      },
+      false,
+      ["sign", "verify"],
+    ),
+    newAppErr("failedToDeriveKey", "failed to Derive Crypto Key"),
+  );
+  if (!hmacKey.ok) return err(hmacKey.error);
+
+  return ok(hmacKey.value);
+}
+
+export function genCryptoRandomValue(length: number = 32) {
+  const keyArray = new Uint8Array(length);
+  window.crypto.getRandomValues(keyArray);
+  return keyArray;
+}
+
+// this was the old version for displayId HMAC proccess
+export async function deriveHmacFromKey(
+  key: CryptoKey,
+  infoString?: string,
+): Promise<Result<CryptoKey>> {
+  const rawKek = await fromPromiseErr(
+    window.crypto.subtle.exportKey("raw", key),
+    commonErrors.faildToExportKey,
+  );
+  if (!rawKek.ok) return err(rawKek.error);
+
+  const hkdfKey = await fromPromiseErr(
+    window.crypto.subtle.importKey("raw", rawKek.value, "HKDF", false, [
+      "deriveKey",
+    ]),
+    commonErrors.faildToImportKey,
+  );
+  if (!hkdfKey.ok) return err(hkdfKey.error);
+
+  const hmacKey = await fromPromiseErr(
+    window.crypto.subtle.deriveKey(
+      {
+        name: "HKDF",
+        hash: "SHA-256",
+        salt: new Uint8Array(),
+        info: DefEncoder.encode(infoString ?? "display-id-hmac"),
+      },
+      hkdfKey.value,
+      {
+        name: "HMAC",
+        hash: "SHA-256",
+        length: 256,
+      },
+      false,
+      ["sign", "verify"],
+    ),
+    newAppErr("failedToDeriveKey", "failed to Derive Crypto Key"),
+  );
+  if (!hmacKey.ok) return err(hmacKey.error);
+
+  return ok(hmacKey.value);
 }
 
 export async function deriveKeyFromPin(
@@ -82,52 +154,4 @@ export async function deriveKeyFromPin(
   if (!derivedKeyRes.ok) return err(derivedKeyRes.error);
 
   return ok(derivedKeyRes.value);
-}
-
-export async function deriveHmacFromKek(
-  KEK: CryptoKey,
-  infoString?: string,
-): Promise<Result<CryptoKey>> {
-  const rawKek = await fromPromiseErr(
-    window.crypto.subtle.exportKey("raw", KEK),
-    commonErrors.faildToExportKey,
-  );
-  if (!rawKek.ok) return err(rawKek.error);
-
-  const hkdfKey = await fromPromiseErr(
-    window.crypto.subtle.importKey("raw", rawKek.value, "HKDF", false, [
-      "deriveKey",
-    ]),
-    commonErrors.faildToImportKey,
-  );
-  if (!hkdfKey.ok) return err(hkdfKey.error);
-
-  const hmacKey = await fromPromiseErr(
-    window.crypto.subtle.deriveKey(
-      {
-        name: "HKDF",
-        hash: "SHA-256",
-        salt: new Uint8Array(),
-        info: DefEncoder.encode(infoString ?? "display-id-hmac"),
-      },
-      hkdfKey.value,
-      {
-        name: "HMAC",
-        hash: "SHA-256",
-        length: 256,
-      },
-      false,
-      ["sign", "verify"],
-    ),
-    newAppErr("failedToDeriveKey", "failed to Derive Crypto Key"),
-  );
-  if (!hmacKey.ok) return err(hmacKey.error);
-
-  return ok(hmacKey.value);
-}
-
-export function genCryptoRandomValue(length: number = 32) {
-  const keyArray = new Uint8Array(length);
-  window.crypto.getRandomValues(keyArray);
-  return keyArray
 }

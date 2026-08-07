@@ -9,6 +9,7 @@ CREATE TABLE users (
     auth_method TEXT NOT NULL,
     encrypted_master_key BLOB NOT NULL,
     master_salt BLOB NOT NULL,
+    hmac_salt BLOB NOT NULL,
     refresh_token BLOB DEFAULT NULL,
     access_token BLOB DEFAULT NULL,
     profile_avatar BLOB

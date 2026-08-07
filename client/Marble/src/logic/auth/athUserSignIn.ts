@@ -1,8 +1,11 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { DefEncoder, User } from "@internal/intrCmnTypes";
+import { User } from "@internal/intrCmnTypes";
 import { openConnection } from "@active/actWsRouter";
-import { getUserByMasterKey, SetActiveUserId } from "@db/dbUsers";
-import { SignWithHmac } from "@enc/encHelpers";
+import {
+  dbFindUserByDisplayId,
+  getUserByMasterKey,
+  SetActiveUserId,
+} from "@db/dbUsers";
 import { GetMasterKeyFromMasterString } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
 import { commonErrors, err, fromPromiseErr, ok, Result } from "@internal/golog";
@@ -14,14 +17,11 @@ export async function onUserSignIn(
   DisplayId: string,
   masterPassPhrase: string,
 ): Promise<Result<User | null>> {
-  const signedDIsplayId = await SignWithHmac(
-    DefEncoder.encode(DisplayId).buffer,
-  );
-  if (!signedDIsplayId.ok) {
-    return err(signedDIsplayId.error);
-  }
+  const existingUser_id = await dbFindUserByDisplayId(DisplayId);
+  if (!existingUser_id.ok) return err(existingUser_id.error);
+  if (existingUser_id.value == -1) return err(commonErrors.userNotFound);
 
-  const master_salt = await getUserSaltArray(null, signedDIsplayId.value);
+  const master_salt = await getUserSaltArray(existingUser_id.value, null);
   if (!master_salt.ok) return err(master_salt.error);
 
   const master = await GetMasterKeyFromMasterString(
@@ -34,8 +34,8 @@ export async function onUserSignIn(
 
   const existingUser = await getUserByMasterKey(
     master.value.localKey,
+    existingUser_id.value,
     null,
-    signedDIsplayId.value,
   );
   if (!existingUser.ok) {
     return err(existingUser.error);

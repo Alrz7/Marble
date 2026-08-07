@@ -1,4 +1,3 @@
-import { Message } from './../internal/intrCmnTypes';
 import {
   reconnectTimeout,
   sendToken,

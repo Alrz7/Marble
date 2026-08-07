@@ -113,11 +113,13 @@ export async function onUserSignUp(
       return err(WrappingKey.error);
     }
 
+    const hmacSalt = genCryptoRandomValue(32)
     const user_id = await InsertUser(
       newUser,
       Master.value.localKey,
       WrappingKey.value,
       randomSalt,
+      hmacSalt
     );
     if (!user_id.ok) {
       return err(user_id.error);

@@ -12,8 +12,8 @@ import {
   UserId,
 } from "@internal/intrCmnTypes";
 import { db } from "./dbMain";
-import { SignWithHmac } from "@enc/encHelpers";
-import { blobFromDb } from "@internal/intrHelperfuncs";
+import { createUsernameLookupHash, SignWithHmac } from "@enc/encHelpers";
+import { areUint8ArraysEqual, blobFromDb } from "@internal/intrHelperfuncs";
 import {
   commonErrors,
   err,
@@ -31,12 +31,13 @@ export async function InsertUser(
   masterKey: CryptoKey,
   wrappingKey: CryptoKey,
   masterSalt: Uint8Array<ArrayBufferLike>,
+  hmac_salt: Uint8Array<ArrayBuffer>,
 ): Promise<Result<number>> {
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(user.config.userId, masterKey),
       encryptData(user.config.displayId, masterKey),
-      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer),
+      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer, hmac_salt),
       encryptData(user.config.name, masterKey),
       encryptData(user.config.email, masterKey),
       encryptMasterKey(user.MasterKey, wrappingKey),
@@ -48,9 +49,9 @@ export async function InsertUser(
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
-      `INSERT INTO users (auth_method, master_salt, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO users (auth_method, master_salt, hmac_salt, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING id`,
-      [user.authMethod, masterSalt, ...encrypted.value],
+      [user.authMethod, masterSalt, hmac_salt, ...encrypted.value],
     ),
     errEdtMessage(
       commonErrors.dbfailedToInsertData,
@@ -75,6 +76,34 @@ export async function InsertUser(
   if (!pgpinsert.ok) return err(pgpinsert.error);
 
   return ok(res.value[0].id);
+}
+
+export async function dbFindUserByDisplayId(DisplayId: string) {
+  const res = await fromPromiseErr(
+    db.select<{ id: number; hmac_display_id: number[]; hmac_salt: number[] }[]>(
+      `SELECT id, hmac_display_id, hmac_salt FROM users`,
+    ),
+    errEdtMessage(
+      commonErrors.dbfailedToGetData,
+      "err while fetching user from db",
+    ),
+  );
+  if (!res.ok) return err(res.error);
+
+  for (const user of res.value) {
+    const hmacDisplayId = blobFromDb(user.hmac_display_id);
+    if (!hmacDisplayId.ok) return err(hmacDisplayId.error);
+    const hmacSalt = blobFromDb(user.hmac_salt);
+    if (!hmacSalt.ok) return err(hmacSalt.error);
+
+    const newHash = await createUsernameLookupHash(DisplayId, hmacSalt.value);
+    if (!newHash.ok) return err(newHash.error);
+
+    if (areUint8ArraysEqual(newHash.value, hmacDisplayId.value)) {
+      return ok(user.id);
+    }
+  }
+  return ok(-1);
 }
 
 type dbUserConfig = {
@@ -227,4 +256,3 @@ export async function SetActiveUserId(userId: UserId): Promise<void> {
     [userId],
   );
 }
-
