@@ -1,43 +1,60 @@
-name: Build and Release Windows App
+name: 'Build and Release Tauri App'
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  publish-tauri:
     permissions:
       contents: write
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
 
+    runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: lts/*
 
-      - name: Setup Rust
+      - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-pc-windows-msvc
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Install dependencies
-        working-directory: client/Marble
-        run: npm ci
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
-      - name: Build and Package Tauri App
-        uses: tauri-apps/tauri-action@v0
+      - name: install frontend dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build / Release Tauri App
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: "client/Marble"
-          tagName: ${{ github.ref_name }}
-          releaseName: "App Release ${{ github.ref_name }}"
-          releaseBody: "See the assets below to download the application."
-          releaseDraft: false
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: 'App ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }}
+          uploadWorkflowArtifacts: ${{ !startsWith(github.ref, 'refs/tags/') }}
