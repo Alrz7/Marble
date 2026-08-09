@@ -4,7 +4,7 @@ import { Message, Session, SessionId, UserId } from "@internal/intrCmnTypes";
 import { MessageStatus, Request } from "@active/actTypes";
 import { sendRequest } from "@active/actWsCore";
 import { sessionsState } from "@sessions/stateSession";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../user/stateUser";
 import { isSessionLegit } from "@sessions/sessionHelpers";
 import { addNewNotification } from "@states/stateNotif";
 import { ResendQueue, saveNewMessage } from "./msgHelpers";

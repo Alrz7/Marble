@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { KeyRound, ArrowLeft, RotateCcw, AlertCircle } from "lucide-react";
-import { loadConfigByMasterPhrase } from "@user/usrLoaders";
+import { loadConfigByMasterPhrase } from "../../../logic/user/usrLoaders";
 import { commonErrors, flowExpectedErrOrNotif } from "@internal/golog";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../../../logic/user/stateUser";
 import { openConnection } from "@active/actWsRouter";
 
 interface RecoveryViewProps {

@@ -10,10 +10,12 @@ import LoginScreen from "./components/auth/login/LoginScreen";
 import { err, ok } from "@internal/golog";
 import DayilyLoginScreen from "./components/auth/dailyLogin/dailyLogin";
 import { AuthMethod } from "@internal/intrCmnTypes";
-import { getActiveUserAuthMethod } from "@user/usrHellpers";
+import { getActiveUserAuthMethod } from "./logic/user/usrHellpers";
 import { openConnection } from "@active/actWsRouter";
+import { settingConfigurations } from "@states/stateSettings";
 function App() {
   const { appState, setAppState } = AppState();
+  const { confState } = settingConfigurations();
   const { currentUser, setUserData } = AppUser();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [actvUser_id, setActvUser_id] = useState<number | null>(null);
@@ -51,7 +53,9 @@ function App() {
   }, []);
 
   // Initialize app state after brief loading
-  if (currentUser) {
+  if (confState !== null) {
+    return <LoginScreen setAppState={setAppState} />;
+  } else if (currentUser) {
     return <ChatLayout />;
   } else {
     switch (appState) {

@@ -8,10 +8,10 @@ import {
   Key,
 } from "lucide-react";
 import { AuthMethod } from "@internal/intrCmnTypes";
-import { loadConfigByMethod } from "@user/usrLoaders";
+import { loadConfigByMethod } from "../../../logic/user/usrLoaders";
 import { commonErrors, flowExpectedErrOrNotif } from "@internal/golog";
-import { AppUser } from "@user/stateUser";
-import { logOut } from "@auth/athUserSignIn";
+import { AppUser } from "../../../logic/user/stateUser";
+import { onLogOut } from "@auth/athUserSignIn";
 import { openConnection } from "@active/actWsRouter";
 
 interface PassphraseViewProps {
@@ -56,7 +56,7 @@ export function PassphraseView({
   };
 
   const handleLogout = () => {
-    logOut();
+    onLogOut();
   };
 
   return (

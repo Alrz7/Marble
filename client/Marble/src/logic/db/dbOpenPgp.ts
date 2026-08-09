@@ -1,6 +1,6 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
 import { pgpProfile, UserId } from "@internal/intrCmnTypes";
-import { db } from "./dbMain";
+import { db } from "./dbCore";
 import { getKeyFromArmored } from "@enc/encOpenpgp";
 import {
   commonErrors,

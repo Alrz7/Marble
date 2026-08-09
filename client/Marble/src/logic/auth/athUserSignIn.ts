@@ -12,8 +12,9 @@ import { ResetStates } from "@states/stateMain";
 import { commonErrors, err, fromPromiseErr, ok, Result } from "@internal/golog";
 import { bytesToHex } from "@enc/encAuth";
 import { getUserSaltArray, setUserTokens } from "@db/dbAuthHelpers";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../user/stateUser";
 import { AppState } from "@states/stateCommon";
+import { settingState } from "@states/stateSettings";
 
 export async function onUserSignIn(
   newServerUrl: string,
@@ -45,6 +46,7 @@ export async function onUserSignIn(
   }
 
   const { serverUrl, setServerUrl } = AppState.getState();
+  const { setSettingServerUrl } = settingState.getState();
   if (serverUrl !== newServerUrl) {
     const res = await setUserServerUrl(
       existingUser.value.config.id,
@@ -53,6 +55,7 @@ export async function onUserSignIn(
     );
     if (!res.ok) return err(res.error);
     setServerUrl(newServerUrl);
+    setSettingServerUrl(newServerUrl);
   }
 
   const res = await onSendUserSignInReq(
@@ -67,7 +70,7 @@ export async function onUserSignIn(
   return ok(existingUser.value);
 }
 
-export async function logOut() {
+export async function onLogOut() {
   await ResetStates();
   SetActiveUserId(-1);
 }

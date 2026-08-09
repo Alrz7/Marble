@@ -7,7 +7,7 @@ import {
   commonErrors,
   notifUnExpectedErr,
 } from "@internal/golog";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../../../logic/user/stateUser";
 
 export function LoginMain() {
   const {
@@ -19,7 +19,7 @@ export function LoginMain() {
     setIsLoading,
     resetLoginStore,
     serverUrl,
-    setServerUrl
+    setServerUrl,
   } = stateLogin();
 
   const { setUserData } = AppUser();

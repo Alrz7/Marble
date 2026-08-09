@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
 import { sessionsState } from "@sessions/stateSession";
 import { Message } from "@internal/intrCmnTypes";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../../logic/user/stateUser";
 import { onCreateNewSession } from "@sessions/sessionMain";
 import { messageState } from "@messages/stateMessage";
 import { onSendNewMessage } from "@messages/msgMain";
@@ -18,7 +18,7 @@ export default function ChatInput() {
   const { messages } = messageState();
   const messagesArray = Array.from(messages.values());
 
-  const PrepareNewMessage = (content: string) => {
+  const PrepareNewMessage = async (content: string) => {
     if (!curSession || !currentUser) return;
     let lastId = messagesArray.at(-1)?.id;
     const newMessage: Message = {
@@ -34,15 +34,15 @@ export default function ChatInput() {
 
     if (curSession.isSavedMessages) {
       if (curSession?.onCreateStage) {
-        onCreateSessionSavedMessages(newMessage);
         curSession.onCreateStage = false;
+        onCreateSessionSavedMessages(newMessage);
       } else {
         onSendNewSavedMessage(newMessage);
       }
     } else {
       if (curSession?.onCreateStage) {
-        onCreateNewSession(newMessage);
         curSession.onCreateStage = false;
+        onCreateNewSession(newMessage);
       } else {
         onSendNewMessage(newMessage);
       }

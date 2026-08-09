@@ -13,6 +13,7 @@ CREATE TABLE users (
     refresh_token BLOB DEFAULT NULL,
     access_token BLOB DEFAULT NULL,
     server_url BLOB NOT NULL,
+    user_settings BLOB NOT NULL,
     profile_avatar BLOB
 );
 

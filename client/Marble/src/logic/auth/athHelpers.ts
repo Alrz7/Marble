@@ -1,5 +1,10 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { getUserTokens, setUserTokens } from "@db/dbAuthHelpers";
+import {
+  getUserTokens,
+  setUserTokens,
+  updateEncryptedMasterKey,
+  updateUserAuthMethod,
+} from "@db/dbAuthHelpers";
 import {
   addAppErrNotif,
   commonErrors,
@@ -10,10 +15,11 @@ import {
   ok,
   Result,
 } from "@internal/golog";
-import { UserId } from "@internal/intrCmnTypes";
-import { AppUser } from "@user/stateUser";
+import { AuthMethod, UserId } from "@internal/intrCmnTypes";
+import { AppUser } from "../user/stateUser";
 import { jwtDecode } from "jwt-decode";
 import { AppState } from "@states/stateCommon";
+import { GetWrappingKeyByMethod } from "@enc/encMain";
 
 export function isJwtTokenExpiered(token: string): boolean {
   const decoded = jwtDecode(token);
@@ -57,7 +63,6 @@ export async function onGetUserAccessToken() {
       );
       if (!newAccessToken.ok) {
         addAppErrNotif(newAccessToken.error);
-        console.log(newAccessToken.error)
         return null;
       }
       setAccessToken(newAccessToken.value);
@@ -84,7 +89,7 @@ export async function onRefreshUserTokens(
     userId: userId,
     refreshToken: refreshToken,
   });
-  const {serverUrl} = AppState.getState()
+  const { serverUrl } = AppState.getState();
   const response = await fromPromiseErr(
     fetch(`${serverUrl}/auth/refresh`, {
       method: "POST",
@@ -123,4 +128,27 @@ export async function onRefreshUserTokens(
     if (!res.ok) return err(res.error);
   }
   return ok(Result.accessToken);
+}
+
+export async function updateUserAuthentication(
+  method: AuthMethod,
+  newPassPhrase?: string,
+) {
+  const { currentUser } = AppUser.getState();
+  if (!currentUser?.config) return err(commonErrors.userNotValid);
+  const WrappingKey = await GetWrappingKeyByMethod(method, newPassPhrase);
+  if (!WrappingKey.ok) {
+    return err(WrappingKey.error);
+  }
+  const updKey = await updateEncryptedMasterKey(
+    currentUser.config.id,
+    currentUser.MasterKey,
+    WrappingKey.value,
+  );
+  if (!updKey.ok) return err(updKey.error);
+
+  const updMethod = await updateUserAuthMethod(currentUser.config.id, method);
+  if (!updMethod.ok) return err(updMethod.error);
+  currentUser.authMethod = method;
+  return ok(undefined);
 }

@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { Search, Settings, LogOut } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 import SidebarHeader from "./SidebarHeader";
 import SessionsList from "./SessionsList";
 import SearchPanel from "./SearchPanel";
-import SettingsPage from "./SettingsPage";
-import { logOut } from "@auth/athUserSignIn";
 import { onSearchUser } from "@active/actWsClientHandelers";
-import { searchResult } from "@states/stateCommon";
+import { AppState, searchResult } from "@states/stateCommon";
+import SettingsPage from "../settings/SettingsPage";
 
 export default function Sidebar() {
   const {
@@ -16,8 +14,7 @@ export default function Sidebar() {
     showSearchResults,
     setShowSearchResults,
   } = searchResult();
-
-  const [showSettings, setShowSettings] = useState(false);
+  const { isSettingOpen, setIsSettingOpen } = AppState();
 
   const RequestForSearch = (query: string) => {
     if (searchQuery.length > 0 && query.length == 0) {
@@ -25,10 +22,6 @@ export default function Sidebar() {
     }
     setSearchQuery(query);
     onSearchUser(query);
-  };
-
-  const handleLogout = () => {
-    logOut();
   };
 
   return (
@@ -59,25 +52,16 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="border-t border-border p-3 space-y-1">
+      <div className="border-t border-border p-2 space-y-1">
         <button
-          onClick={() => setShowSettings(true)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-foreground text-sm"
+          onClick={() => setIsSettingOpen(true)}
+          className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
         >
-          <Settings className="w-4 h-4 text-primary" />
-          Settings
+          <Settings className="w-5 h-5" />
         </button>
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 transition-colors text-destructive text-sm"
-        >
-          <LogOut className="w-4 h-4" />
-          Logout
-        </button>
+        {isSettingOpen && <SettingsPage />}
       </div>
-
-      {showSettings && <SettingsPage onClose={() => setShowSettings(false)} />}
     </>
   );
 }

@@ -2,7 +2,11 @@ import { StateVariables } from "../internal/intrCmnVars";
 import { create } from "zustand";
 import { Audience } from "@internal/intrCmnTypes";
 
-export type PAGES = "loading" | "login" | "signup" | "dayilyLogin";
+export type PAGES =
+  | "loading"
+  | "login"
+  | "signup"
+  | "dayilyLogin"
 type connectionTitles =
   | "waiting for network..."
   | "connecting..."
@@ -12,9 +16,11 @@ interface AppState {
   appState: PAGES;
   serverUrl: string | null;
   connTitle: connectionTitles;
+  isSettingOpen: boolean;
   setAppState: (newState: PAGES) => void;
   setServerUrl: (url: string | null) => void;
   setConnTitle: (newTitle: connectionTitles) => void;
+  setIsSettingOpen: (val: boolean) => void;
   resetAppStates: () => void;
 }
 
@@ -22,6 +28,7 @@ const initialAppState = {
   appState: "loading" as PAGES,
   serverUrl: null,
   connTitle: "waiting for network..." as connectionTitles,
+  isSettingOpen: false,
 };
 
 export const AppState = create<AppState>((set) => ({
@@ -29,6 +36,7 @@ export const AppState = create<AppState>((set) => ({
   setAppState: (newState: PAGES) => set({ appState: newState }),
   setServerUrl: (url: string | null) => set({ serverUrl: url }),
   setConnTitle: (newTitle: connectionTitles) => set({ connTitle: newTitle }),
+  setIsSettingOpen: (val: boolean) => set({ isSettingOpen: val }),
   resetAppStates: () => set(initialAppState),
 }));
 

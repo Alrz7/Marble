@@ -1,7 +1,7 @@
 import { decryptDataFromDb, encryptData } from "@enc/encMaster";
 import { Audience, Session, SessionId, UserId } from "@internal/intrCmnTypes";
 import { GetAudienceById } from "./dbAudience";
-import { db } from "./dbMain";
+import { db } from "./dbCore";
 import { isItSavedMessages } from "@internal/intrHelperfuncs";
 import { savedMessagesAudience } from "@internal/intrCmnVars";
 import {

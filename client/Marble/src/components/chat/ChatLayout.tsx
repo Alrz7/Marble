@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import Sidebar from "./Sidebar";
 import ChatArea from "./ChatArea";
 import Notification from "../Notification";
+import Sidebar from "../sideBar/Sidebar";
 
 export default function ChatLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(280);
@@ -43,8 +43,14 @@ export default function ChatLayout() {
   }, [isDragging]);
 
   return (
-    <div ref={containerRef} className="flex w-full h-screen bg-background select-none">
-      <div style={{ width: `${sidebarWidth}px` }} className="flex flex-col bg-linear-to-tr from-[#0d0f10] to-[#1F202C] border-r border-border shrink-0">
+    <div
+      ref={containerRef}
+      className="flex w-full h-screen bg-background select-none"
+    >
+      <div
+        style={{ width: `${sidebarWidth}px` }}
+        className="flex flex-col bg-linear-to-tr from-[#0d0f10] to-[#1F202C] border-r border-border shrink-0"
+      >
         <Sidebar />
       </div>
 

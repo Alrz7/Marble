@@ -11,7 +11,7 @@ import {
   UserConfig,
   UserId,
 } from "@internal/intrCmnTypes";
-import { db } from "./dbMain";
+import { db } from "./dbCore";
 import { createUsernameLookupHash, SignWithHmac } from "@enc/encHelpers";
 import { areUint8ArraysEqual, blobFromDb } from "@internal/intrHelperfuncs";
 import {
@@ -25,6 +25,7 @@ import {
 } from "@internal/golog";
 import { GetPgpProfile, InsertPgpProfile } from "./dbOpenPgp";
 import { AppState } from "@states/stateCommon";
+import { loadSettingFromSaved } from "@states/stateSettings";
 
 // ------- Users --------
 export async function InsertUser(
@@ -34,10 +35,12 @@ export async function InsertUser(
   masterSalt: Uint8Array<ArrayBufferLike>,
   hmac_salt: Uint8Array<ArrayBuffer>,
   serverUrl: string,
+  userSettings: string,
 ): Promise<Result<number>> {
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(serverUrl, masterKey),
+      encryptData(userSettings, masterKey),
       encryptData(user.config.userId, masterKey),
       encryptData(user.config.displayId, masterKey),
       SignWithHmac(DefEncoder.encode(user.config.displayId).buffer, hmac_salt),
@@ -52,7 +55,7 @@ export async function InsertUser(
 
   const res = await fromPromiseErr(
     db.select<{ id: number }[]>(
-      `INSERT INTO users (auth_method, master_salt, hmac_salt, server_url, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO users (auth_method, master_salt, hmac_salt, server_url, user_settings, user_id, display_id, hmac_display_id, name, email, encrypted_master_key, profile_avatar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING id`,
       [user.authMethod, masterSalt, hmac_salt, ...encrypted.value],
     ),
@@ -111,6 +114,7 @@ export async function dbFindUserByDisplayId(DisplayId: string) {
 
 type dbUserConfig = {
   server_url: number[];
+  user_settings: number[];
   auth_method: string;
   id: number;
   user_id: number[];
@@ -127,7 +131,7 @@ export async function getUserByWrappingKey(
 ): Promise<Result<User>> {
   const res = await fromPromiseErr(
     db.select<dbUserConfig[]>(
-      `SELECT server_url, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
+      `SELECT server_url, user_settings, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
       [id],
     ),
     errEdtMessage(
@@ -147,14 +151,15 @@ export async function getUserByWrappingKey(
   );
   if (!masterKey.ok) return err(masterKey.error);
 
-  const serverUrl = await decryptDataFromDb<string>(
-    res.value[0].server_url,
-    masterKey.value,
-  );
-  if (!serverUrl.ok) return err(serverUrl.error);
-
+  const decryptedMetaData = await fromPromiseAllErr([
+    decryptDataFromDb<string>(res.value[0].server_url, masterKey.value),
+    decryptDataFromDb<string>(res.value[0].user_settings, masterKey.value),
+  ]);
+  if (!decryptedMetaData.ok) return err(decryptedMetaData.error);
+  const [serverUrl, userSettings] = decryptedMetaData.value;
   const { setServerUrl } = AppState.getState();
-  setServerUrl(serverUrl.value);
+  setServerUrl(serverUrl);
+  loadSettingFromSaved(userSettings);
 
   const config = await getDataFromEncrypted(res.value[0], masterKey.value);
   if (!config.ok) return err(config.error);
@@ -195,7 +200,7 @@ export async function getUserByMasterKey(
 
   const res = await fromPromiseErr(
     db.select<dbUserConfig[]>(
-      `SELECT server_url, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
+      `SELECT server_url, user_settings, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE ${selectBy} = $1`,
       [targetVal],
     ),
     errEdtMessage(
@@ -209,14 +214,15 @@ export async function getUserByMasterKey(
     return err(commonErrors.noRecordFound);
   }
 
-  const serverUrl = await decryptDataFromDb<string>(
-    res.value[0].server_url,
-    masterKey,
-  );
-  if (!serverUrl.ok) return err(serverUrl.error);
-
+  const decryptedMetaData = await fromPromiseAllErr([
+    decryptDataFromDb<string>(res.value[0].server_url, masterKey),
+    decryptDataFromDb<string>(res.value[0].user_settings, masterKey),
+  ]);
+  if (!decryptedMetaData.ok) return err(decryptedMetaData.error);
+  const [serverUrl, userSettings] = decryptedMetaData.value;
   const { setServerUrl } = AppState.getState();
-  setServerUrl(serverUrl.value);
+  setServerUrl(serverUrl);
+  loadSettingFromSaved(userSettings);
 
   const config = await getDataFromEncrypted(res.value[0], masterKey);
   if (!config.ok) return err(config.error);

@@ -24,8 +24,10 @@ import {
 import { stateSignUp } from "@states/stateAuth";
 import { bytesToHex } from "@enc/encAuth";
 import { genCryptoRandomValue } from "@enc/encHelpers";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../user/stateUser";
 import { setUserTokens } from "@db/dbAuthHelpers";
+import { getSettingsAsJson, settingState } from "@states/stateSettings";
+import { AppState } from "@states/stateCommon";
 
 export async function onUserSignUp(
   selectedMethod?: AuthMethod,
@@ -116,6 +118,12 @@ export async function onUserSignUp(
     }
 
     const hmacSalt = genCryptoRandomValue(32);
+    const { setServerUrl } = AppState.getState();
+    const { setSettingServerUrl } = settingState.getState();
+    setServerUrl(serverUrl);
+    setSettingServerUrl(serverUrl);
+    const jsonSettings = getSettingsAsJson();
+    if (!jsonSettings.ok) return err(jsonSettings.error);
     const user_id = await InsertUser(
       newUser,
       Master.value.localKey,
@@ -123,6 +131,7 @@ export async function onUserSignUp(
       randomSalt,
       hmacSalt,
       serverUrl,
+      jsonSettings.value,
     );
     if (!user_id.ok) {
       return err(user_id.error);

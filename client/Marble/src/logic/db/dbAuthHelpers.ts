@@ -1,5 +1,5 @@
 import { AuthMethod } from "@internal/intrCmnTypes";
-import { db } from "./dbMain";
+import { db } from "./dbCore";
 import { blobFromDb } from "@internal/intrHelperfuncs";
 import {
   commonErrors,
@@ -10,7 +10,11 @@ import {
   ok,
   Result,
 } from "@internal/golog";
-import { decryptDataFromDb, encryptData } from "@enc/encMaster";
+import {
+  decryptDataFromDb,
+  encryptData,
+  encryptMasterKey,
+} from "@enc/encMaster";
 
 export async function getUserSaltArray(
   id: number | null,
@@ -49,6 +53,37 @@ export async function getUserSaltArray(
     return err(commonErrors.noRecordFound);
   }
   return blobFromDb(res.value[0].master_salt);
+}
+
+export async function updateUserAuthMethod(user_id: number, newMethod: string) {
+  const res = await fromPromiseErr(
+    db.execute(`UPDATE users SET auth_method = $2 WHERE id = $1`, [
+      user_id,
+      newMethod,
+    ]),
+    commonErrors.dbfailedToInsertData,
+  );
+  if (!res.ok) return err(res.error);
+  return ok(undefined);
+}
+
+export async function updateEncryptedMasterKey(
+  user_id: number,
+  masterKey: CryptoKey,
+  wrappingKey: CryptoKey,
+) {
+  const encrypted = await encryptMasterKey(masterKey, wrappingKey);
+  if (!encrypted.ok) return err(encrypted.error);
+
+  const res = await fromPromiseErr(
+    db.execute(`UPDATE users SET encrypted_master_key = $2 WHERE id = $1`, [
+      user_id,
+      encrypted.value,
+    ]),
+    commonErrors.dbfailedToInsertData,
+  );
+  if (!res.ok) return err(res.error);
+  return ok(undefined);
 }
 
 export async function GetUserAuthMethod(

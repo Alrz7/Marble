@@ -1,8 +1,11 @@
-import { Shield, KeyRound } from "lucide-react";
+import { Shield, KeyRound, ArrowLeft } from "lucide-react";
 import { stateLogin } from "@states/stateAuth";
 
 import { LoginMain } from "./LoginMain";
 import Notification from "../../Notification";
+import { settingConfigurations } from "@states/stateSettings";
+import { UpdateAuthMethod } from "../update/UpdateAuthMethod";
+import { UpdateDailyPass } from "../update/UpdateDailyPass";
 
 export default function LoginScreen({
   setAppState,
@@ -10,6 +13,7 @@ export default function LoginScreen({
   setAppState: (state: "login" | "signup") => void;
 }) {
   const { step, resetLoginStore } = stateLogin();
+  const { confState, setConfStates } = settingConfigurations();
 
   return (
     <div className="relative flex w-full h-screen bg-background overflow-hidden text-foreground select-none">
@@ -65,54 +69,70 @@ export default function LoginScreen({
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            Don't have an account?{" "}
-            <button
-              onClick={() => {
-                resetLoginStore();
-                setAppState("signup");
-              }}
-              className="text-primary hover:underline font-medium transition-colors"
-            >
-              Create your secure vault
-            </button>
-          </div>
+          {confState === null && (
+            <div className="text-xs text-muted-foreground">
+              Don't have an account?{" "}
+              <button
+                onClick={() => {
+                  resetLoginStore();
+                  setAppState("signup");
+                }}
+                className="text-primary hover:underline font-medium transition-colors"
+              >
+                Create your secure vault
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Step-by-Step Interactive Form */}
         <div className="flex-1 flex flex-col justify-center md:pl-12 max-w-xl mx-auto w-full">
-          {/* <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
-              {step > 1 && (
+              {confState !== null && (
                 <button
                   type="button"
-                  onClick={() => setStep((step - 1) as 1 | 2 | 3)}
+                  onClick={() => {
+                    if (confState == "dailyPassPhrase") {
+                      setConfStates("authMethod");
+                    } else {
+                      setConfStates(null);
+                      resetLoginStore();
+                    }
+                  }}
                   className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors mr-1"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
               )}
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Step {step} of 3
+              <span className="text-sm font-semibold  tracking-wider text-muted-foreground">
+                {confState == "dailyPassPhrase" ? "Change Auth-Method" : "Go back"}
               </span>
             </div>
             <div className="flex gap-1.5">
-              {[1, 2, 3].map((i) => (
+              {[1, 2].map((i) => (
                 <div
                   key={i}
                   className={`h-1 rounded-full transition-all duration-300 ${
-                    i === step
+                    (i === 1 && confState == "authMethod") ||
+                    (i === 2 && confState == "dailyPassPhrase")
                       ? "w-6 bg-primary"
-                      : i < step
+                      : (i === 1 && confState == "dailyPassPhrase") ||
+                          (i === 2 && confState == "authMethod")
                         ? "w-2 bg-primary/40"
                         : "w-2 bg-white/10"
                   }`}
                 />
               ))}
             </div>
-          </div> */}
-
-          {step === 1 && <LoginMain />}
+          </div>
+          {confState == "authMethod" ? (
+            <UpdateAuthMethod />
+          ) : confState == "dailyPassPhrase" ? (
+            <UpdateDailyPass />
+          ) : (
+            step === 1 && <LoginMain />
+          )}
         </div>
       </div>
       <Notification />

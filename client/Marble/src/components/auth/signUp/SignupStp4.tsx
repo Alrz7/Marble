@@ -2,7 +2,7 @@ import { Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { stateSignUp } from "@states/stateAuth";
 import { onUserSignUp } from "@auth/athUserSignUp";
 import { addAppErrNotif, commonErrors } from "@internal/golog";
-import { AppUser } from "@user/stateUser";
+import { AppUser } from "../../../logic/user/stateUser";
 import { openConnection } from "@active/actWsRouter";
 
 export default function SignupStp4() {

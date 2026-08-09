@@ -1,5 +1,5 @@
 import { AuthMethod } from "@internal/intrCmnTypes";
-import { InitAndMigrate } from "@db/dbMain.ts";
+import { InitAndMigrate } from "@db/dbCore";
 import { getActiveUserId } from "@db/dbUsers.ts";
 import { err, ok, Result } from "@internal/golog";
 import { GetUserAuthMethod } from "@db/dbAuthHelpers";
