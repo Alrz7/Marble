@@ -1,1 +1,4 @@
-/tmp
+client/Marble/node_modules/
+client/Marble/src-tauri/target/
+client/Marble/dist/
+tmp/
