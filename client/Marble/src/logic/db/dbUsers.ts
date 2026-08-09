@@ -43,7 +43,7 @@ export async function InsertUser(
       encryptData(userSettings, masterKey),
       encryptData(user.config.userId, masterKey),
       encryptData(user.config.displayId, masterKey),
-      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer, hmac_salt),
+      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer as ArrayBuffer, hmac_salt),
       encryptData(user.config.name, masterKey),
       encryptData(user.config.email, masterKey),
       encryptMasterKey(user.MasterKey, wrappingKey),

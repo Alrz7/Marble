@@ -14,14 +14,14 @@ export async function createUsernameLookupHash(
 ): Promise<Result<Uint8Array>> {
   const usernameBytes = DefEncoder.encode(username);
 
-  const hmacRes = await SignWithHmac(usernameBytes.buffer, salt);
+  const hmacRes = await SignWithHmac(usernameBytes.buffer as ArrayBuffer, salt);
   if (!hmacRes.ok) return err(hmacRes.error);
 
   return ok(new Uint8Array(hmacRes.value));
 }
 
 export async function SignWithHmac(
-  data: ArrayBuffer,
+  data: BufferSource,
   key: Uint8Array,
 ): Promise<Result<ArrayBuffer>> {
   const hmacKeyRes = await getHmacKeyFromKeyPhrase(key);
@@ -34,8 +34,8 @@ export async function SignWithHmac(
 }
 
 export async function VerifyWithHmac(
+  data: BufferSource,
   key: Uint8Array,
-  data: ArrayBuffer,
   signature: ArrayBuffer,
 ): Promise<Result<boolean>> {
   const hmacKeyRes = await getHmacKeyFromKeyPhrase(key);
