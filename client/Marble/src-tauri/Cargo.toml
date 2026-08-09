@@ -26,3 +26,6 @@ tauri-plugin-http = "2.0.0"
 tauri-plugin-keyring = "0.1.0"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-clipboard-manager = "2"
+argon2 = "0.5"
+rand_core = { version = "0.6", features = ["getrandom", "std"] }
+hex = "0.4"

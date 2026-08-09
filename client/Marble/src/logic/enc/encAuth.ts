@@ -1,42 +1,26 @@
-import {
-  commonErrors,
-  fromPromiseErr,
-  Result,
-} from "@internal/golog";
-import { argon2id, argon2Verify } from "hash-wasm";
+import { invoke } from "@tauri-apps/api/core";
+import { commonErrors, fromPromiseErr, Result } from "@internal/golog";
 
 export async function deriveRawKeyFromPassword(
   password: string,
   saltBuffer: Uint8Array,
-  hashLength = 32
+  hashLength = 32,
 ): Promise<Result<Uint8Array>> {
-  return await fromPromiseErr(
-    argon2id({
-      password,
-      salt: saltBuffer,
-      parallelism: 1,
-      iterations: 3,
-      memorySize: 2 ** 16,
-      hashLength: hashLength,
-      outputType: "binary",
-    }),
-    commonErrors.faildToHashPassword,
-  );
+  const promise = invoke<number[]>("derive_raw_key_from_password", {
+    password,
+    saltBuffer: Array.from(saltBuffer),
+    hashLength: hashLength,
+  }).then((res) => new Uint8Array(res));
+
+  return await fromPromiseErr(promise, commonErrors.faildToHashPassword);
 }
 
 export async function deriveDecodedKeyFromPassword(
   passphrase: string,
 ): Promise<Result<string>> {
-  const randomSalt = window.crypto.getRandomValues(new Uint8Array(16));
   return await fromPromiseErr(
-    argon2id({
-      password: passphrase,
-      salt: randomSalt,
-      parallelism: 1,
-      iterations: 3,
-      memorySize: 2 ** 16,
-      hashLength: 32,
-      outputType: "encoded",
+    invoke<string>("derive_decoded_key_from_password", {
+      passphrase,
     }),
     commonErrors.faildToHashPassword,
   );
@@ -47,9 +31,9 @@ export async function verifyDailyPassphrase(
   inputPassphrase: string,
 ): Promise<Result<boolean>> {
   return await fromPromiseErr(
-    argon2Verify({
-      password: inputPassphrase,
-      hash: savedEncodedHash,
+    invoke<boolean>("verify_daily_passphrase", {
+      savedEncodedHash: savedEncodedHash,
+      inputPassphrase: inputPassphrase,
     }),
     commonErrors.failedToVerifyPassword,
   );
