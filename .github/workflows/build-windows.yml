@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -27,10 +27,11 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - name: Install dependencies
+        working-directory: client/Marble
         run: npm ci
 
       - name: Build and Package Tauri App
-        uses: tauri-apps/tauri-action@action-v1.0.0
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
