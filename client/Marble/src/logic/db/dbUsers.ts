@@ -37,13 +37,17 @@ export async function InsertUser(
   serverUrl: string,
   userSettings: string,
 ): Promise<Result<number>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(serverUrl, masterKey),
       encryptData(userSettings, masterKey),
       encryptData(user.config.userId, masterKey),
       encryptData(user.config.displayId, masterKey),
-      SignWithHmac(DefEncoder.encode(user.config.displayId).buffer as ArrayBuffer, hmac_salt),
+      SignWithHmac(
+        DefEncoder.encode(user.config.displayId).buffer as ArrayBuffer,
+        hmac_salt,
+      ),
       encryptData(user.config.name, masterKey),
       encryptData(user.config.email, masterKey),
       encryptMasterKey(user.MasterKey, wrappingKey),
@@ -85,6 +89,7 @@ export async function InsertUser(
 }
 
 export async function dbFindUserByDisplayId(DisplayId: string) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<{ id: number; hmac_display_id: number[]; hmac_salt: number[] }[]>(
       `SELECT id, hmac_display_id, hmac_salt FROM users`,
@@ -129,6 +134,7 @@ export async function getUserByWrappingKey(
   wrappingKey: CryptoKey,
   id: number | null,
 ): Promise<Result<User>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<dbUserConfig[]>(
       `SELECT server_url, user_settings, auth_method, id, user_id, display_id, name, email, encrypted_master_key, profile_avatar FROM users WHERE id = $1`,
@@ -180,6 +186,7 @@ export async function getUserByMasterKey(
   id: number | null,
   display_id: ArrayBuffer | null,
 ): Promise<Result<User>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   let selectBy: string;
   let targetVal: number | ArrayBuffer;
 
@@ -264,6 +271,7 @@ async function getDataFromEncrypted(
 }
 
 export async function getActiveUserId(): Promise<Result<UserId>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<{ value: number }[]>(
       "SELECT value FROM app_settings WHERE key = 'active_user_id'",
@@ -278,10 +286,14 @@ export async function getActiveUserId(): Promise<Result<UserId>> {
   return ok(res.value[0]?.value ?? -1);
 }
 
-export async function SetActiveUserId(userId: UserId): Promise<void> {
-  await db.execute(
-    "UPDATE app_settings SET value = ? WHERE key = 'active_user_id'",
-    [userId],
+export async function SetActiveUserId(userId: UserId) {
+  if (!db) return err(commonErrors.dbNotConnected);
+  return await fromPromiseErr(
+    db.execute(
+      "UPDATE app_settings SET value = ? WHERE key = 'active_user_id'",
+      [userId],
+    ),
+    commonErrors.dbfailedToInsertData,
   );
 }
 export async function setUserServerUrl(
@@ -289,6 +301,7 @@ export async function setUserServerUrl(
   newUrl: string,
   masterKey: CryptoKey,
 ) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await encryptData(newUrl, masterKey);
   if (!encrypted.ok) return err(encrypted.error);
   const res = await fromPromiseErr(

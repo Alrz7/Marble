@@ -78,3 +78,11 @@ export function areUint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   }
   return true;
 }
+
+export function getTimeString(dateTime: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(dateTime);
+}

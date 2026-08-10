@@ -17,6 +17,7 @@ export async function InsertMessage(
   message: Message,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const updateRes = await fromPromiseErr(
     db.select<{ message_sequence: number }[]>(
       `UPDATE session 
@@ -101,6 +102,7 @@ export async function GetMessages(
   session: Session,
   count: number,
 ): Promise<Result<Message[]>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<dbMessages[]>(
       `--sql
@@ -124,6 +126,7 @@ export async function GetMessageById(
   masterKey: CryptoKey,
   id: number,
 ): Promise<Result<Message>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<dbMessages[]>(
       `--sql
@@ -148,6 +151,7 @@ export async function GetMessageById(
 }
 
 export async function dbDeleteMessge(message: Message): Promise<Result<void>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const query = `--sql
   DELETE FROM message where session_id = $1 AND seq = $2`;
   const res = await fromPromiseErr(
@@ -166,6 +170,7 @@ export async function dbUpdateMessageById(
   message: Message,
   masterKey: CryptoKey,
 ) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(message.content, masterKey),

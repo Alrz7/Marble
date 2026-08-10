@@ -17,6 +17,7 @@ export async function InsertPgpProfile(
   userId: UserId,
   masterKey: CryptoKey,
 ): Promise<Result<void>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(pgpProfile.PrivateKey, masterKey),
@@ -45,6 +46,7 @@ export async function GetPgpProfile(
   userId: UserId,
   masterKey: CryptoKey,
 ): Promise<Result<pgpProfile>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<
       {

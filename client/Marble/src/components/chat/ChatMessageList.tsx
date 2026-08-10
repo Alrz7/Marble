@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
@@ -48,9 +49,31 @@ export default function ChatMessageList() {
           </p>
         </div>
       ) : (
-        messagesArray.map((message) => (
-          <MessageBubble key={message.seq} message={message} />
-        ))
+        messagesArray.map((message, index) => {
+          const currentDate = new Date(message.createdAt);
+          const msg = messagesArray.at(index - 1);
+          const prevDate = index > 0 && msg ? new Date(msg.createdAt) : null;
+          const showSeparator =
+            !prevDate || currentDate.toDateString() !== prevDate.toDateString();
+
+          return (
+            <React.Fragment key={message.seq}>
+              {showSeparator && (
+                <div className="flex items-center justify-center w-[90%] mx-auto my-6">
+                  <div className="flex-1 border-t border-gray-500/30"></div>
+                  <span className="mx-4 text-xs font-medium text-gray-500/70 font-['Comfortaa']">
+                    {currentDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <div className="flex-1 border-t border-gray-500/30"></div>
+                </div>
+              )}
+              <MessageBubble message={message} />
+            </React.Fragment>
+          );
+        })
       )}
 
       {false && (

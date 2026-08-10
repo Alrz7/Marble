@@ -6,6 +6,7 @@ import {
   ArrowRight,
   AlertCircle,
   Key,
+  Loader2,
 } from "lucide-react";
 import { AuthMethod } from "@internal/intrCmnTypes";
 import { loadConfigByMethod } from "../../../logic/user/usrLoaders";
@@ -121,7 +122,7 @@ export function PassphraseView({
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-semibold text-primary-foreground shadow-lg"
         >
           {isLoading ? (
-            <span>Decrypting...</span>
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <>
               <span>Unlock Vault</span>

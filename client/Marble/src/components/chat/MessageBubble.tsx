@@ -15,6 +15,7 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { notifState } from "@states/stateNotif";
 import { DeleteMessage } from "@messages/msgMain";
 import { onResendMessage } from "@messages/msgMain";
+import { getTimeString } from "@internal/intrHelperfuncs";
 
 interface MessageBubbleProps {
   message: Message;
@@ -70,7 +71,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     >
       {!isMine && (
         <div className="w-8 h-8 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
-          {audienceName}
+          {audienceName?.trim().charAt(0).toUpperCase()}
         </div>
       )}
 
@@ -102,69 +103,69 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <>
               {getStatusIcon()}
               <span className="text-muted-foreground/60">
-                {message.createdAt.toLocaleString()}
+                {getTimeString(message.createdAt)}
+                {/* {message.createdAt.toLocaleString()} */}
               </span>
             </>
           ) : (
             <>
               <span className="text-muted-foreground/60">
-                {message.createdAt.toLocaleString()}
+                {getTimeString(message.createdAt)}
               </span>
               {getStatusIcon()}
             </>
           )}
-        </div>
-      </div>
-
-      {showActions && (
-        <div
-          className={`flex gap-1 items-center ${isMine ? "flex-row-reverse" : "flex-row"}`}
-        >
-          <button
-            onClick={handleCopy}
-            className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
-            title="Copy"
-          >
-            <Copy className="w-4 h-4" />
-          </button>
-          {/* <button
+          {showActions && (
+            <div
+              className={`flex gap-1 items-center ${isMine ? "flex-row-reverse" : "flex-row"}`}
+            >
+              <button
+                onClick={handleCopy}
+                className="p-0 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
+                title="Copy"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              {/* <button
             onClick={handleReply}
             className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
             title="Reply"
           >
             <Reply className="w-4 h-4" />
           </button> */}
-          <button
-            onClick={handleDelete}
-            className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          {true && (
-            <>
-              {/* <button
+              <button
+                onClick={handleDelete}
+                className="p-0 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                title="Delete"
+              >
+                <Trash2 className="w-.5 h-3.5" />
+              </button>
+              {true && (
+                <>
+                  {/* <button
                 onClick={handleEdit}
                 className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
               </button> */}
-              {message.status === "notSend" && (
-                <button
-                  onClick={() => {
-                    onResendMessage(message);
-                  }}
-                  className="p-1.5 rounded-lg hover:bg-yale-blue-800/40 transition-colors text-muted-foreground hover:text-yale-blue-500"
-                  title="Resend"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
+                  {message.status === "notSend" && (
+                    <button
+                      onClick={() => {
+                        onResendMessage(message);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-yale-blue-800/40 transition-colors text-muted-foreground hover:text-yale-blue-500"
+                      title="Resend"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  )}
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

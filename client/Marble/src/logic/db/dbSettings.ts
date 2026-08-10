@@ -2,7 +2,12 @@ import { db } from "./dbCore";
 import { encryptData } from "@enc/encMaster";
 import { commonErrors, err, fromPromiseErr, ok } from "@internal/golog";
 
-export async function dbSaveUserSettings(user_id: number, settings: string, masterKey: CryptoKey) {
+export async function dbSaveUserSettings(
+  user_id: number,
+  settings: string,
+  masterKey: CryptoKey,
+) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await encryptData(settings, masterKey);
   if (!encrypted.ok) return err(encrypted.error);
 
@@ -16,4 +21,3 @@ export async function dbSaveUserSettings(user_id: number, settings: string, mast
   if (!res.ok) return err(res.error);
   return ok(undefined);
 }
-

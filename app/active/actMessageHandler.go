@@ -6,6 +6,7 @@ import (
 	"marble/app/session"
 	"marble/db"
 	"marble/internal"
+	"time"
 )
 
 func HndlSendMessage(req *Request) error {
@@ -39,13 +40,9 @@ func (u *ActvUser) onGenerateNewMessage(S *session.Session, content string) (*se
 		SessionId: S.Id,
 		SenderId:  u.Id,
 		Content:   content,
+		CreatedAt: time.Now(),
 		Profile:   "openpgp", // this is a FixedVal for now, i'll change it later
 	}
-	// newSeq, err := db.AppModels.SessionModel.IncreaseMessageLastSeq(S.Id)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// newMessage.Seq = newSeq
 	return &newMessage, nil
 }
 
@@ -58,7 +55,6 @@ func (u *ActvUser) SendMessage(S *session.Session, content string) error {
 	sent := u.onDeliverMessage(S, newMessage)
 	if !sent {
 		err = db.AppModels.MessageModel.Insert(newMessage)
-		// err = db.AppModels.MessageModel.SendMessage(&newMessage)
 		if err != nil {
 			return err
 		}

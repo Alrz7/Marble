@@ -20,6 +20,7 @@ export async function getUserSaltArray(
   id: number | null,
   display_id: ArrayBuffer | null,
 ) {
+  if (!db) return err(commonErrors.dbNotConnected);
   let selectBy: string;
   let targetVal: number | ArrayBuffer;
 
@@ -56,6 +57,7 @@ export async function getUserSaltArray(
 }
 
 export async function updateUserAuthMethod(user_id: number, newMethod: string) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.execute(`UPDATE users SET auth_method = $2 WHERE id = $1`, [
       user_id,
@@ -72,6 +74,7 @@ export async function updateEncryptedMasterKey(
   masterKey: CryptoKey,
   wrappingKey: CryptoKey,
 ) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await encryptMasterKey(masterKey, wrappingKey);
   if (!encrypted.ok) return err(encrypted.error);
 
@@ -89,6 +92,7 @@ export async function updateEncryptedMasterKey(
 export async function GetUserAuthMethod(
   id: number,
 ): Promise<Result<AuthMethod>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<
       {
@@ -114,6 +118,7 @@ export async function setUserTokens(
   accessToken?: string,
   refreshToken?: string,
 ) {
+  if (!db) return err(commonErrors.dbNotConnected);
   if (!accessToken && !refreshToken)
     return err(
       errEdtMessage(
@@ -150,6 +155,7 @@ export async function setUserTokens(
 }
 
 export async function getUserTokens(id: number, MasterKey: CryptoKey) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<
       {

@@ -16,6 +16,7 @@ export async function InsertAudience(
   audience: Audience,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encrypted = await fromPromiseAllErr(
     [
       encryptData(audience.userId, masterKey),
@@ -82,6 +83,7 @@ export async function GetAudienceById(
   id: number | null,
   masterKey: CryptoKey,
 ): Promise<Result<Audience>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<dbAudienceData[]>(
       `--sql
@@ -121,6 +123,7 @@ export async function GetAudienceByOwnerId(
   ownerId: number | null,
   masterKey: CryptoKey,
 ): Promise<Result<Audience[]>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<dbAudienceData[]>(
       `--sql
@@ -184,6 +187,7 @@ const decypAudienceData = async (
 export async function DeleteAudienceFromDb(
   audience: Audience,
 ): Promise<Result<void>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const { sessions } = sessionsState.getState();
   let ac = 0;
   for (const session of sessions.values()) {

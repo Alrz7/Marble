@@ -17,6 +17,7 @@ export async function InsertSession(
   session: Session,
   masterKey: CryptoKey,
 ): Promise<Result<number>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const encSessionId = await encryptData(session.sessionId, masterKey);
   if (!encSessionId.ok) return err(encSessionId.error);
 
@@ -54,6 +55,7 @@ export async function InsertSession(
 export async function GetLastSessionSeq(
   user_id: number,
 ): Promise<Result<number>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const result = await fromPromiseErr(
     db.select<{ seq: number }[]>(
       `SELECT COALESCE(MAX(seq), 0) AS seq FROM session WHERE owner_id = $1`,
@@ -72,6 +74,7 @@ export async function GetSessions(
   ownerId: UserId,
   masterKey: CryptoKey,
 ): Promise<Result<Session[]>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const res = await fromPromiseErr(
     db.select<
       {
@@ -133,6 +136,7 @@ export async function UpdateSessionById(
   seq?: number,
   message_sequence?: number,
 ): Promise<Result<void>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   if (
     !(
       (sessionId !== undefined && masterKey) ||
@@ -184,6 +188,7 @@ export async function DoesSessionExist(
   ownerId: number,
   audieceId: number,
 ): Promise<Result<boolean>> {
+  if (!db) return err(commonErrors.dbNotConnected);
   const query = `--sql
   SELECT EXISTS(
     SELECT 1
@@ -202,6 +207,7 @@ export async function DoesSessionExist(
 }
 
 export async function DeleteSessionFrmDb(id: number) {
+  if (!db) return err(commonErrors.dbNotConnected);
   const query = `
   DELETE FROM session
   WHERE id = $1`;

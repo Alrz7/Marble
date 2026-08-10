@@ -15,7 +15,7 @@ export default function ChatHeader() {
     >
       <div className="relative">
         <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-lg font-bold text-primary-foreground shadow-sm">
-          {curSession?.audience.name?.charAt(0)}
+          {curSession?.audience.name?.charAt(0).toUpperCase()}
         </div>
         {/* {curSession?.audience.isOnline && (
           <Circle className="absolute bottom-0 right-0 w-3 h-3 bg-accent text-accent rounded-full border-2 border-background" />
