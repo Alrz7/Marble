@@ -4,6 +4,8 @@
   </a>
 </div>
 
+> **Note:** Marble is currently in the **MVP (Minimum Viable Product)** stage. Many core features are still under development, APIs may change, and you might encounter unexpected bugs.
+
 ## Introduction
 
 Marble is a highly secure, platform-independent messaging ecosystem architected with a strict zero-knowledge philosophy. Built using a Go-based backend and a TypeScript/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
