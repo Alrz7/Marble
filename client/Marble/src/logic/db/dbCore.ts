@@ -1,6 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
 import { MG1 } from "./dbMigrations";
-import { appDataDir } from "@tauri-apps/api/path";
+import { appLocalDataDir, join } from "@tauri-apps/api/path";
 import { commonErrors, err, fromPromiseErr, ok } from "@internal/golog";
 import { createDir, doesExist } from "./dbHelpers";
 
@@ -41,16 +41,19 @@ export async function InitAndMigrate() {
 }
 
 async function LoadDb() {
-  const Local = "local";
-  const appDir = await appDataDir();
-  const exists = await doesExist(Local);
+  const LocalFolder = "local";
+  const appDir = await appLocalDataDir();
+  const exists = await doesExist(LocalFolder);
   if (!exists.ok) return err(exists.error);
   if (exists.value == false) {
-    const res = await createDir(Local);
+    const res = await createDir(LocalFolder);
     if (!res.ok) return err(res.error);
   }
+  const rawDbPath = await join(appDir, LocalFolder, "app.db");
+  const formattedDbPath = rawDbPath.replace(/\\/g, "/");
+
   const dbLoad = await fromPromiseErr(
-    Database.load(`sqlite:${appDir}/local/app.db`),
+    Database.load(`sqlite:${formattedDbPath}`),
     commonErrors.dbConnectionFailed,
   );
   if (!dbLoad.ok) return err(dbLoad.error);
