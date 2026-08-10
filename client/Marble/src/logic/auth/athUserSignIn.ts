@@ -93,7 +93,6 @@ export async function onSendUserSignInReq(
     return err(
       errEdtMessage(commonErrors.connectionFailed, "serverUrl is not valid"),
     );
-  console.log(buildApiUrl(serverUrl, "/account/"))
   const fetchResult = await fromPromiseErr(
     fetch(buildApiUrl(serverUrl, "/account/"), {
       method: "POST",
