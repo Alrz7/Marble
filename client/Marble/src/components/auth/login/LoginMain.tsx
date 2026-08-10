@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { User, Key, Loader2, Server, AlertCircle } from "lucide-react";
 import { stateLogin } from "@states/stateAuth";
 import { onUserSignIn } from "@auth/athUserSignIn";
@@ -8,6 +8,7 @@ import {
   notifUnExpectedErr,
 } from "@internal/golog";
 import { AppUser } from "../../../logic/user/stateUser";
+import { validateAndCleanServerUrl } from "@auth/authHelpers";
 
 export function LoginMain() {
   const {
@@ -26,6 +27,13 @@ export function LoginMain() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const isUrlLegit = validateAndCleanServerUrl(serverUrl);
+    if (isUrlLegit.error !== undefined) {
+      setServerError(isUrlLegit.error);
+    }
+  }, [serverUrl]);
 
   const handleServerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,7 +189,7 @@ export function LoginMain() {
 
       <button
         type="submit"
-        disabled={isLoading || !username || !password || !serverUrl}
+        disabled={isLoading || !username || !password || serverError !== null}
         className="w-full flex items-center justify-center py-3.5 bg-white text-black rounded-2xl text-sm font-semibold hover:bg-white/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
       >
         {isLoading ? (

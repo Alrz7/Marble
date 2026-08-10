@@ -1,5 +1,5 @@
 import { Lock, Fingerprint, Shield, ArrowRight, Loader2 } from "lucide-react";
-import { updateUserAuthentication } from "@auth/athHelpers";
+import { updateUserAuthentication } from "@auth/authHandlers";
 import { addAppErrNotif, ok } from "@internal/golog";
 import { stateLogin } from "@states/stateAuth";
 import { settingConfigurations } from "@states/stateSettings";

@@ -14,6 +14,7 @@ import {
 } from "@active/actWsServerHandlers";
 import { HndlAuthStatus } from "./actWsServerHandlers";
 import { AppState, stateCommon } from "@states/stateCommon";
+import { buildWsUrl } from "@internal/intrHelperfuncs";
 
 const handlers: Handelers = {
   auth: HndlAuthStatus,
@@ -31,7 +32,10 @@ export function openConnection() {
     return;
   }
   const { serverUrl } = AppState.getState();
-  const newWs = new WebSocket(`ws:${serverUrl?.slice(5)}/actv`);
+  if (!serverUrl) return;
+  const wsUrl = buildWsUrl(serverUrl, "actv");
+
+  const newWs = new WebSocket(wsUrl);
   setWs(newWs);
 
   newWs.onopen = () => {

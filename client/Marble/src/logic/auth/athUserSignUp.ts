@@ -28,6 +28,7 @@ import { AppUser } from "../user/stateUser";
 import { setUserTokens } from "@db/dbAuthHelpers";
 import { getSettingsAsJson, settingState } from "@states/stateSettings";
 import { AppState } from "@states/stateCommon";
+import { buildApiUrl } from "@internal/intrHelperfuncs";
 
 export async function onUserSignUp(
   selectedMethod?: AuthMethod,
@@ -165,7 +166,7 @@ async function onSendSignUpRequest(
 ) {
   const passInHex = bytesToHex(serverAuthKey);
   const response = await fromPromiseErr(
-    fetch(`${serverUrl}/account`, {
+    fetch(buildApiUrl(serverUrl, "/account/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

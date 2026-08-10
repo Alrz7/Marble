@@ -37,7 +37,6 @@ type StateSignUp = {
 
 const initialSignUpStates = {
   step: 1 as Steps,
-  serverUrl: "http://localhost:6280",
   name: "",
   username: "",
   email: "",
@@ -53,6 +52,7 @@ const initialSignUpStates = {
 };
 
 export const stateSignUp = create<StateSignUp>((set) => ({
+  serverUrl: "http://localhost:6280",
   ...initialSignUpStates,
   setStep: (step) => set({ step }),
   setServerUrl: (serverUrl) => set({ serverUrl }),
@@ -94,7 +94,6 @@ export interface LoginState {
 
 const initialLoginStates = {
   step: 1 as LoginStep,
-  serverUrl: "http://localhost:6280",
   username: "",
   password: "",
   authMethod: "passphrase" as AuthMethod,
@@ -102,6 +101,7 @@ const initialLoginStates = {
   isLoading: false,
 };
 export const stateLogin = create<LoginState>((set) => ({
+  serverUrl: "http://localhost:6280",
   ...initialLoginStates,
   setStep: (stepOrUpdater) =>
     set((state) => ({

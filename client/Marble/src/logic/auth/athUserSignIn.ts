@@ -9,12 +9,20 @@ import {
 } from "@db/dbUsers";
 import { GetMasterKeyFromMasterString } from "@enc/encMain";
 import { ResetStates } from "@states/stateMain";
-import { commonErrors, err, fromPromiseErr, ok, Result } from "@internal/golog";
+import {
+  commonErrors,
+  err,
+  errEdtMessage,
+  fromPromiseErr,
+  ok,
+  Result,
+} from "@internal/golog";
 import { bytesToHex } from "@enc/encAuth";
 import { getUserSaltArray, setUserTokens } from "@db/dbAuthHelpers";
 import { AppUser } from "../user/stateUser";
 import { AppState } from "@states/stateCommon";
 import { settingState } from "@states/stateSettings";
+import { buildApiUrl } from "@internal/intrHelperfuncs";
 
 export async function onUserSignIn(
   newServerUrl: string,
@@ -81,8 +89,13 @@ export async function onSendUserSignInReq(
   password: string,
 ): Promise<Result<string>> {
   const { serverUrl } = AppState.getState();
+  if (!serverUrl)
+    return err(
+      errEdtMessage(commonErrors.connectionFailed, "serverUrl is not valid"),
+    );
+  console.log(buildApiUrl(serverUrl, "/account/"))
   const fetchResult = await fromPromiseErr(
-    fetch(`${serverUrl}/account`, {
+    fetch(buildApiUrl(serverUrl, "/account/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

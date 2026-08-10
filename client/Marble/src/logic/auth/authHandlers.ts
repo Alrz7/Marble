@@ -20,6 +20,7 @@ import { AppUser } from "../user/stateUser";
 import { jwtDecode } from "jwt-decode";
 import { AppState } from "@states/stateCommon";
 import { GetWrappingKeyByMethod } from "@enc/encMain";
+import { buildApiUrl } from "@internal/intrHelperfuncs";
 
 export function isJwtTokenExpiered(token: string): boolean {
   const decoded = jwtDecode(token);
@@ -90,8 +91,12 @@ export async function onRefreshUserTokens(
     refreshToken: refreshToken,
   });
   const { serverUrl } = AppState.getState();
+  if (!serverUrl)
+    return err(
+      errEdtMessage(commonErrors.connectionFailed, "serverUrl is not valid"),
+    );
   const response = await fromPromiseErr(
-    fetch(`${serverUrl}/auth/refresh`, {
+    fetch(buildApiUrl(serverUrl, "/auth/refresh/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

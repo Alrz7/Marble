@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { stateLogin } from "@states/stateAuth";
-import { updateUserAuthentication } from "@auth/athHelpers";
+import { updateUserAuthentication } from "@auth/authHandlers";
 import { addAppErrNotif } from "@internal/golog";
 import { settingConfigurations } from "@states/stateSettings";
 

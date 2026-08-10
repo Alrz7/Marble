@@ -1,6 +1,7 @@
+import { validateAndCleanServerUrl } from "@auth/authHelpers";
 import { stateSignUp } from "@states/stateAuth";
 import { User, AlertCircle, Server } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SignupStp1() {
   const {
@@ -20,6 +21,13 @@ export default function SignupStp1() {
   const isValidEmail =
     !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const showError = touched && email.length > 0 && !isValidEmail;
+
+  useEffect(() => {
+    const isUrlLegit = validateAndCleanServerUrl(serverUrl);
+    if (isUrlLegit.error !== undefined) {
+      setServerError(isUrlLegit.error);
+    }
+  }, [serverUrl]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -138,7 +146,7 @@ export default function SignupStp1() {
 
       <button
         type="button"
-        disabled={!name || !username || !email}
+        disabled={!name || !username || !email || serverError !== null}
         onClick={() => {
           if (isValidEmail) setStep(2);
         }}

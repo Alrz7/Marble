@@ -2,7 +2,7 @@ import { Request } from "./actTypes";
 import { AppState, stateCommon } from "@states/stateCommon";
 import { addNewNotification } from "@states/stateNotif";
 import { StateVariables } from "@internal/intrCmnVars";
-import { onGetUserAccessToken } from "@auth/athHelpers";
+import { onGetUserAccessToken } from "@auth/authHandlers";
 
 export let ws: WebSocket | null = null;
 export function setWs(val: WebSocket | null) {

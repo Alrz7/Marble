@@ -86,3 +86,29 @@ export function getTimeString(dateTime: Date) {
     hour12: true,
   }).format(dateTime);
 }
+
+export function buildApiUrl(baseUrl: string, path: string): string {
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  const cleanPath = path.replace(/^\/+/, "");
+  return `${cleanBase}/${cleanPath}`;
+}
+
+export function buildWsUrl(baseUrl: string, path: string): string {
+  if (!baseUrl) return "";
+
+  let cleanBase = baseUrl.trim().replace(/\/+$/, "");
+  const cleanPath = path.trim().replace(/^\/+/, "");
+
+  if (cleanBase.startsWith("https://")) {
+    cleanBase = cleanBase.replace(/^https:\/\//, "wss://");
+  } else if (cleanBase.startsWith("http://")) {
+    cleanBase = cleanBase.replace(/^http:\/\//, "ws://");
+  } else if (
+    !cleanBase.startsWith("ws://") &&
+    !cleanBase.startsWith("wss://")
+  ) {
+    cleanBase = `wss://${cleanBase}`;
+  }
+
+  return `${cleanBase}/${cleanPath}`;
+}
