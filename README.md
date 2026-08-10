@@ -1,6 +1,10 @@
-# MARBLE
+<div align="center">
+  <a href="[Marble-logo](https://github.com/Alrz7/Marble)">
+    <img width="2251" height="522" alt="Marble-Horizontal2" src="https://github.com/user-attachments/assets/d6e7a9ad-d5f6-4994-aeef-2dd184fc815d" />
+  </a>
+</div>
 
-**A Full-Stack, Zero-Knowledge End-to-End Encrypted Messenger**
+## Introduction
 
 Marble is a highly secure, platform-independent messaging ecosystem architected with a strict zero-knowledge philosophy. Built using a Go-based backend and a TypeScript/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
 
@@ -44,11 +48,11 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 * **Database Engine:** PostgreSQL (`[github.com/lib/pq](https://github.com/lib/pq)`).
 * **Caching Layer:** Local in-memory caching for active user management (designed for future Redis migration).
 * **Key Go Packages:**
-* `[github.com/Alrz7/fig](https://github.com/Alrz7/fig)` (Custom configuration management).
-* `[github.com/ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3)` (OpenPGP integration).
-* `[github.com/golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5)` (JWT Authentication).
-* `[github.com/gorilla/websocket](https://github.com/gorilla/websocket)` (WebSocket connectivity).
-* `charm.land/log/v2` (Structured logging).
+* [github.com/Alrz7/fig](https://github.com/Alrz7/fig) (Custom configuration management).
+* [github.com/ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3) (OpenPGP integration).
+* [github.com/golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5) (JWT Authentication).
+* [github.com/gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
+* [github.com/charmbracelet/log](https://github.com/charmbracelet/log)`charm.land/log/v2` (Structured logging).
 
 
 
