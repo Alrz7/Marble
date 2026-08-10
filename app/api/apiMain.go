@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"marble/app/active"
-	"marble/config"
 	"marble/internal/loggy"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -17,19 +18,33 @@ func Setup() {
 	api := apiConfig{}
 	api.Version = version
 	api.logger = loggy.DefaultLogger
-	// err := api.setJwtSecret()
-	// if err != nil {
-	// 	api.logger.Errorf("there was an error while setting the Jwt-Secret on Api: %v", err)
-	// }
-	flag.IntVar(&api.Port, "port", defaultPort, "Api server port")
+
+	activeDefaultPort := defaultPort
+	if envPort := os.Getenv("PORT"); envPort != "" {
+		if parsedPort, err := strconv.Atoi(envPort); err == nil {
+			activeDefaultPort = parsedPort
+		}
+	}
+
+	envJwtSecret := os.Getenv("jwtSecret")
+	if envJwtSecret != "" {
+		api.JwtSecret = []byte(envJwtSecret)
+	} else {
+		err := api.setJwtSecret()
+		if err != nil {
+			api.logger.Errorf("there was an error while setting the Jwt-Secret on Api: %v", err)
+		}
+	}
+
+	flag.IntVar(&api.Port, "port", activeDefaultPort, "Api server port")
 	if api.Port <= 1023 {
 		api.logger.Warn(`server Port Should Not be less than-equal 1023 (setting %v as default)`, defaultPort)
-		api.Port = defaultPort
+		api.Port = activeDefaultPort
 	}
 	flag.StringVar(&api.Env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()
-	config.ApiConfig.Set("AppConfig", &api)
-	config.ApiConfig.PanicRestore()
+	// config.ApiConfig.Set("AppConfig", &api)
+	// config.ApiConfig.PanicRestore()
 	api.Run()
 }
 
