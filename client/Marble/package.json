@@ -23,7 +23,6 @@
     "framer-motion": "^12.38.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.17.0",
-    "neverthrow": "^8.2.0",
     "openpgp": "^6.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
