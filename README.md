@@ -81,7 +81,7 @@ Upon account creation, the user is provided with a cryptographically strong **Ma
 
 1. The client hashes this Master Phrase using **Argon2** to generate the permanent, unchangeable **MasterKey**.
 2. The original Master Phrase is then immediately and permanently wiped from system memory.
-3. All primary (first-level) user data is symmetrically encrypted using this MasterKey.
+3. All user data is symmetrically encrypted using this MasterKey.
 
 ### Daily Authentication & Wrapping Keys
 
