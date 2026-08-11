@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Marble is a highly secure, zero-knowledge E2EE Messenger Built using a Go-based backend and a TypeScript/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
+Marble is a highly secure, zero-knowledge E2EE Messenger Built using a Go-based backend and a Tauri/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
 
 Featuring a beautiful, minimalist glass-blur user interface with a dark-blue-gray color palette, Marble balances enterprise-grade cryptographic security with an elegant, highly responsive user experience.
 
