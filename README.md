@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Marble is a highly secure, platform-independent messaging ecosystem architected with a strict zero-knowledge philosophy. Built using a Go-based backend and a TypeScript/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
+Marble is a highly secure, zero-knowledge E2EE Messenger Built using a Go-based backend and a TypeScript/React client, it ensures that all user data remains completely sovereign, decentralized, and mathematically inaccessible to unauthorized entities—including the server infrastructure itself.
 
 Featuring a beautiful, minimalist glass-blur user interface with a dark-blue-gray color palette, Marble balances enterprise-grade cryptographic security with an elegant, highly responsive user experience.
 
@@ -28,22 +28,6 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 
 ## 2. Technology Stack
 
-### Client-Side
-
-* **Core Logic & UI:** TypeScript, React, Vite, Tailwind CSS, Zustand (State Management), Lucid-React (UI Components).
-* **Native Framework:** Tauri.
-* **Local Storage:** SQLite.
-* **Authentication & Cryptography:** `jwt-decode` (JWT integration), OpenPGP (E2EE).
-* **Tauri Plugins:**
-* `@tauri-apps/plugin-clipboard-manager`
-* `@tauri-apps/plugin-fs`
-* `@tauri-apps/plugin-http`
-* `@tauri-apps/plugin-opener`
-* `@tauri-apps/plugin-sql`
-* `tauri-plugin-keyring-api`
-
-
-
 ### Server-Side
 
 * **Core Runtime:** Go (`net/http` for REST APIs).
@@ -56,7 +40,23 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 * [github.com/gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
 * [github.com/charmbracelet/log](https://github.com/charmbracelet/log)`charm.land/log/v2` (Structured logging).
 
+### Client-Side
+* **Core Logic & UI:** TypeScript, React, Vite, Tailwind CSS, Zustand (State Management), Lucid-React (UI Components).
+* **Native Framework:** Tauri.
+* **Local Storage:** SQLite.
+* **Authentication & Cryptography:** `jwt-decode` (JWT integration), OpenPGP (E2EE).
+* **Tauri Plugins:**
+* `@tauri-apps/plugin-clipboard-manager`
+* `@tauri-apps/plugin-fs`
+* `@tauri-apps/plugin-http`
+* `@tauri-apps/plugin-opener`
+* `@tauri-apps/plugin-sql`
+* `tauri-plugin-keyring-api`
 
+### Client Preview
+<div align="center">
+  <img width="720" alt="marble-demo" src="https://github.com/user-attachments/assets/ca046f39-d292-4359-8fe8-29eecf262c18" />
+</div>
 
 ---
 
