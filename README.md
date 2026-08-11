@@ -98,7 +98,7 @@ To prevent the friction of entering a long Master Phrase on every application la
 
 ### Server Authentication & JWT
 
-A secondary hash is derived separately from the original Master Phrase (e.g., salted with the user's email). The client retains this hash for auto-login procedures and transmits it to the server. The server performs an additional hashing iteration before storing it. This mechanism powers the generation of long-lived JWTs; upon prolonged inactivity, the client silently authenticates using the secondary hash to refresh the token.
+A secondary hash is derived separately from the original MasterKey. The client retains this hash for auto-login procedures and transmits it to the server. The server performs an additional hashing iteration before storing it. This mechanism powers the generation of long-lived JWTs; upon prolonged inactivity, the client silently authenticates using the secondary hash to refresh the token.
 
 ---
 
