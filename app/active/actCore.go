@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var DefaultLogger = loggy.DefaultLogger
+var DefaultLogger = loggy.DefaultZapLogger
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins for development
 }
@@ -17,14 +17,14 @@ var upgrader = websocket.Upgrader{
 func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		DefaultLogger.Error("Upgrade failed:", err)
+		loggy.Get(err).SetMessage("Upgrade failed").Panic()
 		return
 	}
 
 	defer func() {
 		err = conn.Close()
 		if err != nil {
-			DefaultLogger.Fatal(err)
+			loggy.NewAppErr(err.Error()).Panic()
 		}
 		DeleteUserOf(conn)
 	}()
@@ -33,7 +33,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 
 	err = HndlAuthorizeConnection(conn, jwtSecretKey)
 	if err != nil {
-		DefaultLogger.Info(err)
+		loggy.Get(err).SetMessage("failed to authodize connection").Log()
 		return
 	}
 	for {
@@ -56,7 +56,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		req.conn = conn
 		req.user = user
 		if err := json.Unmarshal(message, &req); err != nil {
-			DefaultLogger.Error("Invalid JSON from client:", err)
+			loggy.Get(err).SetMessage("Invalid JSON from client").Log()
 			continue
 		}
 		manageHandeler(&req)

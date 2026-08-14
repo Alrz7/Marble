@@ -14,7 +14,7 @@ import (
 func sendHandlerResponse(conn *websocket.Conn, status RequestStatus, channel string, headers RequestHeaders, body any) {
 	bodyInBytes, err := json.Marshal(body)
 	if err != nil {
-		DefaultLogger.Error(err)
+		loggy.Get(err).Log()
 	}
 	resp := Request{
 		conn:    conn,
@@ -54,7 +54,7 @@ func (req *Request) onSendSessionEventResponce(sessionEventId internal.SessionId
 func (AU *ActvUser) GetSessionById(sessionId internal.SessionId) (*session.Session, error) {
 	session, err := db.AppModels.SessionModel.Get(sessionId)
 	if err != nil {
-		return nil, loggy.Sayr("error while fetching session", err)
+		return nil, loggy.EchoWithMessage("error while fetching session", err)
 	}
 	return session, nil
 }

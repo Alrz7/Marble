@@ -1,8 +1,9 @@
 package active
 
 import (
-	"sync"
 	"marble/internal"
+	"marble/internal/loggy"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -33,7 +34,7 @@ func GetUserOf(conn *websocket.Conn) (*ActvUser, error) {
 	if ok {
 		return res, nil
 	}
-	return nil, internal.ErrRecordNotFound
+	return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 }
 
 func GetConnByUserId(userId internal.UserId) (*websocket.Conn, bool) {

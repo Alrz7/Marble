@@ -14,7 +14,7 @@ import (
 
 type envelope = internal.Envelope
 
-func (api *apiConfig) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
+func (api *ApiConfig) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (api *apiConfig) writeJSON(w http.ResponseWriter, status int, data envelope
 }
 
 // dst must be a pointer to the destination
-func (api *apiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) error {
+func (api *ApiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 	dec := json.NewDecoder(r.Body)
@@ -79,7 +79,7 @@ func (api *apiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) 
 	return nil
 }
 
-func (api *apiConfig) setJwtSecret() error {
+func (api *ApiConfig) setJwtSecret() error {
 	sec := make([]byte, 256)
 	_, err := rand.Read(sec)
 	if err != nil {

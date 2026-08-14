@@ -7,7 +7,7 @@ import (
 	"marble/internal/loggy"
 )
 
-var logger = loggy.DefaultLogger
+var logger = loggy.DefaultZapLogger
 
 func CreateNewUser(username, email, DisplayId string, pubIdentKey string) (*User, error) {
 	// check valid Email
@@ -49,10 +49,10 @@ func (m UserModel) GetUserProfile(id internal.UserId) (*User, error) {
 	user, err := m.Get(id)
 	if err != nil {
 		switch {
-		case errors.Is(err, internal.ErrRecordNotFound):
-			return nil, loggy.Sayr("could not find the User in Temprorry Storage", err)
+		case errors.Is(err, loggy.NewAppErr(loggy.ErrNoRecord)):
+			return nil, loggy.EchoWithMessage("could not find the User in Temprorry Storage", err)
 		default:
-			return nil, loggy.Sayr("an error while trying to find the User in DB", err)
+			return nil, loggy.EchoWithMessage("an error while trying to find the User in DB", err)
 		}
 	}
 	return user, nil

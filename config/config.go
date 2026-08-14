@@ -11,10 +11,10 @@ var ApiConfig, apiErr = fig.CreateNewField("./config/files/", "apiConfig")
 
 func ConfInit() {
 	if appErr != nil {
-		loggy.DefaultLogger.Fatal(appErr)
+		loggy.NewAppErr(appErr.Error()).Panic()
 	}
 	if apiErr != nil {
-		loggy.DefaultLogger.Fatal(apiErr)
+		loggy.NewAppErr(apiErr.Error()).Panic()
 	}
 	AppConfig.PanicRestore()
 	// AppConfig.Save()

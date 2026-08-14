@@ -12,25 +12,25 @@ type envelope = internal.Envelope
 func HndlSessions(req *Request) {
 	tesk, ok := req.Headers["task"]
 	if !ok {
-		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
+		actBadRequestResponse(req.conn, loggy.NewAppErr("request is missing the `task` Header"))
 	}
 	switch tesk {
 	case "create":
 		err := HndlCreateSession(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 
 	case "sync":
 		err := HndlSyncSessions(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 
 	case "delete":
 		err := HndlDeleteSession(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 	}
 }
@@ -45,12 +45,11 @@ func HndlSearchUser(req *Request) {
 	}{}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
-		DefaultLogger.Error(err)
+		loggy.Get(err).Log()
 	}
 	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
 	if err != nil {
-		// DefaultLogger.Error(err)
-		return
+		loggy.Get(err).Log()
 	}
 	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
 		UserId: beta.Id, DisplayId: beta.DisplayId,
@@ -64,23 +63,23 @@ func HndlSearchUser(req *Request) {
 func HndlMessages(req *Request) {
 	tesk, ok := req.Headers["task"]
 	if !ok {
-		actBadRequestResponse(req.conn, loggy.Say("request is missing the `task` Header"))
+		actBadRequestResponse(req.conn, loggy.NewAppErr("request is missing the `task` Header"))
 	}
 	switch tesk {
 	case "send":
 		err := HndlSendMessage(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 	case "sync":
 		err := HndlSyncMessages(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 	case "clear":
 		err := HndlClearSyncedMessage(req)
 		if err != nil {
-			DefaultLogger.Error(err)
+			loggy.Get(err).Log()
 		}
 	}
 }

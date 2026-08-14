@@ -46,9 +46,9 @@ func (m UserModel) GetUserRefreshToken(id internal.UserId) (string, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return "", internal.ErrRecordNotFound
+			return "", loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return "", loggy.Sayr("there was an error while fetching the User refreshToken", err)
+			return "", loggy.EchoWithMessage("there was an error while fetching the User refreshToken", err)
 		}
 	}
 	return res, nil
@@ -62,9 +62,9 @@ func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return "", internal.ErrRecordNotFound
+			return "", loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return "", loggy.Sayr("there was an error while fetching the User AuthHash", err)
+			return "", loggy.EchoWithMessage("there was an error while fetching the User AuthHash", err)
 		}
 	}
 	return res, nil
@@ -72,7 +72,7 @@ func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
 
 func (m UserModel) Get(id internal.UserId) (*User, error) {
 	if id < 1 {
-		return nil, internal.ErrRecordNotFound
+		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	query := `SELECT id, email, name, display_id, session_last_seq
 			FROM users
@@ -83,15 +83,15 @@ func (m UserModel) Get(id internal.UserId) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, internal.ErrRecordNotFound
+			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
+			return nil, loggy.EchoWithMessage("there was an error while fetching the User Data", err)
 		}
 	}
 	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(id)
 	if err != nil {
-		return nil, loggy.Sayr("an error while getting the Pgp_profile", err)
+		return nil, loggy.EchoWithMessage("an error while getting the Pgp_profile", err)
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part
@@ -109,9 +109,9 @@ func (m UserModel) Update(user *User) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return internal.ErrRecordNotFound
+			return loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return loggy.Sayr("there was an error while Updating User Data", err)
+			return loggy.EchoWithMessage("there was an error while Updating User Data", err)
 		}
 	}
 	return nil
@@ -138,21 +138,21 @@ func (m UserModel) Delete(id internal.UserId) error {
 				WHERE id = $1`
 	res, err := m.Db.Exec(query, id)
 	if err != nil {
-		return loggy.Sayr("an error while trying to delete the User data", err)
+		return loggy.EchoWithMessage("an error while trying to delete the User data", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+		return loggy.EchoWithMessage("the sql Driver might not support `RowsAffected()`", err)
 	}
 	if count != 1 {
-		return internal.ErrRecordNotFound
+		return loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	return nil
 }
 
 func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	if dispayId == "" {
-		return nil, internal.ErrRecordNotFound
+		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	query := `SELECT display_id, id, email, name
 			FROM users
@@ -163,16 +163,16 @@ func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, internal.ErrRecordNotFound
+			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
+			return nil, loggy.EchoWithMessage("there was an error while fetching the User Data", err)
 		}
 	}
 
 	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(user.Id)
 	if err != nil {
-		return nil, loggy.Sayr("an error while getting the Pgp_profile", err)
+		return nil, loggy.EchoWithMessage("an error while getting the Pgp_profile", err)
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part

@@ -15,7 +15,6 @@ func HndlSyncSessions(req *Request) error {
 	}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
-		DefaultLogger.Error(err)
 		return err
 	}
 	limit := 5
@@ -57,7 +56,6 @@ func HndlSyncMessages(req *Request) error {
 	}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
-		DefaultLogger.Error(err)
 		return err
 	}
 	session, err := req.user.GetSessionById(entry.SessionId)
@@ -71,7 +69,7 @@ func HndlSyncMessages(req *Request) error {
 	case session.Beta:
 		senderId = session.Alpha
 	default:
-		return loggy.Say("user is not a subscribed to the session")
+		return loggy.NewAppErr("user is not a subscribed to the session")
 	}
 	if entry.LastMessageSeq != 0 {
 		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
@@ -99,7 +97,6 @@ func HndlClearSyncedMessage(req *Request) error {
 	}
 	err := json.Unmarshal([]byte(req.Body), &entry)
 	if err != nil {
-		DefaultLogger.Error(err)
 		return err
 	}
 	session, err := req.user.GetSessionById(entry.SessionId)
@@ -113,7 +110,7 @@ func HndlClearSyncedMessage(req *Request) error {
 	case session.Beta:
 		senderId = session.Alpha
 	default:
-		return loggy.Say("user is not a subscribed to the session")
+		return loggy.NewAppErr("user is not a subscribed to the session")
 	}
 	if entry.LastMessageSeq != 0 {
 		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)

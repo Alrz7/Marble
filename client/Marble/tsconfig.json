@@ -15,7 +15,9 @@
       "@messages/*": ["./src/logic/messages/*"],
       "@sessions/*": ["./src/logic/sessions/*"],
       "@states/*": ["./src/logic/states/*"],
-      "@user/*": ["./src/logic/user/*"]
+      "@user/*": ["./src/logic/user/*"],
+      "@assets/*": ["./src/assets/*"],
+
     },
 
     /* Bundler mode */

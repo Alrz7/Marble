@@ -8,27 +8,14 @@ import (
 	"marble/enc"
 	"marble/internal"
 	"marble/internal/loggy"
+	"marble/internal/validator"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Accounts----------------------
-
-func (api *apiConfig) handleAccount(w http.ResponseWriter, r *http.Request) {
-	order := r.Header.Get("task")
-	switch order {
-	case "create":
-		api.createAccount(w, r)
-	case "signin":
-		api.signIn(w, r)
-		// case "delete":
-		// not decided yet... (this needs auth works)
-	}
-}
-
-func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
+func (api *ApiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
 		Name        string `json:"name"`
 		DisplayId   string `json:"username"`
@@ -42,6 +29,14 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, err)
 		return
 	}
+	v := validator.New()
+	v.Check(len(entry.Name) > 60, "Name", "must not be more than 60 chars long")
+	v.Check(len(entry.Name) == 0, "Name", "must not be empty")
+	v.Check(len(entry.DisplayId) > 60, "DisplayId", "must not be more than 60 chars long")
+	v.Check(len(entry.DisplayId) == 0, "DisplayId", "must not be empty")
+	v.Check(len(entry.Email) > 150, "Email", "must not be more than 60 chars long")
+	v.Check(len(entry.Email) == 0, "Email", "must not be empty")
+
 	newUser, err := users.CreateNewUser(entry.Name, entry.Email, entry.DisplayId, entry.PubIdentKey)
 	if err != nil {
 		api.serverErrorResponse(w, r, err)
@@ -71,7 +66,7 @@ func (api *apiConfig) createAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
+func (api *ApiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
 		DisplayId string `json:"display_id"`
 		Password  string `json:"password"`
@@ -114,7 +109,7 @@ func (api *apiConfig) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *apiConfig) getNewTokens(w http.ResponseWriter, r *http.Request) {
+func (api *ApiConfig) getNewTokens(w http.ResponseWriter, r *http.Request) {
 	var entry struct {
 		UserId       internal.UserId `json:"userId"`
 		RefreshToken string          `json:"refreshToken"`
@@ -158,7 +153,7 @@ func GetNewToken(userId internal.UserId, jwtSecret []byte, tokenType string, dur
 
 	signedToken, err := token.SignedString(jwtSecret)
 	if err != nil {
-		return "", loggy.Sayr("failed to sign token: %w", err)
+		return "", loggy.EchoWithMessage("failed to sign token: %w", err)
 	}
 
 	return signedToken, nil

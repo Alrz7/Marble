@@ -3,7 +3,6 @@ package pgp
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"marble/internal"
 	"marble/internal/loggy"
 )
@@ -27,14 +26,14 @@ func (m ProfileModel) Insert(profile *Profile, id internal.UserId) error {
 	args := []any{id, profile.PublicKey}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
-		return fmt.Errorf("there was an error while Inserting the User-Pgp-Profile to DB: %v", err)
+		return loggy.NewAppErr("there was an error while Inserting the User-Pgp-Profile to DB").SetErr(err)
 	}
 	return nil
 }
 
 func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 	if id < 1 {
-		return nil, internal.ErrRecordNotFound
+		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	query := `SELECT user_id, public_key
 			FROM pgp_profile
@@ -45,9 +44,9 @@ func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, internal.ErrRecordNotFound
+			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return nil, loggy.Sayr("there was an error while fetching the User Data", err)
+			return nil, loggy.NewAppErr(loggy.ErrInternalServer)
 		}
 	}
 	return &profile, nil
@@ -62,9 +61,9 @@ func (m ProfileModel) Update(profile *Profile) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return internal.ErrRecordNotFound
+			return loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return loggy.Sayr("there was an error while Updating User Data", err)
+			return loggy.NewAppErr(loggy.ErrInternalServer).SetMessage("there was an error while Updating User Data").SetErr(err)
 		}
 	}
 	return nil
@@ -75,14 +74,15 @@ func (m ProfileModel) Delete(id internal.UserId) error {
 				WHERE user_id = $1`
 	res, err := m.Db.Exec(query, id)
 	if err != nil {
-		return loggy.Sayr("an error while trying to delete the Profile data", err)
+		return loggy.NewAppErr(loggy.ErrDbQuery).SetMessage("an error while trying to delete the Profile data").SetErr(err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+		return loggy.NewAppErr(loggy.ErrDbQuery).SetMessage("the sql Driver might not support `RowsAffected()`").SetErr(err)
 	}
 	if count != 1 {
-		return internal.ErrRecordNotFound
+		return loggy.NewAppErr(loggy.ErrNoRecord)
+
 	}
 	return nil
 }

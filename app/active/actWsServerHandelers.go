@@ -19,7 +19,7 @@ func HndlAuthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 	var req Request
 	if err := json.Unmarshal(msg, &req); err != nil || req.Token == "" {
 		actErrorResponse(conn, internal.ActAuthenticationError, "authentication failed")
-		return loggy.Sayr("authentication failed", err)
+		return loggy.EchoWithMessage("authentication failed", err)
 	}
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(req.Token, claims, func(t *jwt.Token) (any, error) {
@@ -57,7 +57,7 @@ func HndlAuthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 
 func (req *Request) sendRequest() error {
 	if req.conn == nil {
-		return loggy.Say("there was no Ws-conn inside the request")
+		return loggy.NewAppErr("there was no Ws-conn inside the request")
 	}
 	b, err := json.Marshal(req)
 	if err != nil {

@@ -26,7 +26,7 @@ func (m SessionModel) Insert(session *Session) error {
 
 func (m SessionModel) Get(id int64) (*Session, error) {
 	if id < 1 {
-		return nil, internal.ErrRecordNotFound
+		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	query := `SELECT id, seq, alpha_id, beta_id
 			FROM session
@@ -37,9 +37,9 @@ func (m SessionModel) Get(id int64) (*Session, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, internal.ErrRecordNotFound
+			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return nil, loggy.Sayr("there was an error while fetching the session Data", err)
+			return nil, loggy.EchoWithMessage("there was an error while fetching the session Data", err)
 		}
 	}
 	return &session, nil
@@ -68,7 +68,7 @@ func (m SessionModel) GetSessionsByEvent(userId internal.UserId, lastEventSeq in
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, loggy.Sayr("there was an error while fetching the session Data", err)
+		return nil, loggy.EchoWithMessage("there was an error while fetching the session Data", err)
 	}
 	return sessions, nil
 }
@@ -82,9 +82,9 @@ func (m SessionModel) Update(session *Session) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return internal.ErrRecordNotFound
+			return loggy.NewAppErr(loggy.ErrNoRecord)
 		default:
-			return loggy.Sayr("there was an error while Updating User Data", err)
+			return loggy.EchoWithMessage("there was an error while Updating User Data", err)
 		}
 	}
 	return nil
@@ -95,14 +95,14 @@ func (m SessionModel) Delete(id int64) error {
 				WHERE id = $1`
 	res, err := m.Db.Exec(query, id)
 	if err != nil {
-		return loggy.Sayr("an error while trying to delete the session data", err)
+		return loggy.EchoWithMessage("an error while trying to delete the session data", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return loggy.Sayr("the sql Driver might not support `RowsAffected()`", err)
+		return loggy.EchoWithMessage("the sql Driver might not support `RowsAffected()`", err)
 	}
 	if count != 1 {
-		return internal.ErrRecordNotFound
+		return loggy.NewAppErr(loggy.ErrNoRecord)
 	}
 	return nil
 }

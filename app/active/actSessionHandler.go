@@ -40,12 +40,12 @@ func HndlCreateSession(req *Request) error {
 
 	newSession, err := db.AppModels.SessionModel.CreateSession(req.user.Id, Beta.Id, newSeq)
 	if err != nil {
-		loggy.DefaultLogger.Error(err)
+		loggy.Get(err).Log()
 		return err
 	}
 	err = req.user.onDeliverSession(newSession, Beta, entry.Message)
 	if err != nil {
-		DefaultLogger.Info(err)
+		loggy.Get(err).Log()
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.Us
 
 	newMessage, err := u.onGenerateNewMessage(session, content)
 	if err != nil {
-		DefaultLogger.Info(err)
+		loggy.Get(err).Log()
 		return err
 	}
 	if isOnline {
@@ -106,7 +106,7 @@ func HndlDeleteSession(req *Request) error {
 			return err
 		}
 	} else {
-		return loggy.Say("this Client doesn't have permision for this operation")
+		return loggy.NewAppErr("this Client doesn't have permision for this operation")
 	}
 	return nil
 }

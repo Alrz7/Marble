@@ -3,13 +3,10 @@ package active
 import (
 	"fmt"
 	"marble/internal"
+	"marble/internal/loggy"
 
 	"github.com/gorilla/websocket"
 )
-
-func logError(err error) {
-	DefaultLogger.Error(err)
-}
 
 func actErrorResponse(conn *websocket.Conn, errorType string, message string) {
 	notif := &Notification{
@@ -26,13 +23,13 @@ func actErrorResponse(conn *websocket.Conn, errorType string, message string) {
 	}
 	err := resp.sendRequest()
 	if err != nil {
-		DefaultLogger.Error(err)
+		loggy.Get(err).Log()
 		// actServerErrorResponse(conn, err)
 	}
 }
 
 func actServerErrorResponse(conn *websocket.Conn, err error) {
-	logError(err)
+	loggy.Get(err).Log()
 	message := fmt.Sprintf("the server encountered a problem: %v", err)
 	actErrorResponse(conn, internal.ActStatusInternalServerError, message)
 }
