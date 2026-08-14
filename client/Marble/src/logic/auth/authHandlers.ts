@@ -96,7 +96,7 @@ export async function onRefreshUserTokens(
       errEdtMessage(commonErrors.connectionFailed, "serverUrl is not valid"),
     );
   const response = await fromPromiseErr(
-    fetch(buildApiUrl(serverUrl, "/auth/refresh/"), {
+    fetch(buildApiUrl(serverUrl, "/auth/refresh"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

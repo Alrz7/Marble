@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var DefaultLogger = loggy.DefaultZapLogger
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins for development
 }
@@ -30,7 +29,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 	}()
 
 	conn.SetReadLimit(4096)
-
+	
 	err = HndlAuthorizeConnection(conn, jwtSecretKey)
 	if err != nil {
 		loggy.Get(err).SetMessage("failed to authodize connection").Log()

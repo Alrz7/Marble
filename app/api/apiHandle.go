@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"marble/app/active"
 	"net/http"
 )
@@ -23,20 +22,6 @@ func (api *ApiConfig) handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 	api.HealthStatus(w, r)
 	// w.Write([]byte("-Marble-"))
-}
-
-func (api *ApiConfig) handleAccount(w http.ResponseWriter, r *http.Request) {
-	order := r.Header.Get("task")
-	switch order {
-	case "create":
-		api.createAccount(w, r)
-	case "signin":
-		api.signIn(w, r)
-		// case "delete":
-		// not decided yet... (this needs auth works)
-	default:
-		api.badRequestResponse(w, r, errors.New("request must contain a order header"))
-	}
 }
 
 func (api *ApiConfig) handleWebSocket(w http.ResponseWriter, r *http.Request) {

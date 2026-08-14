@@ -166,11 +166,10 @@ async function onSendSignUpRequest(
 ) {
   const passInHex = bytesToHex(serverAuthKey);
   const response = await fromPromiseErr(
-    fetch(buildApiUrl(serverUrl, "/account/"), {
+    fetch(buildApiUrl(serverUrl, "/auth/signup"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        task: "create",
       },
       body: JSON.stringify({
         name: name,
