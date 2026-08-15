@@ -35,7 +35,6 @@ func (l *AppLog) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	if l.Info != "" {
 		enc.AddString("info", l.Info)
 	}
-	enc.AddBool("shareable", l.Shareable)
 	if len(l.Params) > 0 {
 		_ = enc.AddReflected("params", l.Params)
 	}
@@ -75,7 +74,7 @@ func Get(err error) *AppLog {
 	if ok {
 		return appLog
 	} else {
-		newLog := AppLog{Reason: "error",
+		newLog := AppLog{Reason: ErrUnexpected,
 			Err: err}
 		return &newLog
 	}

@@ -18,12 +18,12 @@ func (api *ApiConfig) HandleGetTokens(w http.ResponseWriter, r *http.Request) {
 	}
 	err := api.readJson(w, r, &entry)
 	if err != nil {
-		api.badRequestResponse(w, r, err)
+		api.badRequestResponse(w, r, loggy.Get(err).SetReason(loggy.ErrInternalServer))
 		return
 	}
 	existingUser, err := db.AppModels.UserModel.Get(entry.UserId)
 	if err != nil {
-		api.serverErrorResponse(w, r, err)
+		api.serverErrorResponse(w, r, loggy.Get(err))
 		return
 	}
 
@@ -37,7 +37,7 @@ func (api *ApiConfig) HandleGetTokens(w http.ResponseWriter, r *http.Request) {
 	}
 	err = api.writeJSON(w, http.StatusCreated, response, nil)
 	if err != nil {
-		api.serverErrorResponse(w, r, err)
+		api.serverErrorResponse(w, r, loggy.Get(err).SetReason(loggy.ErrInternalServer))
 	}
 }
 

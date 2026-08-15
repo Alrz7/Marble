@@ -1,49 +1,41 @@
 package api
 
 import (
-	"fmt"
 	"marble/internal/loggy"
 	"net/http"
 )
 
 var logger = loggy.DefaultZapLogger
 
-func (api *ApiConfig) logError(r *http.Request, err error) {
-	loggy.NewAppErr(err.Error())
-}
-
-func (api *ApiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
+func (api *ApiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, AppErr *loggy.AppLog) {
 	env := envelope{
-		"error":   true,
-		"message": message,
+		"error": envelope{
+			"reason":  AppErr.Reason,
+			"message": AppErr.Message,
+		},
 	}
 	err := api.writeJSON(w, status, env, nil)
 	if err != nil {
-		api.logError(r, err)
 		w.WriteHeader(500)
 	}
 }
 
-func (api *ApiConfig) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	api.logError(r, err)
-	message := fmt.Sprintf("the server encountered a problem: %v", err)
-	api.errorResponse(w, r, http.StatusInternalServerError, message)
+func (api *ApiConfig) serverErrorResponse(w http.ResponseWriter, r *http.Request, AppErr *loggy.AppLog) {
+	appError := loggy.Get(AppErr)
+	appError.Log()
+	api.errorResponse(w, r, http.StatusInternalServerError, AppErr)
 }
 
 func (api *ApiConfig) notFoundResponse(w http.ResponseWriter, r *http.Request) {
-	message := "the requested resource could not be found"
-	api.errorResponse(w, r, http.StatusNotFound, message)
+	err := loggy.NewAppErr(loggy.ErrNoRecord).SetMessage("the requested resource could not be found")
+	api.errorResponse(w, r, http.StatusNotFound, err)
 }
 
 func (api *ApiConfig) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
-	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
-	api.errorResponse(w, r, http.StatusMethodNotAllowed, message)
+	err := loggy.NewAppErr(loggy.ErrBadRequest).SetMessage("method does Not support this resource").AddParam("method", r.Method)
+	api.errorResponse(w, r, http.StatusMethodNotAllowed, err)
 }
 
-func (api *ApiConfig) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	api.errorResponse(w, r, http.StatusBadRequest, err.Error())
-}
-
-func (api *ApiConfig) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
-	api.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+func (api *ApiConfig) badRequestResponse(w http.ResponseWriter, r *http.Request, AppErr *loggy.AppLog) {
+	api.errorResponse(w, r, http.StatusBadRequest, AppErr)
 }

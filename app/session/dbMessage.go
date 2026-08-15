@@ -3,6 +3,7 @@ package session
 import (
 	"database/sql"
 	"marble/internal"
+	"marble/internal/loggy"
 )
 
 type MessageModel struct {
@@ -24,7 +25,11 @@ func (m *MessageModel) Insert(message *Message) error {
 	args := []any{message.SessionId, message.SenderId, message.Content, message.Profile}
 	err := m.Db.QueryRow(query, args...).Scan(&message.Id, &message.Seq)
 	if err != nil {
-		return err
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while inserting message").SetErr(err)
+		}
+		return loggy.EchoWithMessage("error while inserting message", err)
 	}
 	return nil
 }
@@ -35,7 +40,11 @@ func (m *MessageModel) GetMessagesByEvent(sessionId internal.SessionId, senderId
 	WHERE session_id = $1 AND sender_id = $2 ORDER BY seq ASC LIMIT $3`
 	rows, err := m.Db.Query(query, sessionId, senderId, limit)
 	if err != nil {
-		return nil, err
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err)
+		}
+		return nil, loggy.EchoWithMessage("error while fetching message", err)
 	}
 	defer rows.Close()
 
@@ -51,7 +60,7 @@ func (m *MessageModel) GetMessagesByEvent(sessionId internal.SessionId, senderId
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return nil, loggy.EchoWithMessage("error while reading fetched message", err)
 	}
 	return res, nil
 }
@@ -60,7 +69,11 @@ func (m *MessageModel) DeleteMessagesByEvent(SessionId internal.SessionId, sende
 	query := `DELETE FROM message WHERE session_id = $1 AND sender_id = $2 AND seq <= $3`
 	_, err := m.Db.Exec(query, SessionId, senderId, lastMessageSeq)
 	if err != nil {
-		return err
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while deleting message").SetErr(err)
+		}
+		return loggy.EchoWithMessage("error while deleting message", err)
 	}
 	return nil
 }

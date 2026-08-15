@@ -1,6 +1,6 @@
 module marble
 
-go 1.25.8
+go 1.26.6
 
 require (
 	github.com/Alrz7/fig v1.1.3

@@ -100,7 +100,7 @@ export async function onSendUserSignInReq(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        display_id: DisplayId,
+        username: DisplayId,
         password: password,
       }),
     }),

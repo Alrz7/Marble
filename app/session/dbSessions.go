@@ -2,7 +2,6 @@ package session
 
 import (
 	"database/sql"
-	"errors"
 	"marble/internal"
 	"marble/internal/loggy"
 )
@@ -19,7 +18,11 @@ func (m SessionModel) Insert(session *Session) error {
 	args := []any{session.Seq, session.Alpha, session.Beta}
 	err := m.Db.QueryRow(query, args...).Scan(&session.Id)
 	if err != nil {
-		return err
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while inserting session-Data").SetErr(err)
+		}
+		return loggy.EchoWithMessage("unexpected error while Inserting session-Data", err)
 	}
 	return nil
 }
@@ -35,12 +38,12 @@ func (m SessionModel) Get(id int64) (*Session, error) {
 	args := []any{&session.Id, &session.Seq, &session.Alpha, &session.Beta}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return nil, loggy.EchoWithMessage("there was an error while fetching the session Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching session-Data").SetErr(err)
 		}
+		return nil, loggy.EchoWithMessage("unexpected error while fetching session-Data", err)
+
 	}
 	return &session, nil
 }
@@ -68,7 +71,11 @@ func (m SessionModel) GetSessionsByEvent(userId internal.UserId, lastEventSeq in
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, loggy.EchoWithMessage("there was an error while fetching the session Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching session-Data").SetErr(err)
+		}
+		return nil, loggy.EchoWithMessage("unexpected error while fetching session-Data", err)
 	}
 	return sessions, nil
 }
@@ -80,12 +87,12 @@ func (m SessionModel) Update(session *Session) error {
 	args := []any{session.Alpha, session.Beta, session.Id}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return loggy.EchoWithMessage("there was an error while Updating User Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while Updating session-Data").SetErr(err)
 		}
+		return loggy.EchoWithMessage("unexpected error while Updating session-Data", err)
+
 	}
 	return nil
 }
@@ -95,7 +102,11 @@ func (m SessionModel) Delete(id int64) error {
 				WHERE id = $1`
 	res, err := m.Db.Exec(query, id)
 	if err != nil {
-		return loggy.EchoWithMessage("an error while trying to delete the session data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while deleting session-Data").SetErr(err)
+		}
+		return loggy.EchoWithMessage("unexpected error while deleting session-data", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {

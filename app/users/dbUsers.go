@@ -1,9 +1,6 @@
 package users
 
 import (
-	"database/sql"
-	"errors"
-	"fmt"
 	"marble/enc/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
@@ -21,7 +18,11 @@ func (m UserModel) Insert(user *User, passwordHash string) error {
 	args := []any{user.UserName, user.Email, user.DisplayId, passwordHash}
 	err := m.Db.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
-		return fmt.Errorf("there was an error while Inserting the User-Information to DB: %v", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while Inserting User-Data").SetErr(err)
+		}
+		return loggy.EchoWithMessage("error while Inserting User-Data", err)
 	}
 	return nil
 }
@@ -33,7 +34,11 @@ func (m UserModel) SetUserRefreshToken(id internal.UserId, token string) error {
 	args := []any{id, token}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
-		return fmt.Errorf("there was an error while Updating the User-RefreshToken to DB: %v", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err)
+		}
+		return loggy.EchoWithMessage("error while setting User-Refresh-Token", err)
 	}
 	return nil
 }
@@ -44,12 +49,12 @@ func (m UserModel) GetUserRefreshToken(id internal.UserId) (string, error) {
 	args := []any{&res}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return "", loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return "", loggy.EchoWithMessage("there was an error while fetching the User refreshToken", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err)
 		}
+		return "", loggy.EchoWithMessage("error while fetching User-Refresh-Token", err)
+
 	}
 	return res, nil
 }
@@ -60,12 +65,12 @@ func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
 	args := []any{&res}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return "", loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return "", loggy.EchoWithMessage("there was an error while fetching the User AuthHash", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Auth-Hash").SetErr(err)
 		}
+		return "", loggy.EchoWithMessage("error while fetching User-Auth-Hash", err)
+
 	}
 	return res, nil
 }
@@ -81,17 +86,17 @@ func (m UserModel) Get(id internal.UserId) (*User, error) {
 	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId, &user.SessionLastSeq}
 	err := m.Db.QueryRow(query, id).Scan(args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return nil, loggy.EchoWithMessage("there was an error while fetching the User Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err)
 		}
+		return nil, loggy.EchoWithMessage("error while fetching User-Data", err)
+
 	}
 	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(id)
 	if err != nil {
-		return nil, loggy.EchoWithMessage("an error while getting the Pgp_profile", err)
+		return nil, err
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part
@@ -107,12 +112,11 @@ func (m UserModel) Update(user *User) error {
 	args := []any{user.Id, user.UserName, user.Email, user.DisplayId}
 	_, err := m.Db.Exec(query, args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return loggy.EchoWithMessage("there was an error while Updating User Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while updating User-Data").SetErr(err)
 		}
+		return loggy.EchoWithMessage("error while updating User-Data", err)
 	}
 	return nil
 }
@@ -138,7 +142,11 @@ func (m UserModel) Delete(id internal.UserId) error {
 				WHERE id = $1`
 	res, err := m.Db.Exec(query, id)
 	if err != nil {
-		return loggy.EchoWithMessage("an error while trying to delete the User data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return loggy.NewAppErr(pqError).SetMessage("error while Deleting User-Data").SetErr(err)
+		}
+		return loggy.EchoWithMessage("error while Deleting User-Data", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
@@ -161,18 +169,18 @@ func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
 	err := m.Db.QueryRow(query, dispayId).Scan(args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, loggy.NewAppErr(loggy.ErrNoRecord)
-		default:
-			return nil, loggy.EchoWithMessage("there was an error while fetching the User Data", err)
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err)
 		}
+		return nil, loggy.EchoWithMessage("error while fetching User-Data", err)
+
 	}
 
 	pgpModel := pgp.ProfileModel{Db: m.Db}
 	pgp_profile, err := pgpModel.Get(user.Id)
 	if err != nil {
-		return nil, loggy.EchoWithMessage("an error while getting the Pgp_profile", err)
+		return nil, err
 	}
 	user.PgpProfile = *pgp_profile
 	//Fetching and adding the Pgp_session Part

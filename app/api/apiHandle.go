@@ -2,6 +2,7 @@ package api
 
 import (
 	"marble/app/active"
+	"marble/internal/loggy"
 	"net/http"
 )
 
@@ -11,7 +12,7 @@ func (api *ApiConfig) HealthStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	err := api.writeJSON(w, http.StatusOK, stat, nil)
 	if err != nil {
-		api.serverErrorResponse(w, r, err)
+		api.serverErrorResponse(w, r, loggy.Get(err).SetReason(loggy.ErrInternalServer))
 	}
 }
 
