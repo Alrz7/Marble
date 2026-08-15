@@ -38,7 +38,7 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 * [github.com/ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3) (OpenPGP integration).
 * [github.com/golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5) (JWT Authentication).
 * [github.com/gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
-* [github.com/charmbracelet/log](https://github.com/charmbracelet/log)`charm.land/log/v2` (Structured logging).
+* [https://github.com/uber-go/zap](https://github.com/uber-go/zap)`Zap` (Structured logging).
 
 ### Client-Side
 * **Core Logic & UI:** TypeScript, React, Vite, Tailwind CSS, Zustand (State Management), Lucid-React (UI Components).
