@@ -79,7 +79,7 @@ func (api *ApiConfig) readJson(w http.ResponseWriter, r *http.Request, dst any) 
 	return nil
 }
 
-func (api *ApiConfig) setJwtSecret() error {
+func (api *ApiConfig) SetJwtSecret() error {
 	sec := make([]byte, 256)
 	_, err := rand.Read(sec)
 	if err != nil {

@@ -61,13 +61,20 @@ func Setup() *Application {
 }
 
 func (a *Application) setEnv() *Application {
-	envVersion := os.Getenv("Version")
+	envVersion := os.Getenv("version")
 	if envVersion != "" {
 		a.Version = envVersion
 	}
-	envEnvirement := os.Getenv("Envirement")
+	envEnvirement := os.Getenv("envirement")
 	if envVersion != "" {
 		a.Version = envEnvirement
+	}
+
+	encJwtSecret := os.Getenv("jwtSecret")
+	if envVersion != "" {
+		a.api.JwtSecret = []byte(encJwtSecret)
+	} else {
+		_ = a.api.SetJwtSecret()
 	}
 
 	if envPort := os.Getenv("PORT"); envPort != "" {
