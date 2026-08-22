@@ -15,13 +15,13 @@ import (
 )
 
 type Application struct {
-	Version     string
-	Environment string
-	Logger      *zap.Logger
-	Config      *fig.Handler
-	Db          *sql.DB
-	Models      *db.Models
-	api         *api.ApiConfig
+	Version    string
+	Envirement string
+	Logger     *zap.Logger
+	Config     *fig.Handler
+	Db         *sql.DB
+	Models     *db.Models
+	api        *api.ApiConfig
 }
 
 var (
@@ -30,9 +30,9 @@ var (
 
 func Setup() *Application {
 	App := &Application{
-		Version:     version,
-		Environment: "Development",
-		Config:      config.AppConfig,
+		Version:    version,
+		Envirement: "Development",
+		Config:     config.AppConfig,
 		api: &api.ApiConfig{
 			Port: 6280,
 		},
@@ -40,7 +40,8 @@ func Setup() *Application {
 	App.setEnv()
 	App.setFlags()
 
-	switch App.Environment {
+	App.api.Envirement = App.Envirement
+	switch App.Envirement {
 	case "Development", "Staging":
 		App.Logger, _ = zap.NewDevelopment()
 	default:
@@ -67,7 +68,7 @@ func (a *Application) setEnv() *Application {
 	}
 	envEnvirement := os.Getenv("envirement")
 	if envVersion != "" {
-		a.Version = envEnvirement
+		a.Envirement = envEnvirement
 	}
 
 	encJwtSecret := os.Getenv("jwtSecret")
@@ -87,7 +88,7 @@ func (a *Application) setEnv() *Application {
 
 func (a *Application) setFlags() *Application {
 	flag.Int("port", a.api.Port, "Api server port")
-	flag.StringVar(&a.Environment, "env", "Development", "Environment (Development|Staging|Production)")
+	flag.StringVar(&a.Envirement, "env", "Development", "Envirement (Development|Staging|Production)")
 	// flagEnableConfig := flag.Bool("enableConfig", true, "manual conFIG state management")
 	flag.Parse()
 

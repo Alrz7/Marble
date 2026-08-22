@@ -24,7 +24,7 @@ func HndlCreateSession(req *Request) error {
 		return err
 	}
 
-	Beta, err := db.AppModels.UserModel.GetUserProfile(internal.UserId(entry.AudienceId))
+	Beta, err := db.AppModels.UserModel.Get(internal.UserId(entry.AudienceId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err

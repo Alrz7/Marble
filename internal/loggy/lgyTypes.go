@@ -16,12 +16,14 @@ const (
 )
 
 type AppLog struct {
-	Type      LogType           `json:"type"`
-	Reason    string            `json:"reason"`
-	Message   string            `json:"message"`
-	Info      string            `json:"info,omitempty"`
-	Err       error             `json:"error,omitempty"`
-	Params    map[string]string `json:"params,omitempty"`
+	Type         LogType           `json:"type"`
+	Reason       string            `json:"reason"`
+	Message      string            `json:"message"`
+	Info         string            `json:"info,omitempty"`
+	Err          error             `json:"error,omitempty"`
+	Params       map[string]string `json:"params,omitempty"`
+	ReasonQueue  []string          `json:"reasonQueue"`
+	MessageQueue []string          `json:"messageQueue"`
 }
 
 func (l *AppLog) Error() string {

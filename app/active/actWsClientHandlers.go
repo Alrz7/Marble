@@ -24,7 +24,7 @@ func HndlSyncSessions(req *Request) error {
 			return err
 		}
 		for _, clientSession := range sessions {
-			audience, err := db.AppModels.UserModel.GetUserProfile(clientSession.Audience.UserId)
+			audience, err := db.AppModels.UserModel.Get(clientSession.Audience.UserId)
 			if err != nil {
 				actNotFoundResponse(req.conn, err)
 			}

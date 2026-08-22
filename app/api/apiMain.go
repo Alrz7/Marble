@@ -8,8 +8,9 @@ import (
 )
 
 type ApiConfig struct {
-	Port      int    `json:"port"`
-	JwtSecret []byte `json:"jwtSecret"`
+	Port       int    `json:"port"`
+	JwtSecret  []byte `json:"jwtSecret"`
+	Envirement string
 }
 
 func (api *ApiConfig) Run() {

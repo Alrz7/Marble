@@ -45,6 +45,9 @@ func (l *AppLog) SetReason(reason string) *AppLog {
 	if l == nil {
 		return nil
 	}
+	if l.Reason != "" {
+		l.ReasonQueue = append(l.ReasonQueue, l.Reason)
+	}
 	l.Reason = reason
 	return l
 }
@@ -52,6 +55,9 @@ func (l *AppLog) SetReason(reason string) *AppLog {
 func (l *AppLog) SetMessage(message string) *AppLog {
 	if l == nil {
 		return nil
+	}
+	if l.Message != "" {
+		l.MessageQueue = append(l.MessageQueue, l.Message)
 	}
 	l.Message = message
 	return l

@@ -8,12 +8,16 @@ import (
 var logger = loggy.DefaultZapLogger
 
 func (api *ApiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, AppErr *loggy.AppLog) {
-	env := envelope{
-		"error": envelope{
-			"reason":  AppErr.Reason,
-			"message": AppErr.Message,
-		},
+	if api.Envirement == "Development" {
+		AppErr.Log()
 	}
+	respError := envelope{
+		"reason":  AppErr.Reason,
+		"message": AppErr.Message,
+		"params":  AppErr.Params,
+	}
+	env := envelope{"error": respError}
+
 	err := api.writeJSON(w, status, env, nil)
 	if err != nil {
 		w.WriteHeader(500)

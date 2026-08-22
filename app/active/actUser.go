@@ -26,7 +26,7 @@ keep it in use for next Requests & tasks
 func GetActiveUser(userId internal.UserId) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
-	newActiveUser.User, err = db.AppModels.UserModel.GetUserProfile(userId)
+	newActiveUser.User, err = db.AppModels.UserModel.Get(userId)
 	if err != nil {
 		return nil, err
 	}

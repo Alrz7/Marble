@@ -38,6 +38,26 @@ func (l *AppLog) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	if len(l.Params) > 0 {
 		_ = enc.AddReflected("params", l.Params)
 	}
+	if len(l.ReasonQueue) > 0 {
+		_ = enc.AddArray("reasonQueue", zapcore.ArrayMarshalerFunc(
+			func(arr zapcore.ArrayEncoder) error {
+				for _, reason := range l.ReasonQueue {
+					arr.AppendString(reason)
+				}
+				return nil
+			},
+		))
+	}
+	if len(l.MessageQueue) > 0 {
+		_ = enc.AddArray("messageQueue", zapcore.ArrayMarshalerFunc(
+			func(arr zapcore.ArrayEncoder) error {
+				for _, reason := range l.MessageQueue {
+					arr.AppendString(reason)
+				}
+				return nil
+			},
+		))
+	}
 	if l.Err != nil {
 		enc.AddString("error", l.Err.Error())
 	}

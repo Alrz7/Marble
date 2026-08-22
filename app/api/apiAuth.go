@@ -72,7 +72,7 @@ func (api *ApiConfig) handleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	response := envelope{
 		"error":        false,
-		"message":      "user has been Created Succesfully!",
+		"message":      "user has been Created successfully!",
 		"id":           newUser.Id,
 		"display_id":   newUser.DisplayId,
 		"accessToken":  accessToken,
@@ -143,7 +143,7 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	response := envelope{
 		"error":        false,
-		"message":      "User has Logged Succesfully!",
+		"message":      "User has Logged successfully!",
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 	}
@@ -151,8 +151,4 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err).SetReason(loggy.ErrInternalServer))
 	}
-}
-
-func (api *ApiConfig) handleDeleteAccount(w http.ResponseWriter, r *http.Request) {
-	//...
 }

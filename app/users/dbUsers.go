@@ -153,7 +153,7 @@ func (m UserModel) Delete(id internal.UserId) error {
 		return loggy.EchoWithMessage("the sql Driver might not support `RowsAffected()`", err)
 	}
 	if count != 1 {
-		return loggy.NewAppErr(loggy.ErrNoRecord)
+		return loggy.NewAppErr(loggy.ErrNoRecord).SetMessage("error while Deleting User-Data")
 	}
 	return nil
 }
