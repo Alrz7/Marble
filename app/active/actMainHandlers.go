@@ -49,7 +49,15 @@ func HndlSearchUser(req *Request) {
 	}
 	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
 	if err != nil {
-		loggy.Get(err).Log()
+		appErr := loggy.Get(err)
+		switch appErr.Reason {
+		case loggy.ErrNoRecord:
+		default:
+			// loggy.Get(err).Log()
+		}
+	}
+	if beta == nil {
+		return
 	}
 	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
 		UserId: beta.Id, DisplayId: beta.DisplayId,

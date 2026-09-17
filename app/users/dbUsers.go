@@ -173,7 +173,7 @@ func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 		if ok {
 			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err)
 		}
-		return nil, loggy.EchoWithMessage("error while fetching User-Data", err)
+		return nil, loggy.EchoWithMessage("unexpected error while fetching User-Data", err)
 
 	}
 

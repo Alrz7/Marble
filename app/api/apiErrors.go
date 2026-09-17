@@ -8,7 +8,7 @@ import (
 var logger = loggy.DefaultZapLogger
 
 func (api *ApiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, AppErr *loggy.AppLog) {
-	if api.Envirement == "Development" {
+	if api.Env == "Development" {
 		AppErr.Log()
 	}
 	respError := envelope{

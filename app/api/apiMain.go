@@ -8,9 +8,9 @@ import (
 )
 
 type ApiConfig struct {
-	Port       int    `json:"port"`
-	JwtSecret  []byte `json:"jwtSecret"`
-	Envirement string
+	Port       int    `koanf:"port"`
+	JwtSecret  []byte `koanf:"jwtSecret"`
+	Env string `koanf:"env"`
 }
 
 func (api *ApiConfig) Run() {
@@ -22,7 +22,7 @@ func (api *ApiConfig) Run() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	loggy.NewAppInfo(fmt.Sprintf("starting server on port %v", api.Port))
+	loggy.NewAppInfo(fmt.Sprintf("starting server on port %v", api.Port)).Log()
 	err := srv.ListenAndServe()
 	loggy.NewAppErr("Threre was an error while starting the Api server").AddParam("err", err.Error())
 }

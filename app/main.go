@@ -10,5 +10,5 @@ func Main() {
 		loggy.Sync()
 		_ = app.Db.Close()
 	}()
-	app.api.Run()
+	app.Api.Run()
 }

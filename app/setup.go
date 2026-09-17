@@ -10,42 +10,36 @@ import (
 	"os"
 	"strconv"
 
-	fig "github.com/Alrz7/fig/core"
 	"go.uber.org/zap"
 )
 
 type Application struct {
-	Version    string
-	Envirement string
-	Logger     *zap.Logger
-	Config     *fig.Handler
-	Db         *sql.DB
-	Models     *db.Models
-	api        *api.ApiConfig
+	Conf   *config.App
+	Api    *api.ApiConfig
+	Logger *zap.Logger
+	Db     *sql.DB
+	Models *db.Models
 }
-
-var (
-	version = "v0.1.2"
-)
 
 func Setup() *Application {
 	App := &Application{
-		Version:    version,
-		Envirement: "Development",
-		Config:     config.AppConfig,
-		api: &api.ApiConfig{
-			Port: 6280,
-		},
+		Conf: &config.App{},
+		Api:  &api.ApiConfig{},
 	}
-	App.setEnv()
 	App.setFlags()
 
-	App.api.Envirement = App.Envirement
-	switch App.Envirement {
+	App.Api.Env = App.Conf.Env
+	switch App.Conf.Env {
 	case "Development", "Staging":
-		App.Logger, _ = zap.NewDevelopment()
+		App.Logger, _ = zap.NewDevelopment(
+			zap.AddCaller(),
+			zap.AddCallerSkip(1),
+		)
 	default:
-		App.Logger, _ = zap.NewProduction()
+		App.Logger, _ = zap.NewProduction(
+			zap.AddCaller(),
+			zap.AddCallerSkip(1),
+		)
 	}
 	loggy.Init(App.Logger)
 
@@ -54,6 +48,9 @@ func Setup() *Application {
 	App.Models = models
 
 	if err != nil {
+		loggy.Get(err).SetMessage("there was an error while trying to setup Database").Fatal()
+	}
+	if db == nil {
 		loggy.NewAppErr(loggy.ErrDbConnection).SetMessage("there was an error while trying to setup Database")
 	}
 	loggy.NewAppInfo("database connection pool established").Log()
@@ -64,37 +61,43 @@ func Setup() *Application {
 func (a *Application) setEnv() *Application {
 	envVersion := os.Getenv("version")
 	if envVersion != "" {
-		a.Version = envVersion
+		a.Conf.Version = envVersion
 	}
 	envEnvirement := os.Getenv("envirement")
-	if envVersion != "" {
-		a.Envirement = envEnvirement
+	if envEnvirement != "" {
+		a.Conf.Env = envEnvirement
 	}
 
-	encJwtSecret := os.Getenv("jwtSecret")
-	if envVersion != "" {
-		a.api.JwtSecret = []byte(encJwtSecret)
+	envJwtSecret := os.Getenv("jwtSecret")
+	if envJwtSecret != "" {
+		a.Api.JwtSecret = []byte(envJwtSecret)
 	} else {
-		_ = a.api.SetJwtSecret()
+		_ = a.Api.SetJwtSecret()
 	}
 
 	if envPort := os.Getenv("PORT"); envPort != "" {
 		if parsedPort, err := strconv.Atoi(envPort); err == nil {
-			a.api.Port = parsedPort
+			a.Api.Port = parsedPort
 		}
 	}
 	return a
 }
 
 func (a *Application) setFlags() *Application {
-	flag.Int("port", a.api.Port, "Api server port")
-	flag.StringVar(&a.Envirement, "env", "Development", "Envirement (Development|Staging|Production)")
-	// flagEnableConfig := flag.Bool("enableConfig", true, "manual conFIG state management")
+	flag.Int("port", a.Api.Port, "Api server port")
+	flag.StringVar(&a.Conf.Env, "env", "Development", "Envirement (Development|Staging|Production)")
+	jwtSec := flag.String("jwtSec", "", "Api's jwt Secret")
+	setConfig := flag.String("config", "", "config Dir")
 	flag.Parse()
 
-	// if *flagEnableConfig {
-	// 	config.ApiConfig.Set("AppConfig", a)
-	// 	config.ApiConfig.PanicRestore()
-	// }
+	if *jwtSec != "" {
+		a.Api.JwtSecret = []byte(*jwtSec)
+	}
+
+	if *setConfig != "" {
+		config.Setup(*setConfig, config.Config{Api: a.Api, App: a.Conf})
+	} else {
+		a.setEnv()
+	}
 	return a
 }

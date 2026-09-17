@@ -5,7 +5,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var DefaultZapLogger *zap.Logger = zap.NewNop()
+var DefaultZapLogger, _ = zap.NewProduction(
+	// zap.AddCaller(),
+	// zap.AddCallerSkip(1),
+)
 
 // func init() {
 // 	DefaultZapLogger, _ = zap.NewProduction()

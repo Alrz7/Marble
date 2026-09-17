@@ -34,6 +34,7 @@
   "devDependencies": {
     "@openpgp/web-stream-tools": "^0.3.1",
     "@tauri-apps/cli": "^2",
+    "@tauri-apps/cli-linux-x64-gnu": "^2.11.4",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
