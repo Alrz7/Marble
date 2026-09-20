@@ -1,6 +1,7 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"marble/app/session"
@@ -21,12 +22,14 @@ func HndlSendMessage(req *Request) error {
 		actBadRequestResponse(req.conn, err)
 		return err
 	}
-	session, err := req.user.GetSessionById(internal.SessionId(entry.SessionId))
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+	session, err := req.user.GetSessionById(subctx, internal.SessionId(entry.SessionId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	err = req.user.SendMessage(session, entry.Message)
+	err = req.user.SendMessage(req.ctx, session, entry.Message)
 	if err != nil {
 		actServerErrorResponse(req.conn, err)
 		return err
@@ -46,15 +49,20 @@ func (u *ActvUser) onGenerateNewMessage(S *session.Session, content string) (*se
 	return &newMessage, nil
 }
 
-func (u *ActvUser) SendMessage(S *session.Session, content string) error {
+func (u *ActvUser) SendMessage(ctx context.Context, S *session.Session, content string) error {
 	if u.Id != S.Alpha && u.Id != S.Beta {
 		return errors.New("user is Not subscribed to this session")
 	}
 	newMessage, err := u.onGenerateNewMessage(S, content)
+	if err != nil {
+		return err
+	}
 
 	sent := u.onDeliverMessage(S, newMessage)
 	if !sent {
-		err = db.AppModels.MessageModel.Insert(newMessage)
+		subctx, cancel := context.WithTimeout(ctx, time.Second*3)
+		defer cancel()
+		err = db.AppModels.MessageModel.Insert(subctx, newMessage)
 		if err != nil {
 			return err
 		}

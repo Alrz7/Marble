@@ -1,11 +1,13 @@
 package api
 
 import (
+	"context"
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
 	"marble/internal/validator"
 	"net/http"
+	"time"
 )
 
 func (api *ApiConfig) handleUserUpdate(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +33,10 @@ func (api *ApiConfig) handleUserUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.AppModels.UserModel.Get(entry.UserId)
+	subctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
+
+	user, err := db.AppModels.UserModel.Get(subctx, entry.UserId)
 	if err != nil {
 		AppErr := loggy.Get(err)
 		switch AppErr.Reason {
@@ -68,7 +73,7 @@ func (api *ApiConfig) handleUserUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.AppModels.UserModel.Update(user)
+	err = db.AppModels.UserModel.Update(subctx, user)
 	if err != nil {
 		AppErr := loggy.Get(err).SetMessage("err while updating user")
 		switch AppErr.Reason {
@@ -97,7 +102,10 @@ func (api *ApiConfig) handleDeleteAccount(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = db.AppModels.UserModel.Delete(entry.UserId)
+	subctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
+
+	err = db.AppModels.UserModel.Delete(subctx, entry.UserId)
 	if err != nil {
 		AppErr := loggy.Get(err)
 		switch AppErr.Reason {

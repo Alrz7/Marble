@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"marble/app/users"
 	"marble/db"
 	"marble/enc"
@@ -47,7 +48,10 @@ func (api *ApiConfig) handleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	authKeyHash, err := enc.HashUserAuthKey(entry.AuthKey)
 
-	err = newUser.Save(db.AppModels.UserModel, authKeyHash, db.AppModels.ProfileModel)
+	subctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
+
+	err = newUser.Save(subctx, db.AppModels.UserModel, authKeyHash, db.AppModels.ProfileModel)
 	if err != nil {
 		AppErr := loggy.Get(err)
 		switch AppErr.Reason {
@@ -106,7 +110,10 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingUser, err := db.AppModels.UserModel.GetByDisplayId(entry.DisplayId)
+	subctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
+
+	existingUser, err := db.AppModels.UserModel.GetByDisplayId(subctx, entry.DisplayId)
 	if err != nil {
 		AppErr := loggy.Get(err)
 		switch AppErr.Reason {
@@ -117,8 +124,8 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	userExistingAuthHash, err := db.AppModels.UserModel.GetUserAuthHash(existingUser.Id)
+	
+	userExistingAuthHash, err := db.AppModels.UserModel.GetUserAuthHash(subctx, existingUser.Id)
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err))
 		return

@@ -1,10 +1,12 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"marble/internal"
 	"marble/internal/loggy"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
@@ -16,7 +18,14 @@ func HndlAuthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 		actBadRequestResponse(conn, err)
 		return err
 	}
-	var req Request
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var req = Request{
+		ctx: ctx,
+		cancel: cancel,
+	}
+
 	if err := json.Unmarshal(msg, &req); err != nil || req.Token == "" {
 		actErrorResponse(conn, internal.ActAuthenticationError, "authentication failed")
 		return loggy.EchoWithMessage("authentication failed", err)
@@ -30,7 +39,10 @@ func HndlAuthorizeConnection(conn *websocket.Conn, jwtSecretKey []byte) error {
 		return errors.New("Invalid token")
 	}
 
-	newActiveUser, err := GetActiveUser(claims.UserId)
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
+	newActiveUser, err := GetActiveUser(subctx, claims.UserId)
 	if err != nil {
 		actErrorResponse(conn, internal.ActUserNotFound, err.Error())
 		return err

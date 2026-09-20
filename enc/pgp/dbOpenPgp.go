@@ -1,24 +1,28 @@
 package pgp
 
 import (
-	"database/sql"
+	"context"
+	"errors"
 	"marble/internal"
 	"marble/internal/loggy"
 )
 
 type ProfileModel struct {
-	Db *sql.DB
+	Db internal.DBTX
 }
 
-func (m ProfileModel) Insert(profile *Profile, id internal.UserId) error {
+func (m ProfileModel) Insert(ctx context.Context, profile *Profile, id internal.UserId) error {
 	query := `
 	INSERT INTO pgp_profile (user_id, public_key)
 	VALUES ($1, $2)`
 	args := []any{id, profile.PublicKey}
-	_, err := m.Db.Exec(query, args...)
+	_, err := m.Db.ExecContext(ctx, query, args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while inserting UserPgp-Profile").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while inserting UserPgp-Profile").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while inserting UserPgp-Profile", err)
@@ -26,7 +30,7 @@ func (m ProfileModel) Insert(profile *Profile, id internal.UserId) error {
 	return nil
 }
 
-func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
+func (m ProfileModel) Get(ctx context.Context, id internal.UserId) (*Profile, error) {
 	if id < 1 {
 		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
@@ -35,10 +39,13 @@ func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 			WHERE user_id = $1`
 	var profile Profile
 	args := []any{&profile.UserId, &profile.PublicKey}
-	err := m.Db.QueryRow(query, id).Scan(args...)
+	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching UserPgp-Profile").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching UserPgp-Profile").SetErr(err)
 		}
 		return nil, loggy.EchoWithMessage("error while fetching UserPgp-Profile", err)
@@ -46,15 +53,18 @@ func (m ProfileModel) Get(id internal.UserId) (*Profile, error) {
 	return &profile, nil
 }
 
-func (m ProfileModel) Update(profile *Profile) error {
+func (m ProfileModel) Update(ctx context.Context, profile *Profile) error {
 	query := `UPDATE pgp_profile
 			SET public_key = $1
 			WHERE user_id = $2`
 	args := []any{profile.PublicKey, profile.UserId}
-	_, err := m.Db.Exec(query, args...)
+	_, err := m.Db.ExecContext(ctx, query, args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while updating UserPgp-Profile").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while updating UserPgp-Profile").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while updating UserPgp-Profile", err)
@@ -62,13 +72,16 @@ func (m ProfileModel) Update(profile *Profile) error {
 	return nil
 }
 
-func (m ProfileModel) Delete(id internal.UserId) error {
+func (m ProfileModel) Delete(ctx context.Context, id internal.UserId) error {
 	query := `DELETE FROM pgp_profile
 				WHERE user_id = $1`
-	res, err := m.Db.Exec(query, id)
+	res, err := m.Db.ExecContext(ctx, query, id)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while deleting UserPgp-Profile").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while deleting UserPgp-Profile").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while deleting UserPgp-Profile", err)

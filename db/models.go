@@ -16,6 +16,7 @@ type Models struct {
 }
 
 var AppModels Models
+var Global *sql.DB
 
 func InitModels() (*sql.DB, *Models, error) {
 	db, err := DefaulfConfig.connect()
@@ -25,6 +26,7 @@ func InitModels() (*sql.DB, *Models, error) {
 	if db == nil {
 		return nil, nil, loggy.NewAppErr(loggy.ErrDatabaseUnavailable).SetMessage("an error while trying to connect to database: db is nil")
 	}
+	Global = db
 	AppModels.UserModel = users.UserModel{Db: db}
 	AppModels.SessionModel = session.SessionModel{Db: db}
 	AppModels.MessageModel = session.MessageModel{Db: db}

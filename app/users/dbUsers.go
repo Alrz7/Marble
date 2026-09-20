@@ -1,6 +1,8 @@
 package users
 
 import (
+	"context"
+	"errors"
 	"marble/enc/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
@@ -10,16 +12,19 @@ import (
 // 	U.PgpProfile.Id = pgp.GetPgpAddress(U.UserName, U.Id)
 // }
 
-func (m UserModel) Insert(user *User, passwordHash string) error {
+func (m UserModel) Insert(ctx context.Context, user *User, passwordHash string) error {
 	query := `
 	INSERT INTO users (name, email, display_id, auth_hash)
 	VALUES ($1, $2, $3, $4)
 	RETURNING 	id, display_id`
 	args := []any{user.UserName, user.Email, user.DisplayId, passwordHash}
-	err := m.Db.QueryRow(query, args...).Scan(&user.Id, &user.DisplayId)
+	err := m.Db.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while Inserting User-Data").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while Inserting User-Data").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while Inserting User-Data", err)
@@ -27,15 +32,18 @@ func (m UserModel) Insert(user *User, passwordHash string) error {
 	return nil
 }
 
-func (m UserModel) SetUserRefreshToken(id internal.UserId, token string) error {
+func (m UserModel) SetUserRefreshToken(ctx context.Context, id internal.UserId, token string) error {
 	query := `UPDATE users
 	SET refresh_token = $2
 	WHERE id = $1`
 	args := []any{id, token}
-	_, err := m.Db.Exec(query, args...)
+	_, err := m.Db.ExecContext(ctx, query, args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while setting User-Refresh-Token", err)
@@ -43,14 +51,17 @@ func (m UserModel) SetUserRefreshToken(id internal.UserId, token string) error {
 	return nil
 }
 
-func (m UserModel) GetUserRefreshToken(id internal.UserId) (string, error) {
+func (m UserModel) GetUserRefreshToken(ctx context.Context, id internal.UserId) (string, error) {
 	var res string
 	query := `SELECT refresh_token FROM users WHERE id = $1`
 	args := []any{&res}
-	err := m.Db.QueryRow(query, id).Scan(args...)
+	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err)
 		}
 		return "", loggy.EchoWithMessage("error while fetching User-Refresh-Token", err)
@@ -59,14 +70,17 @@ func (m UserModel) GetUserRefreshToken(id internal.UserId) (string, error) {
 	return res, nil
 }
 
-func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
+func (m UserModel) GetUserAuthHash(ctx context.Context, id internal.UserId) (string, error) {
 	var res string
 	query := `SELECT auth_hash FROM users WHERE id = $1`
 	args := []any{&res}
-	err := m.Db.QueryRow(query, id).Scan(args...)
+	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Auth-Has").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Auth-Hash").SetErr(err)
 		}
 		return "", loggy.EchoWithMessage("error while fetching User-Auth-Hash", err)
@@ -75,7 +89,7 @@ func (m UserModel) GetUserAuthHash(id internal.UserId) (string, error) {
 	return res, nil
 }
 
-func (m UserModel) Get(id internal.UserId) (*User, error) {
+func (m UserModel) Get(ctx context.Context, id internal.UserId) (*User, error) {
 	if id < 1 {
 		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
@@ -84,17 +98,20 @@ func (m UserModel) Get(id internal.UserId) (*User, error) {
 			WHERE id = $1`
 	var user User
 	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId, &user.SessionLastSeq}
-	err := m.Db.QueryRow(query, id).Scan(args...)
+	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err)
 		}
 		return nil, loggy.EchoWithMessage("error while fetching User-Data", err)
 
 	}
 	pgpModel := pgp.ProfileModel{Db: m.Db}
-	pgp_profile, err := pgpModel.Get(id)
+	pgp_profile, err := pgpModel.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -105,15 +122,18 @@ func (m UserModel) Get(id internal.UserId) (*User, error) {
 	return &user, nil
 }
 
-func (m UserModel) Update(user *User) error {
+func (m UserModel) Update(ctx context.Context, user *User) error {
 	query := `UPDATE users
 			SET name = $2, email = $3, display_id = $4
 			WHERE id = $1`
 	args := []any{user.Id, user.UserName, user.Email, user.DisplayId}
-	_, err := m.Db.Exec(query, args...)
+	_, err := m.Db.ExecContext(ctx, query, args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while updating User-Data").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while updating User-Data").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while updating User-Data", err)
@@ -121,29 +141,50 @@ func (m UserModel) Update(user *User) error {
 	return nil
 }
 
-func (m UserModel) IncreaseSessionLastSeq(userId internal.UserId) (int, error) {
-	var res int
+func (m UserModel) IncreaseSessionLastSeq(ctx context.Context, userId, audienceId internal.UserId) (int, error) {
 	query := `UPDATE users
-SET
-  session_last_seq = session_last_seq + 1
-WHERE
-  id = $1
-RETURNING
-  session_last_seq;`
-	err := m.Db.QueryRow(query, userId).Scan(&res)
-	if err != nil {
-		return -1, err
-	}
-	return res, nil
-}
-
-func (m UserModel) Delete(id internal.UserId) error {
-	query := `DELETE FROM users
-				WHERE id = $1`
-	res, err := m.Db.Exec(query, id)
+SET session_last_seq = session_last_seq + 1
+WHERE id IN ($1, $2)
+RETURNING id, session_last_seq;`
+	rows, err := m.Db.QueryContext(ctx, query, userId, audienceId)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return -1, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err).SetReason(ctx.Err().Error())
+			}
+			return -1, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err)
+		}
+		return -1, loggy.EchoWithMessage("error while fetching message", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var res int
+		var id int
+		err := rows.Scan(&id, &res)
+		if err != nil {
+			return -1, err
+		}
+		if id == int(userId) {
+			return res, nil
+		}
+	}
+	if rows.Err() != nil {
+		return -1, loggy.EchoWithMessage(" while incrimenting user/audience session seq(s)", err)
+	}
+	return -1, loggy.NewAppErr(loggy.ErrNotFound).SetMessage("specified id was not foun, while incrimenting user/audience session seq(s)")
+}
+
+func (m UserModel) Delete(ctx context.Context, id internal.UserId) error {
+	query := `DELETE FROM users
+				WHERE id = $1`
+	res, err := m.Db.ExecContext(ctx, query, id)
+	if err != nil {
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while Deleting User-Data").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while Deleting User-Data").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while Deleting User-Data", err)
@@ -158,7 +199,7 @@ func (m UserModel) Delete(id internal.UserId) error {
 	return nil
 }
 
-func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
+func (m UserModel) GetByDisplayId(ctx context.Context, dispayId string) (*User, error) {
 	if dispayId == "" {
 		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
@@ -167,10 +208,13 @@ func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 			WHERE display_id = $1`
 	var user User
 	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
-	err := m.Db.QueryRow(query, dispayId).Scan(args...)
+	err := m.Db.QueryRowContext(ctx, query, dispayId).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching User-Data").SetErr(err)
 		}
 		return nil, loggy.EchoWithMessage("unexpected error while fetching User-Data", err)
@@ -178,7 +222,7 @@ func (m UserModel) GetByDisplayId(dispayId string) (*User, error) {
 	}
 
 	pgpModel := pgp.ProfileModel{Db: m.Db}
-	pgp_profile, err := pgpModel.Get(user.Id)
+	pgp_profile, err := pgpModel.Get(ctx, user.Id)
 	if err != nil {
 		return nil, err
 	}

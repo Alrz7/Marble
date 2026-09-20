@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 )
 
@@ -19,6 +21,12 @@ type ClientSession struct {
 	SessionId SessionId `json:"sessionId"`
 	Seq       int       `json:"seq"`
 	Audience  Audience  `json:"audience"`
+}
+
+type DBTX interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 const (

@@ -1,16 +1,17 @@
 package session
 
 import (
-	"database/sql"
+	"context"
+	"errors"
 	"marble/internal"
 	"marble/internal/loggy"
 )
 
 type MessageModel struct {
-	Db *sql.DB
+	Db internal.DBTX
 }
 
-func (m *MessageModel) Insert(message *Message) error {
+func (m *MessageModel) Insert(ctx context.Context, message *Message) error {
 	query := `--sql
 	WITH updated_session AS (
 		UPDATE session
@@ -23,10 +24,13 @@ func (m *MessageModel) Insert(message *Message) error {
 	RETURNING id, seq;`
 
 	args := []any{message.SessionId, message.SenderId, message.Content, message.Profile}
-	err := m.Db.QueryRow(query, args...).Scan(&message.Id, &message.Seq)
+	err := m.Db.QueryRowContext(ctx, query, args...).Scan(&message.Id, &message.Seq)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while inserting message").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while inserting message").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while inserting message", err)
@@ -34,14 +38,17 @@ func (m *MessageModel) Insert(message *Message) error {
 	return nil
 }
 
-func (m *MessageModel) GetMessagesByEvent(sessionId internal.SessionId, senderId internal.UserId, limit int) ([]*Message, error) {
+func (m *MessageModel) GetMessagesByEvent(ctx context.Context, sessionId internal.SessionId, senderId internal.UserId, limit int) ([]*Message, error) {
 	query := `--sql
 	SELECT seq, session_id, sender_id, content, profile FROM message
 	WHERE session_id = $1 AND sender_id = $2 ORDER BY seq ASC LIMIT $3`
-	rows, err := m.Db.Query(query, sessionId, senderId, limit)
+	rows, err := m.Db.QueryContext(ctx, query, sessionId, senderId, limit)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err)
 		}
 		return nil, loggy.EchoWithMessage("error while fetching message", err)
@@ -58,19 +65,21 @@ func (m *MessageModel) GetMessagesByEvent(sessionId internal.SessionId, senderId
 		}
 		res = append(res, &nxm)
 	}
-	err = rows.Err()
-	if err != nil {
+	if rows.Err() != nil {
 		return nil, loggy.EchoWithMessage("error while reading fetched message", err)
 	}
 	return res, nil
 }
 
-func (m *MessageModel) DeleteMessagesByEvent(SessionId internal.SessionId, senderId internal.UserId, lastMessageSeq int) error {
+func (m *MessageModel) DeleteMessagesByEvent(ctx context.Context, SessionId internal.SessionId, senderId internal.UserId, lastMessageSeq int) error {
 	query := `DELETE FROM message WHERE session_id = $1 AND sender_id = $2 AND seq <= $3`
-	_, err := m.Db.Exec(query, SessionId, senderId, lastMessageSeq)
+	_, err := m.Db.ExecContext(ctx, query, SessionId, senderId, lastMessageSeq)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
 		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return loggy.NewAppErr(pqError).SetMessage("error while deleting message").SetErr(err).SetReason(ctx.Err().Error())
+			}
 			return loggy.NewAppErr(pqError).SetMessage("error while deleting message").SetErr(err)
 		}
 		return loggy.EchoWithMessage("error while deleting message", err)

@@ -98,6 +98,9 @@ func ParsePqError(err error) (string, bool) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNoRecord, true
 	}
+	if err.Error() == "pq: canceling statement due to user request" {
+		return ErrQueryCanceled, true
+	}
 	return "", false
 }
 
@@ -115,6 +118,7 @@ const (
 	ErrTransactionConflict string = "TRANSACTION_CONFLICT"
 	ErrDeadlockDetected    string = "DEADLOCK_DETECTED"
 	ErrQueryTimeout        string = "QUERY_TIMEOUT"
+	ErrQueryCanceled       string = "QUERY_CANCELED"
 	ErrDatabaseUnavailable string = "DATABASE_UNAVAILABLE"
 
 	ErrUnauthorized string = "unauthorized"

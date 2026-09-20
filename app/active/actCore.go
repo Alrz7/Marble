@@ -1,6 +1,7 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"marble/internal"
 	"marble/internal/loggy"
@@ -29,7 +30,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 	}()
 
 	conn.SetReadLimit(4096)
-	
+
 	err = HndlAuthorizeConnection(conn, jwtSecretKey)
 	if err != nil {
 		loggy.Get(err).SetMessage("failed to authodize connection").Log()
@@ -50,10 +51,13 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 			}
 			break
 		}
-
-		var req Request
-		req.conn = conn
-		req.user = user
+		ctx, cancel := context.WithCancel(context.Background())
+		var req = Request{
+			ctx:    ctx,
+			cancel: cancel,
+			conn:   conn,
+			user:   user,
+		}
 		if err := json.Unmarshal(message, &req); err != nil {
 			loggy.Get(err).SetMessage("Invalid JSON from client").Log()
 			continue
@@ -63,6 +67,7 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 }
 
 func manageHandeler(Request *Request) {
+	defer Request.cancel()
 	Handelers := map[RequestChannel]Handeler{
 		"sessions":   HndlSessions,
 		"messages":   HndlMessages,

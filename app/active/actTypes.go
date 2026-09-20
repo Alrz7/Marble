@@ -1,6 +1,7 @@
 package active
 
 import (
+	"context"
 	"marble/internal"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -26,6 +27,8 @@ const (
 )
 
 type Request struct {
+	ctx     context.Context
+	cancel  context.CancelFunc
 	conn    *websocket.Conn
 	user    *ActvUser
 	Status  RequestStatus  `json:"status"`
@@ -43,6 +46,7 @@ type Claims struct {
 	TokenType string          `json:"token_type"` // "access" or "refresh"
 	jwt.RegisteredClaims
 }
+
 // ------------------------------------------
 
 type Notification struct {

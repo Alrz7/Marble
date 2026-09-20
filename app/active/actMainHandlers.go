@@ -1,10 +1,12 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
+	"time"
 )
 
 type envelope = internal.Envelope
@@ -47,7 +49,9 @@ func HndlSearchUser(req *Request) {
 	if err != nil {
 		loggy.Get(err).Log()
 	}
-	beta, err := db.AppModels.UserModel.GetByDisplayId(entry.Param)
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+	beta, err := db.AppModels.UserModel.GetByDisplayId(subctx, entry.Param)
 	if err != nil {
 		appErr := loggy.Get(err)
 		switch appErr.Reason {

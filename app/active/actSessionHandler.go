@@ -1,12 +1,14 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"marble/app/session"
 	"marble/app/users"
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -24,26 +26,52 @@ func HndlCreateSession(req *Request) error {
 		return err
 	}
 
-	Beta, err := db.AppModels.UserModel.Get(internal.UserId(entry.AudienceId))
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
+	Beta, err := db.AppModels.UserModel.Get(subctx, internal.UserId(entry.AudienceId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
-	newSeq, err := db.AppModels.UserModel.IncreaseSessionLastSeq(req.user.Id)
+
+	tx, err := db.Global.Begin()
 	if err != nil {
-		return err
+		return loggy.EchoWithMessage("failed to start db transaction", err)
 	}
-	_, err = db.AppModels.UserModel.IncreaseSessionLastSeq(Beta.Id)
+
+	txUserModel := users.UserModel{Db: tx}
+	txSessionModel := session.SessionModel{Db: tx}
+
+	newSeq, err := txUserModel.IncreaseSessionLastSeq(subctx, req.user.Id, Beta.Id)
 	if err != nil {
+		txerr := tx.Rollback()
+		appErr := loggy.Get(err)
+		if txerr != nil {
+			appErr.AddParam("txError", txerr.Error())
+		}
+		appErr.Log()
 		return err
 	}
 
-	newSession, err := db.AppModels.SessionModel.CreateSession(req.user.Id, Beta.Id, newSeq)
+	newSession, err := txSessionModel.CreateSession(subctx, req.user.Id, Beta.Id, newSeq)
+	if err != nil {
+		txerr := tx.Rollback()
+		appErr := loggy.Get(err)
+		if txerr != nil {
+			appErr.AddParam("txError", txerr.Error())
+		}
+		appErr.Log()
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		loggy.Get(err).Log()
 		return err
 	}
-	err = req.user.onDeliverSession(newSession, Beta, entry.Message)
+
+	err = req.user.onDeliverSession(req.ctx, newSession, Beta, entry.Message)
 	if err != nil {
 		loggy.Get(err).Log()
 		return err
@@ -55,7 +83,7 @@ func HndlCreateSession(req *Request) error {
 	return nil
 }
 
-func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.User, content string) error {
+func (u *ActvUser) onDeliverSession(ctx context.Context, session *session.Session, audience *users.User, content string) error {
 	userOnlineConn, isOnline := GetConnByUserId(audience.Id)
 
 	newMessage, err := u.onGenerateNewMessage(session, content)
@@ -66,7 +94,9 @@ func (u *ActvUser) onDeliverSession(session *session.Session, audience *users.Us
 	if isOnline {
 		u.OnAddSession(userOnlineConn, session, u.User, newMessage)
 	} else {
-		err = db.AppModels.MessageModel.Insert(newMessage)
+		subctx, cancel := context.WithTimeout(ctx, time.Second*3)
+		defer cancel()
+		err = db.AppModels.MessageModel.Insert(subctx, newMessage)
 	}
 	return err
 }
@@ -95,13 +125,16 @@ func HndlDeleteSession(req *Request) error {
 		actBadRequestResponse(req.conn, err)
 		return err
 	}
-	session, err := req.user.GetSessionById(internal.SessionId(entry.SessionId))
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
+	session, err := req.user.GetSessionById(subctx, internal.SessionId(entry.SessionId))
 	if err != nil {
 		actNotFoundResponse(req.conn, err)
 		return err
 	}
 	if req.user.Id == session.Alpha || req.user.Id == session.Beta {
-		err = db.AppModels.SessionModel.Delete(session.Id)
+		err = db.AppModels.SessionModel.Delete(subctx, session.Id)
 		if err != nil {
 			return err
 		}

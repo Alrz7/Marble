@@ -1,6 +1,7 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"marble/app/session"
 	"marble/app/users"
@@ -51,8 +52,8 @@ func (req *Request) onSendSessionEventResponce(sessionEventId internal.SessionId
 	sendHandlerResponse(req.conn, StatusApproved, "sessions", headers, resp)
 }
 
-func (AU *ActvUser) GetSessionById(sessionId internal.SessionId) (*session.Session, error) {
-	session, err := db.AppModels.SessionModel.Get(sessionId)
+func (AU *ActvUser) GetSessionById(ctx context.Context, sessionId internal.SessionId) (*session.Session, error) {
+	session, err := db.AppModels.SessionModel.Get(ctx, sessionId)
 	if err != nil {
 		return nil, loggy.EchoWithMessage("error while fetching session", err)
 	}

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"marble/enc/pgp"
 	"marble/internal/loggy"
 )
@@ -19,12 +20,12 @@ func CreateNewUser(username, email, DisplayId string, pubIdentKey string) (*User
 	return &newUser, nil
 }
 
-func (U *User) Save(UModel UserModel, userAuthKey string, PModel pgp.ProfileModel) error {
-	err := UModel.Insert(U, userAuthKey)
+func (U *User) Save(ctx context.Context, UModel UserModel, userAuthKey string, PModel pgp.ProfileModel) error {
+	err := UModel.Insert(ctx, U, userAuthKey)
 	if err != nil {
 		return err
 	}
-	err = PModel.Insert(&U.PgpProfile, U.Id)
+	err = PModel.Insert(ctx, &U.PgpProfile, U.Id)
 	if err != nil {
 		return err
 	}

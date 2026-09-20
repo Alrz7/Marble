@@ -1,7 +1,6 @@
 package users
 
 import (
-	"database/sql"
 	"marble/enc/pgp"
 	"marble/internal"
 )
@@ -17,5 +16,5 @@ type User struct {
 }
 
 type UserModel struct {
-	Db *sql.DB
+	Db internal.DBTX
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"marble/app/active"
 	"marble/db"
 	"marble/internal"
@@ -21,7 +22,10 @@ func (api *ApiConfig) HandleGetTokens(w http.ResponseWriter, r *http.Request) {
 		api.badRequestResponse(w, r, loggy.Get(err).SetReason(loggy.ErrInternalServer))
 		return
 	}
-	existingUser, err := db.AppModels.UserModel.Get(entry.UserId)
+	subctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
+	defer cancel()
+
+	existingUser, err := db.AppModels.UserModel.Get(subctx, entry.UserId)
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err))
 		return

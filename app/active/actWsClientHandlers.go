@@ -1,10 +1,12 @@
 package active
 
 import (
+	"context"
 	"encoding/json"
 	"marble/db"
 	"marble/internal"
 	"marble/internal/loggy"
+	"time"
 )
 
 // Sessions
@@ -17,14 +19,17 @@ func HndlSyncSessions(req *Request) error {
 	if err != nil {
 		return err
 	}
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
 	limit := 5
 	if req.user.SessionLastSeq > entry.LastSessionEvent {
-		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(req.user.Id, entry.LastSessionEvent, limit)
+		sessions, err := db.AppModels.SessionModel.GetSessionsByEvent(subctx, req.user.Id, entry.LastSessionEvent, limit)
 		if err != nil {
 			return err
 		}
 		for _, clientSession := range sessions {
-			audience, err := db.AppModels.UserModel.Get(clientSession.Audience.UserId)
+			audience, err := db.AppModels.UserModel.Get(subctx, clientSession.Audience.UserId)
 			if err != nil {
 				actNotFoundResponse(req.conn, err)
 			}
@@ -48,7 +53,6 @@ func HndlSyncSessions(req *Request) error {
 }
 
 // Messages
-
 func HndlSyncMessages(req *Request) error {
 	var entry struct {
 		SessionId      internal.SessionId `json:"sessionId"`
@@ -58,7 +62,10 @@ func HndlSyncMessages(req *Request) error {
 	if err != nil {
 		return err
 	}
-	session, err := req.user.GetSessionById(entry.SessionId)
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
+	session, err := req.user.GetSessionById(subctx, entry.SessionId)
 	if err != nil {
 		return err
 	}
@@ -72,14 +79,18 @@ func HndlSyncMessages(req *Request) error {
 		return loggy.NewAppErr("user is not a subscribed to the session")
 	}
 	if entry.LastMessageSeq != 0 {
-		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
+		delctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+		defer cancel()
+		err = db.AppModels.MessageModel.DeleteMessagesByEvent(delctx, entry.SessionId, senderId, entry.LastMessageSeq)
 		if err != nil {
 			return err
 		}
 	}
 
 	limit := 5
-	messages, err := db.AppModels.MessageModel.GetMessagesByEvent(entry.SessionId, senderId, limit)
+	getctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+	messages, err := db.AppModels.MessageModel.GetMessagesByEvent(getctx, entry.SessionId, senderId, limit)
 	if err != nil {
 		return err
 	}
@@ -99,7 +110,10 @@ func HndlClearSyncedMessage(req *Request) error {
 	if err != nil {
 		return err
 	}
-	session, err := req.user.GetSessionById(entry.SessionId)
+	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+	defer cancel()
+
+	session, err := req.user.GetSessionById(subctx, entry.SessionId)
 	if err != nil {
 		return err
 	}
@@ -113,7 +127,9 @@ func HndlClearSyncedMessage(req *Request) error {
 		return loggy.NewAppErr("user is not a subscribed to the session")
 	}
 	if entry.LastMessageSeq != 0 {
-		err = db.AppModels.MessageModel.DeleteMessagesByEvent(entry.SessionId, senderId, entry.LastMessageSeq)
+		delctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
+		defer cancel()
+		err = db.AppModels.MessageModel.DeleteMessagesByEvent(delctx, entry.SessionId, senderId, entry.LastMessageSeq)
 		if err != nil {
 			return err
 		}

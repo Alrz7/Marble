@@ -1,6 +1,7 @@
 package active
 
 import (
+	"context"
 	"marble/app/users"
 	"marble/db"
 	"marble/internal"
@@ -23,10 +24,10 @@ type ActvUser struct {
 GetActiveUser adds the Users to a Online Client Session to
 keep it in use for next Requests & tasks
 */
-func GetActiveUser(userId internal.UserId) (*ActvUser, error) {
+func GetActiveUser(ctx context.Context, userId internal.UserId) (*ActvUser, error) {
 	newActiveUser := ActvUser{}
 	var err error
-	newActiveUser.User, err = db.AppModels.UserModel.Get(userId)
+	newActiveUser.User, err = db.AppModels.UserModel.Get(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
