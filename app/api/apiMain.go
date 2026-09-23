@@ -8,9 +8,17 @@ import (
 )
 
 type ApiConfig struct {
-	Port       int    `koanf:"port"`
-	JwtSecret  []byte `koanf:"jwtSecret"`
-	Env string `koanf:"env"`
+	Port      int     `koanf:"port"`
+	JwtSecret []byte  `koanf:"jwtSecret"`
+	Env       string  `koanf:"env"`
+	Limiter   limiter `koanf:"limiter"`
+}
+
+type limiter struct {
+	Rps     float64       `koanf:"rps"`
+	Burst   int           `koanf:"burst"`
+	TimeOut time.Duration `koanf:"timeout"`
+	Enabled bool          `koanf:"enabled"`
 }
 
 func (api *ApiConfig) Run() {

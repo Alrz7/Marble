@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (api *ApiConfig) routes() *httprouter.Router {
+func (api *ApiConfig) routes() http.Handler {
 
 	router := httprouter.New()
 
@@ -18,9 +18,9 @@ func (api *ApiConfig) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/auth/refresh", api.HandleGetTokens)
 	router.HandlerFunc(http.MethodPatch, "/account/update", api.handleUserUpdate)
 	router.HandlerFunc(http.MethodDelete, "/account/delete", api.handleDeleteAccount)
-	router.HandlerFunc(http.MethodGet, "/actv", api.handleWebSocket)
+	router.HandlerFunc(http.MethodGet, "/actv", api.handleWebSocket) // story Begins here... :)
 
-	return router
+	return api.rateLimit(router)
 }
 
 func (api *ApiConfig) handleHome(w http.ResponseWriter, r *http.Request) {

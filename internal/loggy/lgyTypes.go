@@ -127,6 +127,7 @@ const (
 	ErrExpiredToken string = "expiredToken"
 
 	ErrBadRequest       string = "badRequest"
+	ErrTooManyRequests  string = "tooManyRequests"
 	ErrValidationFailed string = "validationFailed"
 	ErrNotFound         string = "notFound"
 	ErrConflict         string = "conflict"

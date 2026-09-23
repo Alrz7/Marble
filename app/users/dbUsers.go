@@ -6,6 +6,8 @@ import (
 	"marble/enc/pgp"
 	"marble/internal"
 	"marble/internal/loggy"
+	"slices"
+	"strings"
 )
 
 // func (U *User) SetPgpAddress() {
@@ -169,7 +171,7 @@ RETURNING id, session_last_seq;`
 			return res, nil
 		}
 	}
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return -1, loggy.EchoWithMessage(" while incrimenting user/audience session seq(s)", err)
 	}
 	return -1, loggy.NewAppErr(loggy.ErrNotFound).SetMessage("specified id was not foun, while incrimenting user/audience session seq(s)")
@@ -231,4 +233,52 @@ func (m UserModel) GetByDisplayId(ctx context.Context, dispayId string) (*User, 
 	// user.SetPgpAddress()
 	// we can add the Address right here instead of in many other single function
 	return &user, nil
+}
+
+func (m UserModel) PrefixMatchDisplayId(ctx context.Context, dispayId string) ([]*User, error) {
+	if dispayId == "" {
+		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
+	}
+	dispayId = strings.TrimSpace(dispayId)
+	for _, rn := range []rune{'!', '@', '#', '$', '%', '_', '^', '&', '(', ')', ' ', '=', '+', '*'} {
+		if slices.Contains([]rune(dispayId), rn) {
+			return nil, loggy.NewAppErr("unsupported charecter")
+		}
+	}
+	query := `SELECT display_id, id, email, name
+			FROM users
+			WHERE display_id ILIKE $1 || '%'`
+	rows, err := m.Db.QueryContext(ctx, query, dispayId)
+	if err != nil {
+		pqError, ok := loggy.ParsePqError(err)
+		if ok {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err).SetReason(ctx.Err().Error())
+			}
+			return nil, loggy.NewAppErr(pqError).SetMessage("error while fetching message").SetErr(err)
+		}
+		return nil, loggy.EchoWithMessage("error while fetching message", err)
+	}
+	defer rows.Close()
+
+	var res []*User
+	pgpModel := pgp.ProfileModel{Db: m.Db}
+	for rows.Next() {
+		var user User
+		args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
+		err := rows.Scan(args...)
+		if err != nil {
+			return nil, err
+		}
+		pgp_profile, err := pgpModel.Get(ctx, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		user.PgpProfile = *pgp_profile
+		res = append(res, &user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, loggy.EchoWithMessage("error while reading fetched message", err)
+	}
+	return res, nil
 }

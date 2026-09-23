@@ -51,21 +51,27 @@ func HndlSearchUser(req *Request) {
 	}
 	subctx, cancel := context.WithTimeout(req.ctx, time.Second*3)
 	defer cancel()
-	beta, err := db.AppModels.UserModel.GetByDisplayId(subctx, entry.Param)
+	users, err := db.AppModels.UserModel.PrefixMatchDisplayId(subctx, entry.Param)
 	if err != nil {
 		appErr := loggy.Get(err)
 		switch appErr.Reason {
 		case loggy.ErrNoRecord:
 		default:
-			// loggy.Get(err).Log()
+			actErrorResponse(req.conn, appErr.Reason, appErr.Message)
+			return
 		}
 	}
-	if beta == nil {
+	if users == nil {
 		return
 	}
-	results := envelope{"results": []internal.Audience{{Name: beta.UserName,
-		UserId: beta.Id, DisplayId: beta.DisplayId,
-		ArmedPubKey: beta.PgpProfile.PublicKey, ProfileAvatar: ""}}}
+	var res []internal.Audience
+	for _, user := range users {
+		aud := internal.Audience{Name: user.UserName,
+			UserId: user.Id, DisplayId: user.DisplayId,
+			ArmedPubKey: user.PgpProfile.PublicKey, ProfileAvatar: user.ProfileAvatar}
+		res = append(res, aud)
+	}
+	results := envelope{"results": res}
 
 	sendHandlerResponse(req.conn, StatusApproved, "searchUser", nil, results)
 }

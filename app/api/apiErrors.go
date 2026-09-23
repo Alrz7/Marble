@@ -9,7 +9,7 @@ var logger = loggy.DefaultZapLogger
 
 func (api *ApiConfig) errorResponse(w http.ResponseWriter, r *http.Request, status int, AppErr *loggy.AppLog) {
 	if api.Env == "Development" {
-		AppErr.Log()
+		// AppErr.Log()
 	}
 	respError := envelope{
 		"reason":  AppErr.Reason,
@@ -42,4 +42,9 @@ func (api *ApiConfig) methodNotAllowedResponse(w http.ResponseWriter, r *http.Re
 
 func (api *ApiConfig) badRequestResponse(w http.ResponseWriter, r *http.Request, AppErr *loggy.AppLog) {
 	api.errorResponse(w, r, http.StatusBadRequest, AppErr)
+}
+
+func (api *ApiConfig) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
+	aperr := loggy.NewAppErr(loggy.ErrTooManyRequests).SetMessage("rate limit exceeded")
+	api.errorResponse(w, r, http.StatusTooManyRequests, aperr)
 }

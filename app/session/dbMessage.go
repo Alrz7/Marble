@@ -65,7 +65,7 @@ func (m *MessageModel) GetMessagesByEvent(ctx context.Context, sessionId interna
 		}
 		res = append(res, &nxm)
 	}
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, loggy.EchoWithMessage("error while reading fetched message", err)
 	}
 	return res, nil
