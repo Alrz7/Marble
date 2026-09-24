@@ -32,12 +32,11 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 
 * **Core Runtime:** Go (`net/http` for REST APIs).
 * **Database Engine:** PostgreSQL (`[github.com/lib/pq](https://github.com/lib/pq)`).
-* **Caching Layer:** Local in-memory caching for active user management (designed for future Redis migration).
 * **Key Go Packages:**
-* [github.com/Alrz7/fig](https://github.com/Alrz7/fig) (Custom configuration management).
 * [github.com/ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3) (OpenPGP integration).
 * [github.com/golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5) (JWT Authentication).
 * [github.com/gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
+* [https://github.com/knadh/koanf](https://github.com/knadh/koanf) (configuration management).
 * [https://github.com/uber-go/zap](https://github.com/uber-go/zap)`Zap` (Structured logging).
 
 ### Client-Side
@@ -71,7 +70,7 @@ Marble is engineered to operate without needing to trust the host server. The cr
 
 ---
 
-## 4. Advanced Authentication (Auth-V2)
+## 4. Authentication
 
 Marble utilizes a highly sophisticated, multi-tiered authentication architecture designed to maximize security while providing flexible daily usability.
 
