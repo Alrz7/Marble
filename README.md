@@ -31,13 +31,13 @@ Marble is designed to be highly flexible, secure, and decentralized. It departs 
 ### Server-Side
 
 * **Core Runtime:** Go (`net/http` for REST APIs).
-* **Database Engine:** PostgreSQL (`[github.com/lib/pq](https://github.com/lib/pq)`).
+* **Database Engine:** PostgreSQL ([lib/pq](https://github.com/lib/pq)).
 * **Key Go Packages:**
-* [github.com/ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3) (OpenPGP integration).
-* [github.com/golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5) (JWT Authentication).
-* [github.com/gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
-* [https://github.com/knadh/koanf](https://github.com/knadh/koanf) (configuration management).
-* [https://github.com/uber-go/zap](https://github.com/uber-go/zap)`Zap` (Structured logging).
+* [ProtonMail/gopenpgp/v3](https://github.com/ProtonMail/gopenpgp/v3) (OpenPGP integration).
+* [golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt/v5) (JWT Authentication).
+* [gorilla/websocket](https://github.com/gorilla/websocket) (WebSocket connectivity).
+* [knadh/koanf](https://github.com/knadh/koanf) (configuration management).
+* [uber-go/zap](https://github.com/uber-go/zap) (Structured logging).
 
 ### Client-Side
 * **Core Logic & UI:** TypeScript, React, Vite, Tailwind CSS, Zustand (State Management), Lucid-React (UI Components).
