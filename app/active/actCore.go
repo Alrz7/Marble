@@ -21,13 +21,13 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		return
 	}
 
-	defer func() {
-		err = conn.Close()
-		if err != nil {
-			loggy.NewAppErr(err.Error()).Panic()
-		}
-		DeleteUserOf(conn)
-	}()
+	// defer func() {
+	// 	err = conn.Close()
+	// 	if err != nil {
+	// 		loggy.NewAppErr(err.Error()).Panic()
+	// 	}
+	// 	DeleteUserOf(conn)
+	// }()
 
 	conn.SetReadLimit(4096)
 
@@ -45,13 +45,13 @@ func WebSocket(w http.ResponseWriter, r *http.Request, jwtSecretKey []byte) {
 		user, err := GetUserOf(conn)
 		if user == nil {
 			if err != nil {
-				actServerErrorResponse(conn, err) // should we send the server errors to the client to ?? :|
+				actServerErrorResponse(conn, err)
 			} else {
 				actErrorResponse(conn, internal.ActUserNotFound, "user was not found!")
 			}
 			break
 		}
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(context.Background()) // or maybe r.Context ?!!!
 		var req = Request{
 			ctx:    ctx,
 			cancel: cancel,

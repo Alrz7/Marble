@@ -56,6 +56,8 @@ func (api ApiConfig) rateLimit(next http.Handler) http.Handler {
 		delete(limitMap, ip)
 	}
 
+	//this method is for dev-Only integrations, its arc is much more accurate but for higher request counts
+	//it will be unefficient and the better way is to integrate it with Redis's TTL/Expire
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := realip.FromRequest(r)
 		var rLimit *limit

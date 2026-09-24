@@ -62,3 +62,16 @@ func DeleteUserOf(conn *websocket.Conn) {
 	}
 	delete(tempDb, conn)
 }
+
+func CloseAll() {
+	mu.Lock()
+	defer mu.Unlock()
+	for conn, User := range tempDb {
+		err := conn.Close()
+		if err != nil {
+			loggy.Get(err).SetMessage("err while closing conn").Log()
+		}
+		delete(userDb, User.Id)
+		delete(tempDb, conn)
+	}
+}
