@@ -1,6 +1,7 @@
 package api
 
 import (
+	"marble/internal/loggy"
 	"net/http"
 	"sync"
 	"time"
@@ -77,6 +78,19 @@ func (api ApiConfig) rateLimit(next http.Handler) http.Handler {
 			api.rateLimitExceededResponse(w, r)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (api *ApiConfig) recoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			pv := recover()
+			if pv != nil {
+				w.Header().Set("Connection", "close")
+				api.serverErrorResponse(w, r, loggy.NewAppErr("panicRecoeryFailed").SetMessagef("%v", pv))
+			}
+		}()
 		next.ServeHTTP(w, r)
 	})
 }

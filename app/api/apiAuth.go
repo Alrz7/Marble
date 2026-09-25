@@ -5,6 +5,7 @@ import (
 	"marble/app/users"
 	"marble/db"
 	"marble/enc"
+	"marble/internal/helpers"
 	"marble/internal/loggy"
 	"marble/internal/validator"
 	"net/http"
@@ -124,7 +125,7 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	
+
 	userExistingAuthHash, err := db.AppModels.UserModel.GetUserAuthHash(subctx, existingUser.Id)
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err))
@@ -147,6 +148,15 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		api.serverErrorResponse(w, r, loggy.Get(err).SetMessage("error while getting new User Refresh Token").SetReason(loggy.ErrInternalServer))
 		return
 	}
+
+	helpers.DoRecover(api.wg, func() {
+		err = api.mailer.Send(existingUser.Email, "user_welcome.tmpl", existingUser)
+		if err != nil {
+			apperr := loggy.Get(err)
+			api.serverErrorResponse(w, r, apperr)
+			return
+		}
+	})
 
 	response := envelope{
 		"error":        false,

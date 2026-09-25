@@ -44,15 +44,14 @@ func Setup() *Application {
 	loggy.Init(App.Logger)
 
 	db, models, err := db.InitModels()
-	App.Db = db
-	App.Models = models
-
 	if err != nil {
 		loggy.Get(err).SetMessage("there was an error while trying to setup Database").Fatal()
 	}
 	if db == nil {
 		loggy.NewAppErr(loggy.ErrDbConnection).SetMessage("there was an error while trying to setup Database")
 	}
+	App.Db = db
+	App.Models = models
 	loggy.NewAppInfo("database connection pool established").Log()
 
 	return App
