@@ -34,11 +34,12 @@ type limiter struct {
 
 type mailerConf struct {
 	Enabled       bool   `koanf:"enabled"`
-	SmptHost      string `koanf:"smpt-host"`
-	SmptPort      int    `koanf:"smpt-port"`
-	SmptUserName  string `koanf:"smpt-username"`
-	SmptPassworsd string `koanf:"smpt-password"`
-	SmptSender    string `koanf:"smpt-sender"`
+	Env           string `koanf:"env"`
+	SmtpHost      string `koanf:"smtp-host"`
+	SmtpPort      int    `koanf:"smtp-port"`
+	SmtpUserName  string `koanf:"smtp-username"`
+	SmtpPassworsd string `koanf:"smtp-password"`
+	SmtpSender    string `koanf:"smtp-sender"`
 }
 
 func (api *ApiConfig) Serve() {
@@ -53,7 +54,7 @@ func (api *ApiConfig) Serve() {
 	var err error
 
 	if api.MailerConf.Enabled {
-		api.mailer, err = mailer.New(api.MailerConf.SmptHost, api.MailerConf.SmptPort, api.MailerConf.SmptUserName, api.MailerConf.SmptPassworsd, api.MailerConf.SmptSender)
+		api.mailer, err = mailer.New(api.MailerConf.SmtpHost, api.MailerConf.SmtpPort, api.MailerConf.SmtpUserName, api.MailerConf.SmtpPassworsd, api.MailerConf.SmtpSender, api.MailerConf.Env)
 		if err != nil {
 			loggy.Get(err).SetMessage("error while initing api-mailer").Fatal()
 		}
@@ -95,7 +96,7 @@ func (api *ApiConfig) manageSignals(srv *http.Server, shutdownError chan *loggy.
 		shutdownError <- loggy.Get(err).SetMessage("there was an error while shutting down server")
 	}
 
-	loggy.NewAppInfo("shutDown").SetMessage("completing background tasks")
+	loggy.NewAppInfo("shutDown").SetMessage("completing background tasks").Log()
 	api.wg.Wait()
 	shutdownError <- nil
 }

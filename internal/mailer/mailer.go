@@ -3,6 +3,7 @@ package mailer
 import (
 	"bytes"
 	"embed"
+	"marble/internal"
 	"time"
 
 	ht "html/template"
@@ -19,16 +20,30 @@ type Mailer struct {
 	sender string
 }
 
-func New(host string, port int, username, password, sender string) (*Mailer, error) {
-	client, err := mail.NewClient(
-		host,
-		mail.WithSMTPAuth(mail.SMTPAuthLogin),
-		mail.WithPort(port),
-		mail.WithUsername(username),
-		mail.WithPassword(password),
-		mail.WithTimeout(5*time.Second),
-		mail.WithDebugLog(),
-	)
+func New(host string, port int, username, password, sender string, env string) (*Mailer, error) {
+	var client *mail.Client
+	var err error
+	switch env {
+	case internal.EnvDevelopment, internal.EnvDebug:
+		// we use ailpit for dev and testing purpeses, for easyer
+		// integration we set NoTLS on.
+		client, err = mail.NewClient(
+			host,
+			mail.WithPort(port),
+			mail.WithTLSPolicy(mail.NoTLS),
+			mail.WithTimeout(5*time.Second),
+			mail.WithDebugLog(),
+		)
+	default:
+		client, err = mail.NewClient(
+			host,
+			mail.WithSMTPAuth(mail.SMTPAuthLogin),
+			mail.WithPort(port),
+			mail.WithUsername(username),
+			mail.WithPassword(password),
+			mail.WithTimeout(5*time.Second),
+		)
+	}
 	if err != nil {
 		return nil, err
 	}

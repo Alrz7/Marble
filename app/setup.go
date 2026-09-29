@@ -6,6 +6,7 @@ import (
 	"marble/app/api"
 	"marble/config"
 	"marble/db"
+	"marble/internal"
 	"marble/internal/loggy"
 	"os"
 	"strconv"
@@ -30,7 +31,7 @@ func Setup() *Application {
 
 	App.Api.Env = App.Conf.Env
 	switch App.Conf.Env {
-	case "Development", "Staging":
+	case internal.EnvDevelopment, internal.EnvStaging:
 		App.Logger, _ = zap.NewDevelopment(
 			zap.AddCaller(),
 			zap.AddCallerSkip(1),
@@ -84,7 +85,7 @@ func (a *Application) setEnv() *Application {
 
 func (a *Application) setFlags() *Application {
 	flag.Int("port", a.Api.Port, "Api server port")
-	flag.StringVar(&a.Conf.Env, "env", "Development", "Envirement (Development|Staging|Production)")
+	flag.StringVar(&a.Conf.Env, "env", internal.EnvDevelopment, "Envirement (Development|Staging|Production)")
 	jwtSec := flag.String("jwtSec", "", "Api's jwt Secret")
 	setConfig := flag.String("config", "", "config Dir")
 	flag.Parse()
