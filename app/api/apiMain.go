@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"marble/app/active"
+	"marble/internal"
 	"marble/internal/loggy"
 	"net/http"
 	"os"
@@ -14,10 +15,11 @@ import (
 )
 
 type ApiConfig struct {
-	Port      int     `koanf:"port"`
-	JwtSecret []byte  `koanf:"jwtSecret"`
-	Env       string  `koanf:"env"`
-	Limiter   limiter `koanf:"limiter"`
+	Port      int         `koanf:"port"`
+	JwtSecret []byte      `koanf:"jwtSecret"`
+	Env       string      `koanf:"env"`
+	Limiter   limiter     `koanf:"limiter"`
+	Users     UsersConfig `koanf:"users"`
 }
 
 type limiter struct {
@@ -25,6 +27,10 @@ type limiter struct {
 	Burst   int           `koanf:"burst"`
 	TimeOut time.Duration `koanf:"timeout"`
 	Enabled bool          `koanf:"enabled"`
+}
+
+type UsersConfig struct {
+	Props []internal.UserProperties `koanf:"properties"`
 }
 
 func (api *ApiConfig) Serve() {

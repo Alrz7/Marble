@@ -29,6 +29,8 @@ type DBTX interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
+type UserProperties string
+
 const (
 	// auth err
 	ActAuthenticationError = "AuthenticationError"
@@ -45,4 +47,8 @@ const (
 
 var (
 	ErrRecordNotFound = errors.New("Record Not Found")
+)
+
+const (
+	WithActivation UserProperties = "withActivation"
 )

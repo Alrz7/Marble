@@ -7,3 +7,5 @@ DROP TABLE IF EXISTS pgp_profile;
 DROP TABLE IF EXISTS users;
 
 DROP SEQUENCE IF EXISTS display_id_seq;
+
+DROP TABLE IF EXISTS tokens;

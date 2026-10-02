@@ -12,6 +12,7 @@ type User struct {
 	Email          string
 	SessionLastSeq int
 	ProfileAvatar  string
+	IsActive       bool
 	PgpProfile     pgp.Profile
 }
 

@@ -10,6 +10,7 @@ import (
 
 type Models struct {
 	UserModel    users.UserModel
+	TokenModel   users.TokenModel
 	SessionModel session.SessionModel
 	MessageModel session.MessageModel
 	ProfileModel pgp.ProfileModel
@@ -28,6 +29,7 @@ func InitModels() (*sql.DB, *Models, error) {
 	}
 	Global = db
 	AppModels.UserModel = users.UserModel{Db: db}
+	AppModels.TokenModel = users.TokenModel{Db: db}
 	AppModels.SessionModel = session.SessionModel{Db: db}
 	AppModels.MessageModel = session.MessageModel{Db: db}
 	AppModels.ProfileModel = pgp.ProfileModel{Db: db}

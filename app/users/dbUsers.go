@@ -16,10 +16,10 @@ import (
 
 func (m UserModel) Insert(ctx context.Context, user *User, passwordHash string) error {
 	query := `
-	INSERT INTO users (name, email, display_id, auth_hash)
-	VALUES ($1, $2, $3, $4)
+	INSERT INTO users (name, email, display_id, auth_hash, is_active)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING 	id, display_id`
-	args := []any{user.UserName, user.Email, user.DisplayId, passwordHash}
+	args := []any{user.UserName, user.Email, user.DisplayId, passwordHash, user.IsActive}
 	err := m.Db.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.DisplayId)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
@@ -34,43 +34,43 @@ func (m UserModel) Insert(ctx context.Context, user *User, passwordHash string) 
 	return nil
 }
 
-func (m UserModel) SetUserRefreshToken(ctx context.Context, id internal.UserId, token string) error {
-	query := `UPDATE users
-	SET refresh_token = $2
-	WHERE id = $1`
-	args := []any{id, token}
-	_, err := m.Db.ExecContext(ctx, query, args...)
-	if err != nil {
-		pqError, ok := loggy.ParsePqError(err)
-		if ok {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
-			}
-			return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err)
-		}
-		return loggy.EchoWithMessage("error while setting User-Refresh-Token", err)
-	}
-	return nil
-}
+// func (m UserModel) SetUserRefreshToken(ctx context.Context, id internal.UserId, token string) error {
+// 	query := `UPDATE users
+// 	SET refresh_token = $2
+// 	WHERE id = $1`
+// 	args := []any{id, token}
+// 	_, err := m.Db.ExecContext(ctx, query, args...)
+// 	if err != nil {
+// 		pqError, ok := loggy.ParsePqError(err)
+// 		if ok {
+// 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+// 				return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
+// 			}
+// 			return loggy.NewAppErr(pqError).SetMessage("error while setting User-Refresh-Token").SetErr(err)
+// 		}
+// 		return loggy.EchoWithMessage("error while setting User-Refresh-Token", err)
+// 	}
+// 	return nil
+// }
 
-func (m UserModel) GetUserRefreshToken(ctx context.Context, id internal.UserId) (string, error) {
-	var res string
-	query := `SELECT refresh_token FROM users WHERE id = $1`
-	args := []any{&res}
-	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
-	if err != nil {
-		pqError, ok := loggy.ParsePqError(err)
-		if ok {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
-			}
-			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err)
-		}
-		return "", loggy.EchoWithMessage("error while fetching User-Refresh-Token", err)
+// func (m UserModel) GetUserRefreshToken(ctx context.Context, id internal.UserId) (string, error) {
+// 	var res string
+// 	query := `SELECT refresh_token FROM users WHERE id = $1`
+// 	args := []any{&res}
+// 	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
+// 	if err != nil {
+// 		pqError, ok := loggy.ParsePqError(err)
+// 		if ok {
+// 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+// 				return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err).SetReason(ctx.Err().Error())
+// 			}
+// 			return "", loggy.NewAppErr(pqError).SetMessage("error while fetching User-Refresh-Token").SetErr(err)
+// 		}
+// 		return "", loggy.EchoWithMessage("error while fetching User-Refresh-Token", err)
 
-	}
-	return res, nil
-}
+// 	}
+// 	return res, nil
+// }
 
 func (m UserModel) GetUserAuthHash(ctx context.Context, id internal.UserId) (string, error) {
 	var res string
@@ -95,11 +95,11 @@ func (m UserModel) Get(ctx context.Context, id internal.UserId) (*User, error) {
 	if id < 1 {
 		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
-	query := `SELECT id, email, name, display_id, session_last_seq
+	query := `SELECT id, email, name, display_id, session_last_seq, is_active
 			FROM users
 			WHERE id = $1`
 	var user User
-	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId, &user.SessionLastSeq}
+	args := []any{&user.Id, &user.Email, &user.UserName, &user.DisplayId, &user.SessionLastSeq, &user.IsActive}
 	err := m.Db.QueryRowContext(ctx, query, id).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
@@ -205,11 +205,11 @@ func (m UserModel) GetByDisplayId(ctx context.Context, dispayId string) (*User, 
 	if dispayId == "" {
 		return nil, loggy.NewAppErr(loggy.ErrNoRecord)
 	}
-	query := `SELECT display_id, id, email, name
+	query := `SELECT display_id, id, email, name, is_active
 			FROM users
 			WHERE display_id = $1`
 	var user User
-	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
+	args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName, &user.IsActive}
 	err := m.Db.QueryRowContext(ctx, query, dispayId).Scan(args...)
 	if err != nil {
 		pqError, ok := loggy.ParsePqError(err)
@@ -245,7 +245,7 @@ func (m UserModel) PrefixMatchDisplayId(ctx context.Context, dispayId string) ([
 			return nil, loggy.NewAppErr("unsupported charecter")
 		}
 	}
-	query := `SELECT display_id, id, email, name
+	query := `SELECT display_id, id, email, name, is_active
 			FROM users
 			WHERE display_id ILIKE $1 || '%'`
 	rows, err := m.Db.QueryContext(ctx, query, dispayId)
@@ -265,11 +265,16 @@ func (m UserModel) PrefixMatchDisplayId(ctx context.Context, dispayId string) ([
 	pgpModel := pgp.ProfileModel{Db: m.Db}
 	for rows.Next() {
 		var user User
-		args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName}
+		args := []any{&user.DisplayId, &user.Id, &user.Email, &user.UserName, &user.IsActive}
 		err := rows.Scan(args...)
 		if err != nil {
 			return nil, err
 		}
+		
+		if !user.IsActive {
+			continue
+		}
+
 		pgp_profile, err := pgpModel.Get(ctx, user.Id)
 		if err != nil {
 			return nil, err

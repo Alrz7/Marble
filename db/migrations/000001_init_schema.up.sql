@@ -6,10 +6,10 @@ CREATE TABLE users (
     name VARCHAR(60) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     auth_hash CHAR(60),
-    refresh_token TEXT,
     profile_avatar TEXT,
     session_last_seq INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL
 );
 
 CREATE TABLE pgp_profile (
@@ -36,4 +36,12 @@ CREATE TABLE message (
     content TEXT NOT NULL,
     profile VARCHAR(15) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+    hash bytea PRIMARY KEY,
+    user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expiry timestamp(0) with time zone NOT NULL,
+    scope text NOT NULL,
+    type text NOT NULL
 );

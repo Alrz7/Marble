@@ -4,19 +4,20 @@ import (
 	"context"
 	"marble/enc/pgp"
 	"marble/internal/loggy"
+	"time"
 )
 
 var logger = loggy.DefaultZapLogger
 
-func CreateNewUser(username, email, DisplayId string, pubIdentKey string) (*User, error) {
+func CreateNewUser(username, email, DisplayId string, pubIdentKey string, withActivation bool) (*User, error) {
 	// check valid Email
 	newUser := User{
 		UserName:  username,
 		Email:     email,
 		DisplayId: DisplayId,
+		IsActive: !withActivation,
 	}
 	newUser.PgpProfile.PublicKey = pubIdentKey
-
 	return &newUser, nil
 }
 
@@ -30,6 +31,12 @@ func (U *User) Save(ctx context.Context, UModel UserModel, userAuthKey string, P
 		return err
 	}
 	return nil
+}
+
+func (u *User) GenActiveToken(ctx context.Context, md TokenModel) (string, error) {
+	newToken := u.NewToken(TK_Activation, Tk_Temperory, 36*time.Hour)
+	err := md.Insert(ctx, newToken)
+	return newToken.Plaintext, err
 }
 
 func (U *User) fakeSave() error {

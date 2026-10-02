@@ -5,9 +5,11 @@ import (
 	"marble/app/users"
 	"marble/db"
 	"marble/enc"
+	"marble/internal"
 	"marble/internal/loggy"
 	"marble/internal/validator"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -40,7 +42,8 @@ func (api *ApiConfig) handleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := users.CreateNewUser(entry.Name, entry.Email, entry.DisplayId, entry.PubIdentKey)
+	needToActive := slices.Contains(api.Users.Props, internal.WithActivation)
+	newUser, err := users.CreateNewUser(entry.Name, entry.Email, entry.DisplayId, entry.PubIdentKey, needToActive)
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err).SetMessage("error while creating user").SetReason(loggy.ErrInternalServer))
 		return
@@ -124,7 +127,7 @@ func (api *ApiConfig) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	
+
 	userExistingAuthHash, err := db.AppModels.UserModel.GetUserAuthHash(subctx, existingUser.Id)
 	if err != nil {
 		api.serverErrorResponse(w, r, loggy.Get(err))
