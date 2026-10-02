@@ -45,6 +45,13 @@ const (
 	ActUserNotFound              = "UserNotFound"
 )
 
+const (
+	EnvDevelopment = "Development"
+	EnvDebug       = "Debug"
+	EnvStaging     = "Staging"
+	EnvProduction  = "Production"
+)
+
 var (
 	ErrRecordNotFound = errors.New("Record Not Found")
 )

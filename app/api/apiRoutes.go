@@ -20,7 +20,7 @@ func (api *ApiConfig) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/account/delete", api.handleDeleteAccount)
 	router.HandlerFunc(http.MethodGet, "/actv", api.handleWebSocket) // story Begins here... :)
 
-	return api.rateLimit(router)
+	return api.recoverPanic(api.rateLimit(router))
 }
 
 func (api *ApiConfig) handleHome(w http.ResponseWriter, r *http.Request) {

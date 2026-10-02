@@ -7,19 +7,24 @@ import (
 	"marble/app/active"
 	"marble/internal"
 	"marble/internal/loggy"
+	"marble/internal/mailer"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
 
 type ApiConfig struct {
-	Port      int         `koanf:"port"`
-	JwtSecret []byte      `koanf:"jwtSecret"`
-	Env       string      `koanf:"env"`
-	Limiter   limiter     `koanf:"limiter"`
+	Port       int        `koanf:"port"`
+	JwtSecret  []byte     `koanf:"jwtSecret"`
+	Env        string     `koanf:"env"`
+	Limiter    limiter    `koanf:"limiter"`
+	MailerConf mailerConf `koanf:"mailer"`
 	Users     UsersConfig `koanf:"users"`
+	mailer     *mailer.Mailer
+	wg         *sync.WaitGroup
 }
 
 type limiter struct {
@@ -32,6 +37,15 @@ type limiter struct {
 type UsersConfig struct {
 	Props []internal.UserProperties `koanf:"properties"`
 }
+type mailerConf struct {
+	Enabled       bool   `koanf:"enabled"`
+	Env           string `koanf:"env"`
+	SmtpHost      string `koanf:"smtp-host"`
+	SmtpPort      int    `koanf:"smtp-port"`
+	SmtpUserName  string `koanf:"smtp-username"`
+	SmtpPassworsd string `koanf:"smtp-password"`
+	SmtpSender    string `koanf:"smtp-sender"`
+}
 
 func (api *ApiConfig) Serve() {
 	srv := &http.Server{
@@ -41,11 +55,21 @@ func (api *ApiConfig) Serve() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
+	api.wg = &sync.WaitGroup{}
+	var err error
+
+	if api.MailerConf.Enabled {
+		api.mailer, err = mailer.New(api.MailerConf.SmtpHost, api.MailerConf.SmtpPort, api.MailerConf.SmtpUserName, api.MailerConf.SmtpPassworsd, api.MailerConf.SmtpSender, api.MailerConf.Env)
+		if err != nil {
+			loggy.Get(err).SetMessage("error while initing api-mailer").Fatal()
+		}
+	}
+
 	shutdownError := make(chan *loggy.AppLog)
-	go manageSignals(srv, shutdownError)
+	go api.manageSignals(srv, shutdownError)
 
 	loggy.NewAppInfo(fmt.Sprintf("starting server on port %v", api.Port)).Log()
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			loggy.Get(err).SetMessage("there was an error while shutting down server").Log()
@@ -61,7 +85,7 @@ func (api *ApiConfig) Serve() {
 	loggy.NewAppInfo("stopped server").AddParam("addr", srv.Addr).Log()
 }
 
-func manageSignals(srv *http.Server, errors chan *loggy.AppLog) {
+func (api *ApiConfig) manageSignals(srv *http.Server, shutdownError chan *loggy.AppLog) {
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -73,5 +97,11 @@ func manageSignals(srv *http.Server, errors chan *loggy.AppLog) {
 	defer cancel()
 
 	err := srv.Shutdown(ctx)
-	errors <- loggy.Get(err).SetMessage("there was an error while shutting down server")
+	if err != nil {
+		shutdownError <- loggy.Get(err).SetMessage("there was an error while shutting down server")
+	}
+
+	loggy.NewAppInfo("shutDown").SetMessage("completing background tasks").Log()
+	api.wg.Wait()
+	shutdownError <- nil
 }
